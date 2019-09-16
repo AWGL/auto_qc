@@ -1,2 +1,5 @@
 data/
 __pycache__
+db.sqlite3
+credentials.json
+token.pickle
