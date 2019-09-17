@@ -2,6 +2,7 @@ from pathlib import Path
 
 
 
+
 class GermlineEnrichment:
 
 
@@ -172,9 +173,10 @@ class IlluminaQC:
 				sample_names,
 				n_lanes,
 				run_id,
-				min_fastq_size=10000,
-				ntc_pattern = '*NTC*',
-				run_complete_marker = '1_IlluminaQC.sh.e*'):
+				min_fastq_size=10000000,
+				ntc_patterns = ['NTC', 'ntc'],
+				run_complete_marker = '1_IlluminaQC.sh.e*',
+				copy_complete_marker = '*.variables'):
 
 		self.fastq_dir = fastq_dir
 		self.results_dir = results_dir
@@ -183,7 +185,7 @@ class IlluminaQC:
 		self.run_id = run_id
 		self.run_complete_marker = run_complete_marker
 		self.min_fastq_size = min_fastq_size
-		self.ntc_pattern = ntc_pattern
+		self.ntc_patterns = ntc_patterns
 
 	def demultiplex_run_is_complete(self):
 
@@ -199,7 +201,59 @@ class IlluminaQC:
 
 	def demultiplex_run_is_valid(self):
 
-		for sample in self.samples:
+		fastq_data_path = Path(self.fastq_dir)
+
+		fastq_data_path = fastq_data_path.joinpath('Data')
+
+		for sample in self.sample_names:
+
+			is_negative_control = False
+
+			for pattern in self.ntc_patterns:
+
+				if pattern in sample:
+
+					is_negative_control = True
+					break
+
+			sample_fastq_path = fastq_data_path.joinpath(sample)
+
+			# check fastqs created
+			for lane in range(1,self.n_lanes+1):
+
+
+				fastq_r1 = sample_fastq_path.glob(f'{sample}*L00{lane}_R1_001.fastq.gz')
+				fastq_r2 = sample_fastq_path.glob(f'{sample}*L00{lane}_R2_001.fastq.gz')
+				variables = sample_fastq_path.glob(f'{sample}.variables')
+
+				if len(list(fastq_r1)) != 1:
+
+					return False
+
+				elif len(list(fastq_r2)) != 1:
+
+					return False
+
+				elif len(list(variables)) != 1:
+
+					return False
+
+				fastq_r1 = sample_fastq_path.glob(f'{sample}*L00{lane}_R1_001.fastq.gz')
+				fastq_r2 = sample_fastq_path.glob(f'{sample}*L00{lane}_R2_001.fastq.gz')
+				
+				fastq_r1 = list(fastq_r1)[0]
+				fastq_r2 = list(fastq_r2)[0]
+
+				if fastq_r1.stat().st_size < self.min_fastq_size and is_negative_control == False:
+
+					return False
+
+				elif fastq_r2.stat().st_size < self.min_fastq_size  and is_negative_control == False:
+
+					return False
+
+
+		return True
 
 
 
