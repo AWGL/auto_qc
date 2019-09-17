@@ -4,28 +4,43 @@ from django.db import models
 
 class Run(models.Model):
 
-	pass
+	run_id = models.CharField(max_length=50, primary_key=True)
+
+class WorkSheet(models.Model):
+
+	worksheet_id = models.CharField(max_length=50, primary_key=True)
 
 class Sample(models.Model):
 
-	pass
+	sample_id = models.CharField(max_length=50, primary_key=True)
 
 class Pipeline(models.Model):
 
-	pass
-
+	pipeline_id = models.CharField(max_length=50, primary_key=True)
 
 class AnalysisType(models.Model):
 
-	pass
+	analysis_type_id = models.CharField(max_length=50, primary_key=True)
 
 class RunAnalysis(models.Model):
 
-	pass
+	run = models.ForeignKey(Run, on_delete=models.CASCADE)
+	pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE)
+	analysis_type = models.ForeignKey(AnalysisType, on_delete=models.CASCADE)
+
+	class Meta:
+		unique_together = [['run', 'pipeline', 'analysis_type']]
 
 
 class SampleAnalysis(models.Model):
 
-	pass
+	sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
+	run = models.ForeignKey(Run, on_delete=models.CASCADE)
+	pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE)
+	analysis_type = models.ForeignKey(AnalysisType, on_delete=models.CASCADE)
+	worksheet = models.ForeignKey(WorkSheet, on_delete=models.CASCADE)
+
+	class Meta:
+		unique_together = [['sample', 'run', 'pipeline']]
 
 

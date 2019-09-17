@@ -163,13 +163,55 @@ class GermlineEnrichment:
 
 		return True
 
-	def get_completed_samples(self):
+
+class IlluminaQC:
+
+	def __init__(self,
+	 			fastq_dir,
+	  			results_dir,
+				sample_names,
+				n_lanes,
+				run_id,
+				min_fastq_size=10000,
+				ntc_pattern = '*NTC*',
+				run_complete_marker = '1_IlluminaQC.sh.e*'):
+
+		self.fastq_dir = fastq_dir
+		self.results_dir = results_dir
+		self.sample_names = sample_names
+		self.n_lanes = n_lanes
+		self.run_id = run_id
+		self.run_complete_marker = run_complete_marker
+		self.min_fastq_size = min_fastq_size
+		self.ntc_pattern = ntc_pattern
+
+	def demultiplex_run_is_complete(self):
+
+		results_path = Path(self.fastq_dir)
+
+		marker = results_path.glob(self.run_complete_marker)
+
+		if len(list(marker)) == 1:
+
+			return True
+
+		return False
+
+	def demultiplex_run_is_valid(self):
+
+		for sample in self.samples:
+
+
+
+
+	def pipeline_copy_complete(self):
 
 		pass
 
-	def get_pipeline_failed_samples(self):
+	def pipeline_copy_valid(self):
 
 		pass
+
 
 class SomaticAmplicon:
 
@@ -180,11 +222,3 @@ class SomaticEnrichment:
 
 	pass
 
-
-class IlluminaQC:
-
-	pass
-
-class DataTransfer:
-
-	pass
