@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import *
 
 # Register your models here.
+admin.site.register(Instrument)
 admin.site.register(Run)
 admin.site.register(WorkSheet)
 admin.site.register(Sample)

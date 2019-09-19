@@ -23,7 +23,7 @@ germline = GermlineEnrichment(results_dir = '/home/joseph/Documents/auto_qc/data
 #sample_sheet_parser('/home/joseph/Documents/auto_qc/data/archive/miseq/190520_M02641_0219_000000000-CGJT6/SampleSheet.csv')
 
 illumina_qc = IlluminaQC(fastq_dir = '/home/joseph/Documents/auto_qc/data/archive/fastq/190520_M02641_0219_000000000-CGJT6',
-						results_dir =' /home/joseph/Documents/auto_qc/data/results/190520_M02641_0219_000000000-CGJT6/IlluminaTruSightCancer',
+						results_dir ='/home/joseph/Documents/auto_qc/data/results/190520_M02641_0219_000000000-CGJT6/IlluminaTruSightCancer',
 						sample_names=['19M06586', 'NTC'],
 						n_lanes =1,
 						run_id = '190520_M02641_0219_000000000-CGJT6')
@@ -32,3 +32,5 @@ illumina_qc = IlluminaQC(fastq_dir = '/home/joseph/Documents/auto_qc/data/archiv
 #print (illumina_qc.demultiplex_run_is_complete())
 
 print ('The result of is valid is', illumina_qc.demultiplex_run_is_valid())
+
+print ('The result of is copied is', illumina_qc.pipeline_copy_complete())

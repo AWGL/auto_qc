@@ -1,6 +1,5 @@
 from pathlib import Path
-
-
+import glob
 
 
 class GermlineEnrichment:
@@ -18,14 +17,12 @@ class GermlineEnrichment:
 		self.sample_expected_files = ['*.bam',
 		 							'*.g.vcf',
 		  							'*_AlignmentSummaryMetrics.txt',
-		  							'*_cnv.vcf.gz',
 		  							'*_Contamination.selfSM',
 		  							'*_DepthOfCoverage.gz',
 		  							'*_HsMetrics.txt',
 		  							'*_InsertMetrics.txt',
 		  							'*_MarkDuplicatesMetrics.txt',
-		  							'*_QC.txt',
-		  							'*_sv_filtered.vcf.gz']
+		  							'*_QC.txt']
 
 		self.sample_not_expected_files = ['*_rmdup.bam',
 										 '*_DepthOfCoverage']
@@ -186,6 +183,7 @@ class IlluminaQC:
 		self.run_complete_marker = run_complete_marker
 		self.min_fastq_size = min_fastq_size
 		self.ntc_patterns = ntc_patterns
+		self.copy_complete_marker = copy_complete_marker
 
 	def demultiplex_run_is_complete(self):
 
@@ -256,15 +254,23 @@ class IlluminaQC:
 		return True
 
 
-
-
 	def pipeline_copy_complete(self):
 
-		pass
+		results_data_path = Path(self.results_dir)
 
-	def pipeline_copy_valid(self):
+		for sample in self.sample_names:
 
-		pass
+			sample_results_path = results_data_path.joinpath(sample)
+
+			variables_file = sample_results_path.joinpath(self.copy_complete_marker)
+
+			variables_file = glob.glob(str(variables_file))
+
+			if len(variables_file) != 1:
+
+				return False
+
+		return True
 
 
 class SomaticAmplicon:
