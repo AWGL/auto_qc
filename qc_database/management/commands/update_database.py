@@ -105,20 +105,19 @@ class Command(BaseCommand):
 			# regardless of whether we have seen it before then 
 			run_obj, created = Run.objects.get_or_create(run_id=run_id)
 		
-			#if run_id not in existing_runs:
+			if run_id not in existing_runs:
 
-			# parse runlog data 
-			run_info = raw_data.joinpath('RunInfo.xml')
-			run_parameters = raw_data.joinpath('runParameters.xml')
+				# parse runlog data 
+				run_info = raw_data.joinpath('RunInfo.xml')
+				run_parameters = raw_data.joinpath('runParameters.xml')
 
-			if run_info.exists() == False or run_parameters.exists() == False:
+				if run_info.exists() == False or run_parameters.exists() == False:
 
-				next
+					next
 
-			add_run_log_info(run_info, run_parameters, run_obj, raw_data)
+				add_run_log_info(run_info, run_parameters, run_obj, raw_data)
 
 			
-
 
 			if created == True:
 
@@ -243,6 +242,9 @@ class Command(BaseCommand):
 					if run_valid == True:
 
 						print (f'Run {run_id} has now completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+
+						# add qc data for all samples and run level
 
 					else:
 

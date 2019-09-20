@@ -31,6 +31,12 @@ illumina_qc = IlluminaQC(fastq_dir = '/home/joseph/Documents/auto_qc/data/archiv
 
 #print (illumina_qc.demultiplex_run_is_complete())
 
-print ('The result of is valid is', illumina_qc.demultiplex_run_is_valid())
+#print ('The result of is valid is', illumina_qc.demultiplex_run_is_valid())
 
-print ('The result of is copied is', illumina_qc.pipeline_copy_complete())
+#print ('The result of is copied is', illumina_qc.pipeline_copy_complete())
+
+#print(germline.get_fastqc_data())
+
+#print (germline.get_hs_metrics())
+
+print (germline.get_depth_metrics())

@@ -4,11 +4,11 @@ from django.db import models
 
 class Instrument(models.Model):
 
-    instrument_id = models.CharField(max_length=255, primary_key=True)
-    instrument_type = models.CharField(max_length=255)
+	instrument_id = models.CharField(max_length=255, primary_key=True)
+	instrument_type = models.CharField(max_length=255)
 
-    def __str__(self):
-        return self.instrument_id
+	def __str__(self):
+		return self.instrument_id
 
 class Run(models.Model):
 
@@ -104,3 +104,26 @@ class SampleAnalysis(models.Model):
 		unique_together = [['sample', 'run', 'pipeline']]
 
 
+class FastqcData(models.Model):
+	"""
+	Model to store data from the FastQC output, there will be one entry per fastq file.
+	There is a fastq file made for each lane and each read, so a run will usually have 2-4.
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	read_group = models.CharField(max_length=255, blank=True)
+	lane = models.CharField(max_length=255, blank=True)
+	basic_statistics = models.CharField(max_length=255, blank=True)
+	per_base_sequence_quality = models.CharField(max_length=255, blank=True)
+	Per_tile_sequence_quality = models.CharField(max_length=255, blank=True)
+	per_sequence_quality_scores = models.CharField(max_length=255, blank=True)
+	per_base_sequence_content = models.CharField(max_length=255, blank=True)
+	per_sequence_qc_content = models.CharField(max_length=255, blank=True)
+	per_base_n_content = models.CharField(max_length=255, blank=True)
+	sequence_length_distribution = models.CharField(max_length=255, blank=True)
+	sequence_duplication_levels = models.CharField(max_length=255, blank=True)
+	overrepresented_sequences = models.CharField(max_length=255, blank=True)
+	adapter_content = models.CharField(max_length=255, blank=True)
+	kmer_content = models.CharField(max_length=255, blank=True)
+
+	def __str__(self):
+		return self.unique_id
