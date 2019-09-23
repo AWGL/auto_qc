@@ -225,3 +225,13 @@ class ContaminationMetrics(models.Model):
 	freemix = models.DecimalField(max_digits=20, decimal_places=4)
 	freelk1 = models.DecimalField(max_digits=20, decimal_places=4)
 	freelk0 = models.DecimalField(max_digits=20, decimal_places=4)
+
+
+class CalculatedSexMetrics(models.Model):
+
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	calculated_sex = models.CharField(max_length=10)
+
+class AlignmentMetrics(models.Model):
+
+	pass

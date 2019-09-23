@@ -166,19 +166,21 @@ def add_duplication_metrics(duplication_metrics_dict, run_analysis_obj):
 														pipeline = pipeline)
 		
 		existing_data = DuplicationMetrics.objects.filter(sample_analysis= sample_analysis_obj)
-			
-		sample_data = duplication_metrics_dict[key]
+		
+		if len(existing_data) < 1:
 
-		sample_data['sample_analysis'] = sample_analysis_obj
+			sample_data = duplication_metrics_dict[key]
 
-		for key in sample_data:
+			sample_data['sample_analysis'] = sample_analysis_obj
 
-			if sample_data[key] == '?' or sample_data[key] == '':
+			for key in sample_data:
 
-				sample_data[key] = None
+				if sample_data[key] == '?' or sample_data[key] == '':
 
-		new_depth_obj = DuplicationMetrics(**sample_data)
-		new_depth_obj.save()
+					sample_data[key] = None
+
+			new_duplication_obj = DuplicationMetrics(**sample_data)
+			new_duplication_obj.save()
 		
 def add_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
 
@@ -194,24 +196,79 @@ def add_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
 														pipeline = pipeline)
 
 
-		print (contamination_metrics_dict[key])
-		
 		existing_data = ContaminationMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+
+		if len(existing_data) < 1:
 			
-		sample_data = contamination_metrics_dict[key]
+			sample_data = contamination_metrics_dict[key]
 
-		print(sample_data)
+			sample_data['sample_analysis'] = sample_analysis_obj
 
-		sample_data['sample_analysis'] = sample_analysis_obj
+			for key in sample_data:
 
-		for key in sample_data:
+				if sample_data[key] == '?' or sample_data[key] == '':
 
-			if sample_data[key] == '?' or sample_data[key] == '':
+					sample_data[key] = None
 
-				sample_data[key] = None
+			new_contamination_obj = ContaminationMetrics(**sample_data)
+			new_contamination_obj.save()
 
-		new_depth_obj = ContaminationMetrics(**sample_data)
-		new_depth_obj.save()
+def add_sex_metrics(qc_metrics_dict, run_analysis_obj):
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in qc_metrics_dict:
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+		
+		existing_data = CalculatedSexMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+		
+		if len(existing_data) < 1:
+
+			sample_data = qc_metrics_dict[key]
+
+			new_depth_obj = CalculatedSexMetrics(sample_analysis = sample_analysis_obj,
+												calculated_sex = sample_data['gender'])
+			new_depth_obj.save()
+
+
+def add_alignment_metrics(alignment_metrics_dict, run_analysis_obj):
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in alignment_metrics_dict:
+
+		print (alignment_metrics_dict[key])
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+
+
+		existing_data = AlignmentMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+
+		if len(existing_data) < 1:
+			
+			sample_data = alignment_metrics_dict[key]
+
+			sample_data['sample_analysis'] = sample_analysis_obj
+
+			for key in sample_data:
+
+				if sample_data[key] == '?' or sample_data[key] == '':
+
+					sample_data[key] = None
+
+			new_alignment_obj = AlignmentMetrics(**sample_data)
+			new_alignment_obj.save()
 
 
 class Command(BaseCommand):
@@ -416,6 +473,14 @@ class Command(BaseCommand):
 						contamination_metrics_dict = germline_enrichment.get_contamination()
 
 						add_contamination_metrics(contamination_metrics_dict, run_analysis)
+
+						sex_dict = germline_enrichment.get_calculated_sex()
+
+						add_sex_metrics(sex_dict, run_analysis)
+
+						alignment_metrics_dict = germline_enrichment.get_alignment_metrics()
+
+						add_alignment_metrics(alignment_metrics_dict, run_analysis)
 
 					else:
 

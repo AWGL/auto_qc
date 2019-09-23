@@ -395,7 +395,7 @@ def parse_qc_metrics_file(qc_metrics_file):
 
 def parse_alignment_metrics_file(alignments_metric_file):
 
-	alignment_metrics_dict = {}
+	alignment_metrics_dicts = []
 
 	with open (alignments_metric_file) as file:
 
