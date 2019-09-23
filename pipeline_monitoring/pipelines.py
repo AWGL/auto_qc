@@ -170,7 +170,7 @@ class GermlineEnrichment:
 
 		for sample in self.sample_names:
 
-			fastqc_data_files = results_path.joinpath(sample).glob('*_fastqc.txt')
+			fastqc_data_files = results_path.joinpath(sample).glob(f'*{sample}*_fastqc.txt')
 
 			sample_fastqc_list = []
 
@@ -186,6 +186,7 @@ class GermlineEnrichment:
 				file_fastqc_dict['lane'] = lane
 				file_fastqc_dict['read_number'] = read_number
 				file_fastqc_dict['basic_statistics'] = parsed_fastqc_data['Basic Statistics']
+				file_fastqc_dict['per_tile_sequence_quality'] = parsed_fastqc_data['Per tile sequence quality']
 				file_fastqc_dict['per_base_sequencing_quality'] = parsed_fastqc_data['Per base sequence quality']
 				file_fastqc_dict['per_sequence_quality_scores'] = parsed_fastqc_data['Per sequence quality scores']
 				file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
@@ -214,7 +215,7 @@ class GermlineEnrichment:
 
 		for sample in self.sample_names:
 
-			hs_metrics_file = results_path.joinpath(sample).glob('*_HsMetrics.txt')
+			hs_metrics_file = results_path.joinpath(sample).glob(f'*{sample}*_HsMetrics.txt')
 
 			hs_metrics_file = list(hs_metrics_file)[0]
 
@@ -232,7 +233,7 @@ class GermlineEnrichment:
 
 		for sample in self.sample_names:
 
-			sample_depth_summary_file = results_path.joinpath(sample).glob('*_DepthOfCoverage.sample_summary')
+			sample_depth_summary_file = results_path.joinpath(sample).glob(f'*{sample}*_DepthOfCoverage.sample_summary')
 
 			sample_depth_summary_file = list(sample_depth_summary_file)[0]	
 
@@ -244,27 +245,110 @@ class GermlineEnrichment:
 
 	def get_duplication_metrics(self):
 
-		pass
+		results_path = Path(self.results_dir)
+
+		run_duplication_metrics_dict = {}
+
+		for sample in self.sample_names:
+
+			sample_duplication_metrics_file = results_path.joinpath(sample).glob(f'*{sample}*_MarkDuplicatesMetrics.txt')
+
+			sample_duplication_metrics_file = list(sample_duplication_metrics_file)[0]	
+
+			parsed_duplication_metrics = parse_duplication_metrics_file(sample_duplication_metrics_file)
+
+			run_duplication_metrics_dict[sample] = parsed_duplication_metrics
+
+		return run_duplication_metrics_dict
 
 	def get_contamination(self):
 
-		pass
+		results_path = Path(self.results_dir)
+
+		run_contamination_metrics_dict = {}
+
+		for sample in self.sample_names:
+
+			sample_contamination_metrics_file = results_path.joinpath(sample).glob(f'*{sample}*_Contamination.selfSM')
+
+			sample_contamination_metrics_file = list(sample_contamination_metrics_file)[0]	
+
+			parsed_contamination_metrics = parse_contamination_metrics(sample_contamination_metrics_file)
+
+			run_contamination_metrics_dict[sample] = parsed_contamination_metrics
+
+		return run_contamination_metrics_dict
+
 
 	def get_calculated_sex(self):
 
-		pass
+		results_path = Path(self.results_dir)
+
+		calculated_sex_dict = {}
+
+		for sample in self.sample_names:
+
+			qc_metrics_file = results_path.joinpath(sample).glob(f'*{sample}*_QC.txt')
+
+			qc_metrics_file = list(qc_metrics_file)[0]
+
+			parsed_qc_metrics_file = parse_qc_metrics_file(qc_metrics_file)
+
+			calculated_sex_dict[sample] = parsed_qc_metrics_file
+
+		return calculated_sex_dict
 
 	def get_alignment_metrics(self):
 
-		pass
+		results_path = Path(self.results_dir)
+
+		alignment_metrics_dict = {}
+
+		for sample in self.sample_names:
+
+			alignment_metrics_file = results_path.joinpath(sample).glob(f'*{sample}*_AlignmentSummaryMetrics.txt')
+
+			alignment_metrics_file = list(alignment_metrics_file)[0]
+
+			parsed_alignment_metrics_file = parse_alignment_metrics_file(alignment_metrics_file)
+
+			alignment_metrics_dict[sample] = parsed_alignment_metrics_file
+
+		return alignment_metrics_dict
 
 	def get_variant_calling_metrics(self):
 
-		pass
+		results_path = Path(self.results_dir)
+
+		variant_metrics_dict = {}
+
+		variant_detail_metrics_file = results_path.glob(f'*{self.run_id}*_CollectVariantCallingMetrics.txt.variant_calling_detail_metrics')
+
+		variant_detail_metrics_file = list(variant_detail_metrics_file)[0]
+
+		variant_metrics_dict = parse_variant_detail_metrics_file(variant_detail_metrics_file)
+
+		return variant_metrics_dict
+
 
 	def get_insert_metrics(self):
 
-		pass
+		results_path = Path(self.results_dir)
+
+		insert_metrics_dict = {}
+
+		for sample in self.sample_names:
+
+			insert_metrics_file = results_path.joinpath(sample).glob(f'*{sample}*_InsertMetrics.txt')
+
+			insert_metrics_file = list(insert_metrics_file)[0]
+
+			parsed_insert_metrics_file = parse_insert_metrics_file(insert_metrics_file)
+
+			insert_metrics_dict[sample] = parsed_insert_metrics_file
+
+		return insert_metrics_dict
+
 
 class IlluminaQC:
 

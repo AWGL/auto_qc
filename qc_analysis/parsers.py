@@ -177,17 +177,17 @@ def parse_fastqc_file(fastqc_text_file):
 
 	with open (fastqc_text_file) as file:
 
-		fqcfile = csv.reader(file, delimiter="\t")
+		fqcfile = csv.reader(file, delimiter='\t')
 		fqcdict = {}
 
 		for column in fqcfile:
 
 				metrics = column[1]
 				result = column[0]
-				input_dir = column[2].split("_")
+				input_dir = column[2].split('_')
 				UniqueID = "_".join(input_dir[:5])
 				SampleID = input_dir[4]
-				Read_Group = input_dir[-1].strip(".fastq")
+				Read_Group = input_dir[-1].strip('.fastq')
 				Lane = input_dir[5]
 				RunID = '_'.join(input_dir[:4])
 				fqcdict["UniqueID"] = UniqueID
@@ -206,7 +206,7 @@ def parse_hs_metrics_file(hs_metrics_file):
 
 	with open (hs_metrics_file) as file:
 
-		hs_metrics_file = csv.reader(file, delimiter="\t")
+		hs_metrics_file = csv.reader(file, delimiter='\t')
 
 		next_keys = False
 		next_values = False
@@ -249,7 +249,7 @@ def parse_gatk_depth_summary_file(gatk_depth_summary_file):
 		keys = []
 		values = []
 
-		gatk_depth_summary_file = csv.reader(file, delimiter="\t")
+		gatk_depth_summary_file = csv.reader(file, delimiter='\t')
 
 		for row in gatk_depth_summary_file:
 
@@ -257,7 +257,11 @@ def parse_gatk_depth_summary_file(gatk_depth_summary_file):
 
 				keys = row
 
-			if row[0] == 'Total':
+			elif row[0] == 'Total':
+
+				pass
+
+			else:
 
 				values = row
 
@@ -265,4 +269,245 @@ def parse_gatk_depth_summary_file(gatk_depth_summary_file):
 
 			gatk_depth_summary_dict[key.lower()] = value
 
+		gatk_depth_summary_dict['pct_bases_above_20'] = gatk_depth_summary_dict['%_bases_above_20']
+
 	return gatk_depth_summary_dict
+
+
+def parse_duplication_metrics_file(duplication_metrics_file):
+
+	duplication_metrics_dict = {}
+
+	with open (duplication_metrics_file) as file:
+
+		duplication_metrics_file = csv.reader(file, delimiter='\t')
+
+		next_keys = False
+		next_values = False
+
+		keys = []
+		values = []
+
+		for row in duplication_metrics_file:
+
+			if len(row) != 0:
+
+				if next_values == True:
+
+					values = row
+					break
+
+				if next_keys == True:
+
+					keys = row
+					next_keys = False
+					next_values = True
+
+				if row[0] == '## METRICS CLASS':
+
+					next_keys = True
+
+	for key, value in zip(keys, values):
+
+		duplication_metrics_dict[key.lower()] = value
+
+	return duplication_metrics_dict
+
+
+def parse_contamination_metrics(self_sm_contamination_file):
+
+	contamination_metrics_dict = {}
+
+	keys = []
+	values = []
+
+	with open (self_sm_contamination_file) as file:
+
+		self_sm_contamination_file = csv.reader(file, delimiter='\t')
+
+		row_count = 0
+
+		for row in self_sm_contamination_file:
+
+			if row_count == 0:
+
+				keys = row
+
+			elif row_count == 1:
+
+				values = row
+				break
+
+			row_count = row_count + 1
+
+	for key, value in zip(keys, values):
+
+		new_key = key.replace('#', 'num_').lower()
+
+		if new_key not in ['num_seq_id',
+		 			'rg',
+		 			'chip_id',
+		 			'free_rh',
+		 			'free_ra',
+		 			'chipmix',
+		 			'chiplk1',
+		 			'chiplk0',
+		 			'chip_rh',
+		 			'chip_ra',
+		 			'dpref',
+		 			'rdphet',
+		 			'rdpalt' ]:
+
+			contamination_metrics_dict[new_key] = value
+
+	return contamination_metrics_dict
+
+def parse_qc_metrics_file(qc_metrics_file):
+
+	qc_metrics_dict = {}
+
+	keys = []
+	values = []
+
+	with open(qc_metrics_file) as file:
+
+		qc_metrics_file = csv.reader(file, delimiter='\t')
+
+		count = 0
+
+		for row in qc_metrics_file:
+
+			if count == 0:
+
+				keys = row
+
+			elif count == 1:
+
+				values = row
+
+			count = count + 1
+
+	for key, value in zip(keys, values):
+
+		qc_metrics_dict[key.lower()] = value
+
+	return qc_metrics_dict
+
+def parse_alignment_metrics_file(alignments_metric_file):
+
+	alignment_metrics_dict = {}
+
+	with open (alignments_metric_file) as file:
+
+		alignments_metric_file = csv.reader(file, delimiter='\t')
+
+		next_keys = False
+		next_values = False
+
+		keys = []
+		values = []
+
+		for row in alignments_metric_file:
+
+			if len(row) != 0:
+
+				if next_values == True:
+
+					values = row
+					break
+
+				if next_keys == True:
+
+					keys = row
+					next_keys = False
+					next_values = True
+
+				if row[0] == '## METRICS CLASS':
+
+					next_keys = True
+
+	for key, value in zip(keys, values):
+
+		alignment_metrics_dict[key.lower()] = value
+
+	return alignment_metrics_dict
+	
+def parse_variant_detail_metrics_file(variant_detail_metrics_file):
+
+	variant_detail_metrics_dict = {}
+
+	with open (variant_detail_metrics_file) as file:
+
+		variant_detail_metrics_file = csv.reader(file, delimiter='\t')
+
+		next_keys = False
+		next_values = False
+
+		keys = []
+		values = []
+
+		for row in variant_detail_metrics_file:
+
+			if len(row) != 0:
+
+				if next_values == True:
+
+					sample_details_dict = {}
+
+					for key, value in zip(keys, row):
+
+						sample_details_dict[key.lower()] = value
+					
+					variant_detail_metrics_dict[row[0]] = sample_details_dict
+
+				if next_keys == True:
+
+					keys = row
+					next_keys = False
+					next_values = True
+
+				if row[0] == '## METRICS CLASS':
+
+					next_keys = True
+
+	return variant_detail_metrics_dict
+
+
+def parse_insert_metrics_file(insert_metrics_file):
+
+	insert_metrics_dict = {}
+
+	with open (insert_metrics_file) as file:
+
+		insert_metrics_file = csv.reader(file, delimiter='\t')
+
+		next_keys = False
+		next_values = False
+
+		keys = []
+		values = []
+
+		for row in insert_metrics_file:
+
+			if len(row) != 0:
+
+				if next_values == True:
+
+					values = row
+					break
+
+				if next_keys == True:
+
+					keys = row
+					next_keys = False
+					next_values = True
+
+				if row[0] == '## METRICS CLASS':
+
+					next_keys = True
+
+	for key, value in zip(keys, values):
+
+		insert_metrics_dict[key.lower()] = value
+
+	return insert_metrics_dict

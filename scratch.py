@@ -39,4 +39,9 @@ illumina_qc = IlluminaQC(fastq_dir = '/home/joseph/Documents/auto_qc/data/archiv
 
 #print (germline.get_hs_metrics())
 
-print (germline.get_depth_metrics())
+#print (germline.get_depth_metrics())
+
+#print (germline.get_contamination())
+
+
+print (germline.get_insert_metrics())

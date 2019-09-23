@@ -62,6 +62,158 @@ def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 
 	return None
 
+
+def add_fastqc_data(fastqc_dict, run_analysis_obj):
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in fastqc_dict:
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+
+		sample_data = fastqc_dict[key]
+
+		for read in sample_data:
+
+			existing_data = SampleFastqcData.objects.filter(sample_analysis= sample_analysis_obj,
+													read_number = read['read_number'],
+													lane = read['lane'])
+			
+			if len(existing_data) < 1:
+
+				read['sample_analysis'] = sample_analysis_obj
+				
+				new_fastqc_obj = SampleFastqcData(**read)
+				new_fastqc_obj.save()
+
+def add_hs_metrics(hs_metrics_dict, run_analysis_obj):
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in hs_metrics_dict:
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+
+		existing_data = SampleHsMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+			
+		if len(existing_data) < 1:
+
+			sample_data = hs_metrics_dict[key]
+
+			del sample_data['sample']
+			del sample_data['library']
+			del sample_data['read_group']
+
+			sample_data['sample_analysis'] = sample_analysis_obj
+
+			for key in sample_data:
+
+				if sample_data[key] == '?' or sample_data[key] == '':
+
+					sample_data[key] = None
+					
+			new_hsmetrics_obj = SampleHsMetrics(**sample_data)
+			new_hsmetrics_obj.save()
+
+def add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis_obj):
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in depth_metrics_dict:
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+
+		existing_data = SampleHsMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+
+		if len(existing_data) < 1:
+
+			sample_data = depth_metrics_dict[key]
+			del sample_data['%_bases_above_20']
+			del sample_data['sample_id']
+
+			sample_data['sample_analysis'] = sample_analysis_obj
+			new_depth_obj = SampleDepthofCoverageMetrics(**sample_data)
+			new_depth_obj.save()
+
+
+
+def add_duplication_metrics(duplication_metrics_dict, run_analysis_obj):
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in duplication_metrics_dict:
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+		
+		existing_data = DuplicationMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+			
+		sample_data = duplication_metrics_dict[key]
+
+		sample_data['sample_analysis'] = sample_analysis_obj
+
+		for key in sample_data:
+
+			if sample_data[key] == '?' or sample_data[key] == '':
+
+				sample_data[key] = None
+
+		new_depth_obj = DuplicationMetrics(**sample_data)
+		new_depth_obj.save()
+		
+def add_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in contamination_metrics_dict:
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+
+
+		print (contamination_metrics_dict[key])
+		
+		existing_data = ContaminationMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+			
+		sample_data = contamination_metrics_dict[key]
+
+		print(sample_data)
+
+		sample_data['sample_analysis'] = sample_analysis_obj
+
+		for key in sample_data:
+
+			if sample_data[key] == '?' or sample_data[key] == '':
+
+				sample_data[key] = None
+
+		new_depth_obj = ContaminationMetrics(**sample_data)
+		new_depth_obj.save()
+
+
 class Command(BaseCommand):
 
 	def add_arguments(self, parser):
@@ -237,14 +389,33 @@ class Command(BaseCommand):
 				run_complete = germline_enrichment.run_is_complete()
 				run_valid = germline_enrichment.run_is_valid()
 
-				if run_analysis.results_completed == False and run_complete == True:
+				#if run_analysis.results_completed == False and run_complete == True:
+				if  run_complete == True:
 
 					if run_valid == True:
 
 						print (f'Run {run_id} has now completed pipeline {run_analysis.pipeline.pipeline_id}')
+						print ('putting fastqc into db')
 
+						fastqc_dict = germline_enrichment.get_fastqc_data()
+						add_fastqc_data(fastqc_dict, run_analysis)
 
+						hs_metrics_dict = germline_enrichment.get_hs_metrics()
+
+						add_hs_metrics(hs_metrics_dict, run_analysis)
+
+						depth_metrics_dict = germline_enrichment.get_depth_metrics()
 						# add qc data for all samples and run level
+
+						add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+
+
+						duplication_metrics_dict = germline_enrichment.get_duplication_metrics()
+						add_duplication_metrics(duplication_metrics_dict, run_analysis)
+
+						contamination_metrics_dict = germline_enrichment.get_contamination()
+
+						add_contamination_metrics(contamination_metrics_dict, run_analysis)
 
 					else:
 
