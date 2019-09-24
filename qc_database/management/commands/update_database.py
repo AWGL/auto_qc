@@ -244,20 +244,52 @@ def add_alignment_metrics(alignment_metrics_dict, run_analysis_obj):
 
 	for key in alignment_metrics_dict:
 
-		print (alignment_metrics_dict[key])
-
 		sample_obj = Sample.objects.get(sample_id=key)
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
 														pipeline = pipeline)
 
+		for metric in alignment_metrics_dict[key]:
 
-		existing_data = AlignmentMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 
+			existing_data = AlignmentMetrics.objects.filter(sample_analysis= sample_analysis_obj,
+															category = metric['category'])
+
+			if len(existing_data) < 1:
+				
+				sample_data = metric
+
+				sample_data['sample_analysis'] = sample_analysis_obj
+
+				for key in sample_data:
+
+					if sample_data[key] == '?' or sample_data[key] == '':
+
+						sample_data[key] = None
+
+				new_alignment_obj = AlignmentMetrics(**sample_data)
+				new_alignment_obj.save()
+
+def add_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
+
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in variant_metrics_dict:
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+		
+		existing_data = VariantCallingMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+		
 		if len(existing_data) < 1:
-			
-			sample_data = alignment_metrics_dict[key]
+
+			sample_data = variant_metrics_dict[key]
 
 			sample_data['sample_analysis'] = sample_analysis_obj
 
@@ -267,8 +299,40 @@ def add_alignment_metrics(alignment_metrics_dict, run_analysis_obj):
 
 					sample_data[key] = None
 
-			new_alignment_obj = AlignmentMetrics(**sample_data)
-			new_alignment_obj.save()
+			new_variant_obj = VariantCallingMetrics(**sample_data)
+			new_variant_obj.save()
+
+def add_insert_metrics(insert_metrics_dict, run_analysis_obj):
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in insert_metrics_dict:
+		
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+		
+		existing_data = InsertMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+		
+		if len(existing_data) < 1:
+
+			sample_data = insert_metrics_dict[key]
+
+			sample_data['sample_analysis'] = sample_analysis_obj
+
+			for key in sample_data:
+
+				if sample_data[key] == '?' or sample_data[key] == '':
+
+					sample_data[key] = None
+
+			new_insert_obj = InsertMetrics(**sample_data)
+			new_insert_obj.save()
+
+
 
 
 class Command(BaseCommand):
@@ -481,6 +545,14 @@ class Command(BaseCommand):
 						alignment_metrics_dict = germline_enrichment.get_alignment_metrics()
 
 						add_alignment_metrics(alignment_metrics_dict, run_analysis)
+
+						variant_calling_metrics_dict = germline_enrichment.get_variant_calling_metrics()
+
+						add_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
+
+						insert_metrics_dict = germline_enrichment.get_insert_metrics()
+
+						add_insert_metrics(insert_metrics_dict, run_analysis)
 
 					else:
 

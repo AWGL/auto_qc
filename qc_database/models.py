@@ -234,4 +234,95 @@ class CalculatedSexMetrics(models.Model):
 
 class AlignmentMetrics(models.Model):
 
-	pass
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	category = models.CharField(max_length=16)
+	total_reads = models.BigIntegerField()
+	pf_reads = models.BigIntegerField()
+	pct_pf_reads = models.DecimalField(max_digits=6, decimal_places=4)
+	pf_noise_reads = models.IntegerField()
+	pf_reads_aligned = models.BigIntegerField()
+	pct_pf_reads_aligned = models.DecimalField(max_digits=6, decimal_places=4)
+	pf_aligned_bases = models.BigIntegerField()
+	pf_hq_aligned_reads = models.BigIntegerField()
+	pf_hq_aligned_bases = models.BigIntegerField()
+	pf_hq_aligned_q20_bases = models.BigIntegerField()
+	pf_hq_median_mismatches = models.IntegerField()
+	pf_mismatch_rate = models.DecimalField(max_digits=6, decimal_places=4)
+	pf_hq_error_rate = models.DecimalField(max_digits=6, decimal_places=4)
+	pf_indel_rate = models.DecimalField(max_digits=6, decimal_places=4)
+	mean_read_length = models.DecimalField(max_digits=20, decimal_places=4)
+	reads_aligned_in_pairs = models.BigIntegerField()
+	pct_reads_aligned_in_pairs = models.DecimalField(max_digits=6, decimal_places=4)
+	pf_reads_improper_pairs = models.IntegerField()
+	pct_pf_reads_improper_pairs = models.DecimalField(max_digits=6, decimal_places=4)
+	bad_cycles = models.IntegerField()
+	strand_balance = models.DecimalField(max_digits=6, decimal_places=4)
+	pct_chimeras = models.DecimalField(max_digits=6, decimal_places=4)
+	pct_adapter = models.DecimalField(max_digits=6, decimal_places=4)
+
+
+class VariantCallingMetrics(models.Model):
+
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	het_homvar_ratio = models.DecimalField(max_digits=7, decimal_places=3)
+	pct_gq0_variants = models.DecimalField(max_digits=6, decimal_places=3)
+	total_gq0_variants  = models.IntegerField()
+	total_het_depth = models.BigIntegerField()
+	total_snps = models.IntegerField()
+	num_in_db_snp = models.IntegerField()
+	novel_snps = models.IntegerField()
+	filtered_snps = models.IntegerField()
+	pct_dbsnp = models.DecimalField(max_digits=6, decimal_places=3)
+	dbsnp_titv = models.DecimalField(max_digits=7, decimal_places=3)
+	novel_titv = models.DecimalField(max_digits=7, decimal_places=3)
+	total_indels = models.IntegerField()
+	novel_indels = models.IntegerField()
+	filtered_indels = models.IntegerField()
+	pct_dbsnp_indels = models.DecimalField(max_digits=6, decimal_places=3)
+	num_in_db_snp_indels = models.IntegerField()
+	dbsnp_ins_del_ratio = models.DecimalField(max_digits=6, decimal_places=3)
+	novel_ins_del_ratio = models.DecimalField(max_digits=6, decimal_places=3)
+	total_multiallelic_snps = models.IntegerField()
+	num_in_db_snp_multiallelic = models.IntegerField()
+	total_complex_indels = models.IntegerField()
+	num_in_db_snp_complex_indels = models.IntegerField()
+	snp_reference_bias = models.DecimalField(max_digits=6, decimal_places=3)
+	num_singletons = models.IntegerField()
+
+
+class InsertMetrics(models.Model):
+
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	median_insert_size = models.IntegerField()
+	median_absolute_deviation = models.IntegerField()
+	min_insert_size = models.IntegerField()
+	max_insert_size = models.BigIntegerField()
+	mean_insert_size = models.DecimalField(max_digits=10, decimal_places=3)
+	standard_deviation = models.DecimalField(max_digits=10, decimal_places=3)
+	read_pairs = models.BigIntegerField()
+	pair_orientation = models.CharField(max_length=3)
+	width_of_10_percent = models.IntegerField()
+	width_of_20_percent = models.IntegerField()
+	width_of_30_percent = models.IntegerField()
+	width_of_40_percent = models.IntegerField()
+	width_of_50_percent = models.IntegerField()
+	width_of_60_percent = models.IntegerField()
+	width_of_70_percent = models.IntegerField()
+	width_of_80_percent = models.IntegerField()
+	width_of_90_percent = models.IntegerField()
+	width_of_99_percent = models.IntegerField()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

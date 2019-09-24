@@ -413,8 +413,17 @@ def parse_alignment_metrics_file(alignments_metric_file):
 
 				if next_values == True:
 
+					row_dict = {}
+
 					values = row
-					break
+
+					for key, value in zip(keys, values):
+
+						if key.lower() not in ['read_group',  'sample', 'library']:
+
+							row_dict[key.lower()] = value
+
+					alignment_metrics_dicts.append(row_dict)
 
 				if next_keys == True:
 
@@ -426,11 +435,7 @@ def parse_alignment_metrics_file(alignments_metric_file):
 
 					next_keys = True
 
-	for key, value in zip(keys, values):
-
-		alignment_metrics_dict[key.lower()] = value
-
-	return alignment_metrics_dict
+	return alignment_metrics_dicts
 	
 def parse_variant_detail_metrics_file(variant_detail_metrics_file):
 
@@ -456,7 +461,9 @@ def parse_variant_detail_metrics_file(variant_detail_metrics_file):
 
 					for key, value in zip(keys, row):
 
-						sample_details_dict[key.lower()] = value
+						if key.lower() not in ['sample_alias']:
+
+							sample_details_dict[key.lower()] = value
 					
 					variant_detail_metrics_dict[row[0]] = sample_details_dict
 
@@ -508,6 +515,8 @@ def parse_insert_metrics_file(insert_metrics_file):
 
 	for key, value in zip(keys, values):
 
-		insert_metrics_dict[key.lower()] = value
+		if key.lower() not in ['read_group',  'sample', 'library']:
+
+			insert_metrics_dict[key.lower()] = value
 
 	return insert_metrics_dict
