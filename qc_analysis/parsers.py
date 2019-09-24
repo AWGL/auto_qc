@@ -166,10 +166,6 @@ def parse_interop_data(run_folder):
 	interop_dict["error_rate"] = round(summary.total_summary().error_rate(), 2)
 	interop_dict["aligned"] = round(summary.total_summary().percent_aligned(), 2)
 
-	# Doesnt throw specific type of error so catching all errors
-
-	print (dir(summary))
-
 	return interop_dict
 
 

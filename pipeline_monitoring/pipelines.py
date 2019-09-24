@@ -461,12 +461,44 @@ class IlluminaQC:
 		return True
 
 
-class SomaticAmplicon:
-
-	pass
-
-
 class SomaticEnrichment:
 
-	pass
+
+	def __init__(self, results_dir, sample_names, run_id):
+
+
+		self.results_dir = results_dir
+		self.sample_names = sample_names
+		self.run_id = run_id
+		self.sample_complete_marker = '1_SomaticEnrichment.sh.e*'
+		self.run_complete_markers = '2_GermlineEnrichment.sh.e*'
+
+		self.sample_expected_files = []
+
+		self.sample_not_expected_files = []
+
+		self.run_expected_files = []
+
+
+		self.run_not_expected_files =[]
+
+	def sample_is_complete(self, sample):
+		"""	
+		Look for presence of file indicating that a sample has completed the pipeline.
+
+		For example the output error log.
+		"""	
+
+		results_path = Path(self.results_dir)
+
+		sample_path = results_path.joinpath(sample)
+
+		marker = sample_path.glob(self.sample_complete_marker)
+
+		if len(list(marker)) == 1:
+
+			return True
+
+		return False
+
 

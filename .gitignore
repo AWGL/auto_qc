@@ -4,3 +4,4 @@ db.sqlite3
 credentials.json
 token.pickle
 qc_database/migrations
+.ipynb_checkpoints

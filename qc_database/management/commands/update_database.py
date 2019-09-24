@@ -369,6 +369,9 @@ class Command(BaseCommand):
 
 			sample_sheet = raw_data.joinpath('SampleSheet.csv')
 
+			# to do what if sample sheet is named something else?
+			# maybe send warning that a run has appeared but could not be processed
+
 			if sample_sheet.exists() == False:
 
 				next
@@ -377,6 +380,10 @@ class Command(BaseCommand):
 
 			# regardless of whether we have seen it before then 
 			run_obj, created = Run.objects.get_or_create(run_id=run_id)
+
+			if created == True:
+
+				print (f'new run {run_id} off sequencer')
 		
 			if run_id not in existing_runs:
 
@@ -392,9 +399,7 @@ class Command(BaseCommand):
 
 			
 
-			if created == True:
 
-				print (f'new run {run_id} off sequencer')
 
 			sample_sheet_data = sample_sheet_parser(sample_sheet)
 
@@ -447,6 +452,8 @@ class Command(BaseCommand):
 			run_fastq_dir = Path(fastq_data_dir).joinpath(run_analysis.run.run_id)
 
 			run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id, run_analysis.analysis_type.analysis_type_id)
+
+			# ADD n LANES FROM DB
 
 			illumina_qc = IlluminaQC(fastq_dir= run_fastq_dir,
 									results_dir= results_dir,
