@@ -48,3 +48,7 @@ somatic_enrichment = SomaticEnrichment(results_dir = '/media/joseph/Storage/data
 								run_id = '190520_M02641_0219_000000000-CGJT6')
 
 print (somatic_enrichment.sample_is_complete('19M13893'))
+
+print (somatic_enrichment.sample_is_valid('19M13893'))
+
+print (somatic_enrichment.run_is_complete())

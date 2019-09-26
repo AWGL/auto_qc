@@ -365,7 +365,7 @@ class Command(BaseCommand):
 
 			if raw_data.is_dir() == False:
 
-				next
+				continue
 
 			sample_sheet = raw_data.joinpath('SampleSheet.csv')
 
@@ -374,7 +374,7 @@ class Command(BaseCommand):
 
 			if sample_sheet.exists() == False:
 
-				next
+				continue
 
 			run_id = raw_data.name
 
@@ -393,7 +393,7 @@ class Command(BaseCommand):
 
 				if run_info.exists() == False or run_parameters.exists() == False:
 
-					next
+					continue
 
 				add_run_log_info(run_info, run_parameters, run_obj, raw_data)
 

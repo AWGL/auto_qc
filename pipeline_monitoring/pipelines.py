@@ -464,16 +464,25 @@ class IlluminaQC:
 class SomaticEnrichment:
 
 
-	def __init__(self, results_dir, sample_names, run_id):
+	def __init__(self, results_dir, sample_names, run_id, ntc_patterns = ['NTC', 'ntc']):
 
 
 		self.results_dir = results_dir
 		self.sample_names = sample_names
 		self.run_id = run_id
+		self.ntc_patterns = ntc_patterns
 		self.sample_complete_marker = '1_SomaticEnrichment.sh.e*'
-		self.run_complete_markers = '2_GermlineEnrichment.sh.e*'
+		self.run_complete_markers = ['1_cnvkit.sh.e*', '2_cnvkit.sh.e*']
 
-		self.sample_expected_files = []
+		self.sample_expected_files = ['*_VariantReport.txt',
+									'*.bam',
+									'*_AlignmentSummaryMetrics.txt',
+									'*_DepthOfCoverage.sample_summary',
+									'*_QC.txt',
+									'*_filteredStrLeftAligned_annotated.vcf',
+									'hotspot_variants',
+									'hotspot_coverage_135x'
+									]
 
 		self.sample_not_expected_files = []
 
@@ -501,4 +510,67 @@ class SomaticEnrichment:
 
 		return False
 
+	def sample_is_valid(self, sample):
+		"""
+		Look for files which have to be present for a sample level pipeline to have completed \
+		correctly.
 
+		Look for file which if present indicate the pipeline has not finished correctly e.g. intermediate files.
+		"""
+
+		results_path = Path(self.results_dir)
+
+		sample_path = results_path.joinpath(sample)
+
+		# check files we want to be there are there
+		for file in self.sample_expected_files:
+
+			found_file = sample_path.glob(file)
+
+			if len(list(found_file)) != 1:
+
+				return False
+
+		# check file we do not want to be there are not there
+		for file in self.sample_not_expected_files:
+
+			found_file = sample_path.glob(file)
+
+			if len(list(found_file)) > 0:
+
+				return False			
+
+		return True
+
+	def run_is_complete(self):
+		"""	
+		Check everyone except NTC has the CNV logs
+		"""	
+
+		results_path = Path(self.results_dir)
+
+		for sample in self.sample_names:
+
+			skip_sample = False
+
+			for ntc in self.ntc_patterns:
+
+				if ntc in sample:
+
+					skip_sample = True
+					break
+
+			if skip_sample == True:
+
+				continue
+
+			for marker in self.run_complete_markers:
+
+				globbed_marker = results_path.joinpath(sample).glob(marker)
+
+		
+				if len(list(globbed_marker)) < 1:
+
+					return False
+
+		return True
