@@ -52,3 +52,7 @@ print (somatic_enrichment.sample_is_complete('19M13893'))
 print (somatic_enrichment.sample_is_valid('19M13893'))
 
 print (somatic_enrichment.run_is_complete())
+
+print (somatic_enrichment.run_is_valid())
+
+print (somatic_enrichment.get_insert_metrics())

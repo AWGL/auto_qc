@@ -263,9 +263,9 @@ def parse_gatk_depth_summary_file(gatk_depth_summary_file):
 
 		for key, value in zip(keys, values):
 
-			gatk_depth_summary_dict[key.lower()] = value
+			new_key = key.replace('%', 'pct').lower()
 
-		gatk_depth_summary_dict['pct_bases_above_20'] = gatk_depth_summary_dict['%_bases_above_20']
+			gatk_depth_summary_dict[new_key] = value
 
 	return gatk_depth_summary_dict
 
