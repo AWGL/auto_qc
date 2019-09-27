@@ -79,6 +79,7 @@ class AnalysisType(models.Model):
 class RunAnalysis(models.Model):
 
 	run = models.ForeignKey(Run, on_delete=models.CASCADE)
+	start_date = models.DateField()
 	pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE)
 	analysis_type = models.ForeignKey(AnalysisType, on_delete=models.CASCADE)
 	results_completed = models.BooleanField(default=False)
@@ -86,6 +87,33 @@ class RunAnalysis(models.Model):
 
 	class Meta:
 		unique_together = [['run', 'pipeline', 'analysis_type']]
+
+	def get_n_samples_completed(self):
+
+		count = 0
+
+		sample_analyses = SampleAnalysis.objects.filter(run = self.run,
+														pipeline = self.pipeline,
+														analysis_type = self.analysis_type
+														)
+
+		completed = [x.results_completed for x in sample_analyses]
+
+		return completed.count(True), len(completed)
+
+
+	def get_n_samples_valid(self):
+
+		count = 0
+
+		sample_analyses = SampleAnalysis.objects.filter(run = self.run,
+														pipeline = self.pipeline,
+														analysis_type = self.analysis_type
+														)
+
+		completed = [x.results_valid for x in sample_analyses]
+
+		return completed.count(True), len(completed)
 
 
 class SampleAnalysis(models.Model):

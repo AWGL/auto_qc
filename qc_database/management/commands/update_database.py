@@ -5,6 +5,7 @@ from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, Somati
 from django.db import transaction
 import csv
 from pathlib import Path
+import datetime
 
 def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 	"""
@@ -438,7 +439,8 @@ class Command(BaseCommand):
 
 				new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
 																		pipeline = pipeline_obj,
-																		analysis_type = analysis_type_obj)
+																		analysis_type = analysis_type_obj,
+																		start_date = datetime.datetime.now())
 
 
 		# now get all runs and see if they have fastqs
