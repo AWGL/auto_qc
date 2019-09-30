@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from qc_database.models import *
 from qc_analysis.parsers import *
-from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, SomaticEnrichment
+from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, SomaticEnrichment, SomaticAmplicon
 from django.db import transaction
 import csv
 from pathlib import Path
@@ -525,8 +525,6 @@ class Command(BaseCommand):
 						print (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
 
 
-
-		
 					sample_analysis_obj.results_completed = sample_complete
 					sample_analysis_obj.results_valid = sample_valid
 					sample_analysis_obj.save()
@@ -739,3 +737,9 @@ class Command(BaseCommand):
 				run_analysis.results_valid = run_valid
 
 				run_analysis.save()
+
+			elif 'SomaticAmplicon' in run_analysis.pipeline.pipeline_id:
+
+				somatic_amplicon = SomaticAmplicon(results_dir = run_data_dir,
+														sample_names = sample_ids,
+														run_id = run_analysis.run.run_id)

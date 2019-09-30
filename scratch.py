@@ -1,4 +1,4 @@
-from pipeline_monitoring.pipelines import GermlineEnrichment, IlluminaQC, SomaticEnrichment
+from pipeline_monitoring.pipelines import GermlineEnrichment, IlluminaQC, SomaticEnrichment, SomaticAmplicon
 from pipeline_monitoring.send_email import send_email_via_api
 from qc_analysis.parsers import sample_sheet_parser
 
@@ -43,16 +43,14 @@ illumina_qc = IlluminaQC(fastq_dir = '/home/joseph/Documents/auto_qc/data/archiv
 
 #print (germline.get_contamination())
 
-somatic_enrichment = SomaticEnrichment(results_dir = '/media/joseph/Storage/data/results/190913_NB551319_0026_AHT5G5AFXY/RochePanCancer',
-								sample_names = ['19M13893', 'NTC', '19M13908'],
-								run_id = '190520_M02641_0219_000000000-CGJT6')
+somatic_amplicon = SomaticAmplicon(results_dir = '/media/joseph/Storage/data/results/190906_M00766_0250_000000000-CJN92/NGHS-101X',
+									sample_names = ['19M13120', 'NTC-19-6091-FOCUS4'],
+									run_id = '190906_M00766_0250_000000000-CJN92'
+									)
 
-print (somatic_enrichment.sample_is_complete('19M13893'))
+print (somatic_amplicon.sample_is_complete('19M13120'))
+print (somatic_amplicon.sample_is_valid('19M13120'))
+print (somatic_amplicon.run_is_complete())
+print (somatic_amplicon.run_is_valid())
 
-print (somatic_enrichment.sample_is_valid('19M13893'))
-
-print (somatic_enrichment.run_is_complete())
-
-print (somatic_enrichment.run_is_valid())
-
-print (somatic_enrichment.get_insert_metrics())
+print (somatic_amplicon.get_depth_metrics())
