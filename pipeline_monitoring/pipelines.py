@@ -6,16 +6,11 @@ from qc_analysis.parsers import *
 class GermlineEnrichment:
 
 
-	def __init__(self, results_dir, sample_names, run_id):
-
-
-		self.results_dir = results_dir
-		self.sample_names = sample_names
-		self.run_id = run_id
-		self.sample_complete_marker = '1_GermlineEnrichment.sh.e*'
-		self.run_complete_marker = '2_GermlineEnrichment.sh.e*'
-
-		self.sample_expected_files = ['*.bam',
+	def __init__(self,
+				 results_dir,
+				 sample_names,
+				 run_id,
+				 sample_expected_files= ['*.bam',
 		 							'*.g.vcf',
 		  							'*_AlignmentSummaryMetrics.txt',
 		  							'*_Contamination.selfSM',
@@ -23,12 +18,12 @@ class GermlineEnrichment:
 		  							'*_HsMetrics.txt',
 		  							'*_InsertMetrics.txt',
 		  							'*_MarkDuplicatesMetrics.txt',
-		  							'*_QC.txt']
+		  								'*_QC.txt'],
 
-		self.sample_not_expected_files = ['*_rmdup.bam',
-										 '*_DepthOfCoverage']
+		  		sample_not_expected_files = ['*_rmdup.bam',
+										 '*_DepthOfCoverage'],
 
-		self.run_expected_files = ['*_filtered_annotated_roi.vcf',
+				run_expected_files = ['*_filtered_annotated_roi.vcf',
 									'*_filtered_annotated_roi_noMT.vcf',
 									'*_pedigree.ped',
 									'*_CollectVariantCallingMetrics.txt.variant_calling_detail_metrics',
@@ -36,11 +31,23 @@ class GermlineEnrichment:
 									'*_ExomeDepth_Metrics.txt',
 									'*_relatedness.relatedness2',
 									'combined_QC.txt',
-									'*_cnvReport.csv']
+									'*_cnvReport.csv'],
 
-
-		self.run_not_expected_files =['*_variants_filtered.vcf',
+				run_not_expected_files= ['*_variants_filtered.vcf',
 									'BAMs.list']
+
+		  		):
+
+
+		self.results_dir = results_dir
+		self.sample_names = sample_names
+		self.run_id = run_id
+		self.sample_complete_marker = '1_GermlineEnrichment.sh.e*'
+		self.run_complete_marker = '2_GermlineEnrichment.sh.e*'
+		self.sample_expected_files = sample_expected_files
+		self.sample_not_expected_files = sample_not_expected_files
+		self.run_expected_files = run_expected_files
+		self.run_not_expected_files = run_not_expected_files
 
 	def sample_is_complete(self, sample):
 		"""	
@@ -423,7 +430,6 @@ class IlluminaQC:
 			# check fastqs created
 			for lane in range(1,self.n_lanes+1):
 
-
 				fastq_r1 = sample_fastq_path.glob(f'{sample}*L00{lane}_R1_001.fastq.gz')
 				fastq_r2 = sample_fastq_path.glob(f'{sample}*L00{lane}_R2_001.fastq.gz')
 				variables = sample_fastq_path.glob(f'{sample}.variables')
@@ -433,11 +439,9 @@ class IlluminaQC:
 					return False
 
 				elif len(list(fastq_r2)) != 1:
-
 					return False
 
 				elif len(list(variables)) != 1:
-
 					return False
 
 				fastq_r1 = sample_fastq_path.glob(f'{sample}*L00{lane}_R1_001.fastq.gz')
@@ -447,11 +451,9 @@ class IlluminaQC:
 				fastq_r2 = list(fastq_r2)[0]
 
 				if fastq_r1.stat().st_size < self.min_fastq_size and is_negative_control == False:
-
 					return False
 
 				elif fastq_r2.stat().st_size < self.min_fastq_size  and is_negative_control == False:
-
 					return False
 
 
@@ -480,8 +482,26 @@ class IlluminaQC:
 class SomaticEnrichment:
 
 
-	def __init__(self, results_dir, sample_names, run_id, ntc_patterns = ['NTC', 'ntc']):
+	def __init__(self,
+	 			results_dir,
+	 			sample_names,
+	 			run_id,
+	 			ntc_patterns = ['NTC', 'ntc'],
+	 			sample_expected_files= ['*_VariantReport.txt',
+									'*.bam',
+									'*_AlignmentSummaryMetrics.txt',
+									'*_DepthOfCoverage.sample_summary',
+									'*_QC.txt',
+									'*_filteredStrLeftAligned_annotated.vcf',
+									'hotspot_variants',
+									'hotspot_coverage_135x'
+									],
 
+				sample_not_expected_files = [],
+				run_sample_expected_files = ['CNVKit/*_common.vcf'],
+				run_expected_files = ['combined_QC.txt', 'samplesCNVKit.txt'],
+				run_not_expected_files = ['*.bed']
+									):
 
 		self.results_dir = results_dir
 		self.sample_names = sample_names
@@ -490,22 +510,13 @@ class SomaticEnrichment:
 		self.sample_complete_marker = '1_SomaticEnrichment.sh.e*'
 		self.run_complete_markers = ['1_cnvkit.sh.e*', '2_cnvkit.sh.e*']
 
-		self.sample_expected_files = ['*_VariantReport.txt',
-									'*.bam',
-									'*_AlignmentSummaryMetrics.txt',
-									'*_DepthOfCoverage.sample_summary',
-									'*_QC.txt',
-									'*_filteredStrLeftAligned_annotated.vcf',
-									'hotspot_variants',
-									'hotspot_coverage_135x'
-									]
+		self.sample_expected_files = sample_expected_files
+		self.sample_not_expected_files = sample_not_expected_files
 
-		self.sample_not_expected_files = []
+		self.run_sample_expected_files = run_sample_expected_files
+		self.run_expected_files = run_expected_files
 
-		self.run_sample_expected_files = ['CNVKit/*_common.vcf']
-		self.run_expected_files = ['combined_QC.txt', 'samplesCNVKit.txt']
-
-		self.run_not_expected_files =['*.bed']
+		self.run_not_expected_files = run_not_expected_files
 
 	def sample_is_complete(self, sample):
 		"""	

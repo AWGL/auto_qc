@@ -32,8 +32,8 @@
 		<td> {{run_analysis.analysis_type.analysis_type_id}} </td>
 		<td> {{run_analysis.pipeline.pipeline_id}} </td>
 		<td> {{run_analysis.start_date|date:'Y-m-d'}} </td>
-		<td> {{run_analysis.run.demultiplexing_completed}} </td>
-		<td> {{run_analysis.run.demultiplexing_valid}} </td>
+		<td> {{run_analysis.demultiplexing_completed}} </td>
+		<td> {{run_analysis.demultiplexing_valid}} </td>
 		<td> {{run_analysis.get_n_samples_completed|join:" / "}} </td>
 		<td> {{run_analysis.get_n_samples_valid|join:" / "}} </td>
 		<td> {{run_analysis.results_completed}} </td>

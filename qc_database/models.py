@@ -13,8 +13,6 @@ class Instrument(models.Model):
 class Run(models.Model):
 
 	run_id = models.CharField(max_length=50, primary_key=True)
-	demultiplexing_completed = models.BooleanField(default=False)
-	demultiplexing_valid = models.BooleanField(default=False)
 
 	instrument = models.OneToOneField('Instrument', on_delete=models.CASCADE, blank=True, null=True)
 	instrument_date = models.DateField(blank=True, null=True)
@@ -84,6 +82,8 @@ class RunAnalysis(models.Model):
 	analysis_type = models.ForeignKey(AnalysisType, on_delete=models.CASCADE)
 	results_completed = models.BooleanField(default=False)
 	results_valid = models.BooleanField(default=False)
+	demultiplexing_completed = models.BooleanField(default=False)
+	demultiplexing_valid = models.BooleanField(default=False)
 
 	class Meta:
 		unique_together = [['run', 'pipeline', 'analysis_type']]
@@ -125,6 +125,7 @@ class SampleAnalysis(models.Model):
 	worksheet = models.ForeignKey(WorkSheet, on_delete=models.CASCADE)
 	results_completed = models.BooleanField(default = False)
 	results_valid = models.BooleanField(default=False)
+	sex = models.CharField(max_length=10, null=True, blank=True)
 
 
 	class Meta:

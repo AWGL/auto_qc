@@ -1,0 +1,85 @@
+pipelines:
+
+  GermlineEnrichment-2.5.3-IlluminaTruSightCancer:
+    min_fastq_size: 1000000
+    sample_expected_files: ['*.bam',
+                '*.g.vcf',
+                  '*_AlignmentSummaryMetrics.txt',
+                  '*_Contamination.selfSM',
+                  '*_DepthOfCoverage.gz',
+                  '*_HsMetrics.txt',
+                  '*_InsertMetrics.txt',
+                  '*_MarkDuplicatesMetrics.txt',
+                  '*_QC.txt']
+    sample_not_expected_files: ['*_rmdup.bam',
+                   '*_DepthOfCoverage']
+    run_expected_files: ['*_filtered_annotated_roi.vcf',
+                '*_filtered_annotated_roi_noMT.vcf',
+                '*_pedigree.ped',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_detail_metrics',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_summary_metrics',
+                '*_ExomeDepth_Metrics.txt',
+                '*_relatedness.relatedness2',
+                'combined_QC.txt',
+                '*_cnvReport.csv']
+    run_not_expected_files: ['*_variants_filtered.vcf',
+                'BAMs.list']
+
+  GermlineEnrichment-2.5.3-IlluminaTruSightOne:
+    min_fastq_size: 1000000
+    sample_expected_files: ['*.bam',
+                '*.g.vcf',
+                  '*_AlignmentSummaryMetrics.txt',
+                  '*_Contamination.selfSM',
+                  '*_DepthOfCoverage.gz',
+                  '*_HsMetrics.txt',
+                  '*_InsertMetrics.txt',
+                  '*_MarkDuplicatesMetrics.txt',
+                  '*_QC.txt']
+    sample_not_expected_files: ['*_rmdup.bam',
+                   '*_DepthOfCoverage']
+    run_expected_files: ['*_filtered_annotated_roi.vcf',
+                '*_filtered_annotated_roi_noMT.vcf',
+                '*_pedigree.ped',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_detail_metrics',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_summary_metrics',
+                '*_ExomeDepth_Metrics.txt',
+                '*_relatedness.relatedness2',
+                'combined_QC.txt',
+                '*_cnvReport.csv']
+    run_not_expected_files: ['*_variants_filtered.vcf',
+                'BAMs.list']
+
+  SomaticEnrichment-1.0.0-RochePanCancer:
+    min_fastq_size: 1000000
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_AlignmentSummaryMetrics.txt',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_QC.txt',
+                  '*_filteredStrLeftAligned_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage_135x'
+                  ]
+    sample_not_expected_files: []
+    run_sample_expected_files: ['CNVKit/*_common.vcf']
+    run_expected_files: ['combined_QC.txt', 'samplesCNVKit.txt']
+    run_not_expected_files: ['*.bed']
+
+  SomaticAmplicon-1.7.6-NGHS-102X:
+    min_fastq_size: 10000000
+
+  SomaticAmplicon-1.7.7-NGHS-101X:
+    min_fastq_size: 10000000
+
+  SomaticAmplicon-1.7.7-NGHS-101X:
+    min_fastq_size: 10000000
+
+  SomaticAmplicon-1.7.7-NGHS-102X:
+    min_fastq_size: 10000000
+   
+
+
+
+
+

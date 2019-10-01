@@ -4,7 +4,7 @@ import xmltodict
 from datetime import date
 import json
 from interop import py_interop_run_metrics, py_interop_run, py_interop_summary
-
+import yaml
 
 def sample_sheet_parser(sample_sheet_path):
 
@@ -516,3 +516,15 @@ def parse_insert_metrics_file(insert_metrics_file):
 			insert_metrics_dict[key.lower()] = value
 
 	return insert_metrics_dict
+
+def parse_config(config_location):
+	"""
+	Parse the YAML config file.
+	"""
+	with open(config_location, 'r') as stream:
+
+		try:
+			return yaml.safe_load(stream)
+		except yaml.YAMLError as exc:
+			print(exc)
+		raise

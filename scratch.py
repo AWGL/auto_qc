@@ -48,8 +48,8 @@ somatic_amplicon = SomaticAmplicon(results_dir = '/media/joseph/Storage/data/res
 									run_id = '190906_M00766_0250_000000000-CJN92'
 									)
 
-print (somatic_amplicon.sample_is_complete('19M13120'))
-print (somatic_amplicon.sample_is_valid('19M13120'))
+print (somatic_amplicon.sample_is_complete('19M13265'))
+print (somatic_amplicon.sample_is_valid('19M13265'))
 print (somatic_amplicon.run_is_complete())
 print (somatic_amplicon.run_is_valid())
 
