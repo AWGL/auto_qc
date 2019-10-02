@@ -5,6 +5,7 @@ from datetime import date
 import json
 from interop import py_interop_run_metrics, py_interop_run, py_interop_summary
 import yaml
+import math
 
 def sample_sheet_parser(sample_sheet_path):
 
@@ -133,16 +134,15 @@ def extract_data_from_run_info_dict(run_info_dict):
 
 	return runinfo_sorted_dict
 
-def parse_interop_data(run_folder):
+def parse_interop_data(run_folder, num_reads, num_lanes):
 	"""
 	Parses summary statistics out of interops data using the Illumina interops package
 	"""
 
 	# make empty dict to store output
-	interop_dict = {}
+	interop_dict = {'read_summaries': {}}
 
-
-
+	
 	# taken from illumina interops package documentation, all of this is required, 
 	# even though only the summary variable is used further on
 	run_metrics = py_interop_run_metrics.run_metrics()
@@ -151,20 +151,44 @@ def parse_interop_data(run_folder):
 	run_folder = run_metrics.read(run_folder, valid_to_load)
 	summary = py_interop_summary.run_summary()
 	py_interop_summary.summarize_run_metrics(run_metrics, summary)
+	
+	
+	for read in range(num_reads):
+		
+		new_read = read + 1
+		
+		if new_read not in interop_dict['read_summaries']:
+			
+			interop_dict['read_summaries'][new_read] = {}
+		
+			
+		for lane in range(num_lanes):
+			
+			new_lane = lane + 1
+				
+			if new_lane not in interop_dict['read_summaries'][new_read]:
+					
+				interop_dict['read_summaries'][new_read][new_lane] = {}
+					
+			interop_dict['read_summaries'][read+1][lane+1]['percent_q30'] = summary.at(read).at(lane).percent_gt_q30()
+			interop_dict['read_summaries'][read+1][lane+1]['density'] = summary.at(read).at(lane).density().mean()
+			interop_dict['read_summaries'][read+1][lane+1]['density_pf'] = summary.at(read).at(lane).density_pf().mean()
+			interop_dict['read_summaries'][read+1][lane+1]['cluster_count'] = summary.at(read).at(lane).density_pf().mean()
+			interop_dict['read_summaries'][read+1][lane+1]['cluster_count_pf'] = summary.at(read).at(lane).cluster_count_pf().mean()
+			interop_dict['read_summaries'][read+1][lane+1]['error_rate'] = summary.at(read).at(lane).error_rate().mean()
+			interop_dict['read_summaries'][read+1][lane+1]['percent_aligned'] = summary.at(read).at(lane).percent_aligned().mean()
+			interop_dict['read_summaries'][read+1][lane+1]['percent_pf'] = summary.at(read).at(lane).percent_pf().mean()
+			interop_dict['read_summaries'][read+1][lane+1]['phasing'] = summary.at(read).at(lane).phasing().mean()
+			interop_dict['read_summaries'][read+1][lane+1]['prephasing'] = summary.at(read).at(lane).prephasing().mean()
+			interop_dict['read_summaries'][read+1][lane+1]['reads'] = summary.at(read).at(lane).reads()
+			interop_dict['read_summaries'][read+1][lane+1]['reads_pf'] = summary.at(read).at(lane).reads_pf()
+			interop_dict['read_summaries'][read+1][lane+1]['yield_g'] = summary.at(read).at(lane).yield_g()
 
-	# parse data from interop files -- % reads over Q30, cluster density, clusters passing filter
+			for key in interop_dict['read_summaries'][read+1][lane+1]:
 
-	# what does .at(0) do???
-	# get total reads
-	# seperate lanes?
-
-	interop_dict["percent_q30"] = round(summary.total_summary().percent_gt_q30(), 2)
-	interop_dict["cluster_density"] = round(summary.at(0).at(0).density().mean() / 1000, 2)
-	interop_dict["percent_pf"] = round(summary.at(0).at(0).percent_pf().mean(), 2)
-	interop_dict["phasing"] = round(summary.at(0).at(0).phasing().mean(), 2)
-	interop_dict["prephasing"] = round(summary.at(0).at(0).prephasing().mean(), 2)
-	interop_dict["error_rate"] = round(summary.total_summary().error_rate(), 2)
-	interop_dict["aligned"] = round(summary.total_summary().percent_aligned(), 2)
+				if math.isnan(interop_dict['read_summaries'][read+1][lane+1][key]):
+				
+					interop_dict['read_summaries'][read+1][lane+1][key] = None
 
 	return interop_dict
 
@@ -341,18 +365,18 @@ def parse_contamination_metrics(self_sm_contamination_file):
 		new_key = key.replace('#', 'num_').lower()
 
 		if new_key not in ['num_seq_id',
-		 			'rg',
-		 			'chip_id',
-		 			'free_rh',
-		 			'free_ra',
-		 			'chipmix',
-		 			'chiplk1',
-		 			'chiplk0',
-		 			'chip_rh',
-		 			'chip_ra',
-		 			'dpref',
-		 			'rdphet',
-		 			'rdpalt' ]:
+					'rg',
+					'chip_id',
+					'free_rh',
+					'free_ra',
+					'chipmix',
+					'chiplk1',
+					'chiplk0',
+					'chip_rh',
+					'chip_ra',
+					'dpref',
+					'rdphet',
+					'rdpalt' ]:
 
 			contamination_metrics_dict[new_key] = value
 
@@ -522,9 +546,4 @@ def parse_config(config_location):
 	Parse the YAML config file.
 	"""
 	with open(config_location, 'r') as stream:
-
-		try:
-			return yaml.safe_load(stream)
-		except yaml.YAMLError as exc:
-			print(exc)
-		raise
+		return yaml.safe_load(stream)

@@ -852,7 +852,23 @@ class SomaticEnrichment:
 class SomaticAmplicon:
 
 
-	def __init__(self, results_dir, sample_names, run_id, ntc_patterns = ['NTC', 'ntc']):
+	def __init__(self,
+				results_dir,
+				sample_names,
+				run_id,
+				ntc_patterns = ['NTC', 'ntc'],
+				sample_expected_files = ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_qc.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage'
+                  ],
+                sample_not_expected_files = ['*_fastqc.zip', 'VariantCallingLogs'],
+                run_expected_files = [],
+                run_not_expected_files = []
+				):
 
 
 		self.results_dir = results_dir
@@ -860,19 +876,10 @@ class SomaticAmplicon:
 		self.run_id = run_id
 		self.ntc_patterns = ntc_patterns
 		self.sample_complete_marker = '1_SomaticAmplicon.sh.e*'
-
-		self.sample_expected_files = ['*_VariantReport.txt',
-									'*.bam',
-									'*_DepthOfCoverage.sample_summary',
-									'*_qc.txt',
-									'*_filtered_meta_annotated.vcf',
-									'hotspot_variants',
-									'hotspot_coverage'
-									]
-
-		self.sample_not_expected_files = ['*_fastqc.zip', 'VariantCallingLogs']
-
-		self.run_sample_expected_files = []
+		self.sample_expected_files = sample_expected_files
+		self.sample_not_expected_files = sample_not_expected_files
+		self.run_expected_files = run_expected_files
+		self.run_not_expected_files = run_not_expected_files
 
 	def sample_is_complete(self, sample):
 		"""	

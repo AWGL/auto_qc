@@ -31,14 +31,6 @@ class Run(models.Model):
 	length_index1 = models.IntegerField(blank=True, null=True)
 	length_index2 = models.IntegerField(blank=True, null=True)
 
-	percent_q30 = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-	cluster_density = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-	percent_pf = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-	phasing = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-	prephasing = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-	error_rate = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-	aligned = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-
 	def get_status(self):
 
 		if self.demultiplexing_completed == False:
@@ -56,6 +48,26 @@ class Run(models.Model):
 		else:
 
 			return 'other'
+
+
+class InteropRunQuality(models.Model):
+
+	run = models.ForeignKey(Run, on_delete=models.CASCADE)
+	read_number = models.IntegerField()
+	lane_number = models.IntegerField()
+	percent_q30 = models.DecimalField(max_digits=6, decimal_places=3)
+	density = models.IntegerField()
+	density_pf = models.IntegerField()
+	cluster_count = models.IntegerField()
+	cluster_count_pf = models.IntegerField()
+	error_rate = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	percent_aligned = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	percent_pf = models.DecimalField(max_digits=6, decimal_places=3)
+	phasing = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	prephasing = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	reads = models.BigIntegerField()
+	reads_pf = models.BigIntegerField()
+	yield_g = models.DecimalField(max_digits=10, decimal_places=3)
 
 
 class WorkSheet(models.Model):
@@ -84,6 +96,7 @@ class RunAnalysis(models.Model):
 	results_valid = models.BooleanField(default=False)
 	demultiplexing_completed = models.BooleanField(default=False)
 	demultiplexing_valid = models.BooleanField(default=False)
+	min_q30_score = models.DecimalField(max_digits=6, decimal_places=3)
 
 	class Meta:
 		unique_together = [['run', 'pipeline', 'analysis_type']]
@@ -114,6 +127,21 @@ class RunAnalysis(models.Model):
 		completed = [x.results_valid for x in sample_analyses]
 
 		return completed.count(True), len(completed)
+
+
+
+
+	def passes_run_level_qc(self):
+
+		interop_qualities = InteropRunQuality.objects.filter(run = self.run)
+
+		for interop_quality in interop_qualities:
+
+			if interop_quality.percent_q30 < self.min_q30_score:
+
+				return False
+
+		return True
 
 
 class SampleAnalysis(models.Model):

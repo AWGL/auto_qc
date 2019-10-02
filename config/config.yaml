@@ -1,6 +1,7 @@
 pipelines:
 
   GermlineEnrichment-2.5.3-IlluminaTruSightCancer:
+    min_q30_score: 80
     min_fastq_size: 1000000
     sample_expected_files: ['*.bam',
                 '*.g.vcf',
@@ -68,15 +69,59 @@ pipelines:
 
   SomaticAmplicon-1.7.6-NGHS-102X:
     min_fastq_size: 10000000
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_qc.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage'
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
+
+  SomaticAmplicon-1.7.6-NGHS-101X:
+    min_fastq_size: 10000000
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_qc.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage'
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
 
   SomaticAmplicon-1.7.7-NGHS-101X:
     min_fastq_size: 10000000
-
-  SomaticAmplicon-1.7.7-NGHS-101X:
-    min_fastq_size: 10000000
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_qc.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage'
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
 
   SomaticAmplicon-1.7.7-NGHS-102X:
     min_fastq_size: 10000000
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_qc.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage'
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
    
 
 

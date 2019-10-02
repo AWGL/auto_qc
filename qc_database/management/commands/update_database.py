@@ -47,15 +47,36 @@ def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 	run_obj.length_index1 = length_index1
 	run_obj.length_index2 = length_index2
 	
-	interop_dict = parse_interop_data(str(raw_data_dir))
+	interop_dict = parse_interop_data(str(raw_data_dir), int(num_reads) + int(num_indexes), int(lane_count))
 
-	run_obj.percent_q30 = interop_dict['percent_q30']
-	run_obj.cluster_density = interop_dict['cluster_density']
-	run_obj.percent_pf = interop_dict['percent_pf']
-	run_obj.phasing = interop_dict['phasing']
-	run_obj.prephasing = interop_dict['prephasing']
-	run_obj.error_rate = interop_dict['error_rate']
-	run_obj.aligned = interop_dict['aligned']
+	for read in interop_dict['read_summaries']:
+
+		read_dict = interop_dict['read_summaries'][read]
+
+		for lane in read_dict:
+
+			lane_read_summary = read_dict[lane]
+
+			new_interop_quality_obj = InteropRunQuality(
+					run = run_obj,
+					read_number = read,
+					lane_number = lane,
+					percent_q30 = lane_read_summary['percent_q30'],
+					density = lane_read_summary['density'],
+					density_pf = lane_read_summary['density_pf'],
+					cluster_count = lane_read_summary['cluster_count'],
+					cluster_count_pf = lane_read_summary['cluster_count_pf'],
+					error_rate = lane_read_summary['error_rate'],
+					percent_aligned = lane_read_summary['percent_aligned'],
+					percent_pf =  lane_read_summary['percent_pf'],
+					phasing = lane_read_summary['phasing'],
+					prephasing = lane_read_summary['prephasing'],
+					reads = lane_read_summary['reads'],
+					reads_pf = lane_read_summary['reads_pf'],
+					yield_g = lane_read_summary['yield_g']
+				)
+			new_interop_quality_obj.save()
+
 
 	run_obj.save()
 
@@ -341,6 +362,7 @@ class Command(BaseCommand):
 		parser.add_argument('--raw_data_dir', nargs =1, type = str, required=True)
 		parser.add_argument('--fastq_data_dir', nargs =1, type = str, required=True)
 		parser.add_argument('--results_dir', nargs =1, type = str, required=True)
+		parser.add_argument('--config', nargs =1, type = str, required=True)
 	
 	def handle(self, *args, **options):
 
@@ -349,6 +371,9 @@ class Command(BaseCommand):
 		raw_data_dir = options['raw_data_dir'][0]
 		fastq_data_dir = options['fastq_data_dir'][0]
 		results_dir = options['results_dir'][0]
+		config = options['config'][0]
+
+		config_dict = parse_config(config)
 
 		# don't process existing runs
 		existing_runs = Run.objects.all()
@@ -454,9 +479,6 @@ class Command(BaseCommand):
 
 		existing_run_analyses = RunAnalysis.objects.all()
 
-		config_dict = parse_config('config/config.yaml')
-
-		print (config_dict)
 
 		for run_analysis in existing_run_analyses:
 
@@ -665,21 +687,29 @@ class Command(BaseCommand):
 
 				run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
 
-				sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
-				sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
-				run_sample_expected_files = config_dict['pipelines'][run_config_key]['run_sample_expected_files']
-				run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
-				run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
+				if run_config_key not in config_dict['pipelines']:
 
-				somatic_enrichment = SomaticEnrichment(results_dir = run_data_dir,
+					somatic_enrichment = SomaticEnrichment(results_dir = run_data_dir,
 														sample_names = sample_ids,
-														run_id = run_analysis.run.run_id,
-														sample_expected_files = sample_expected_files,
-														sample_not_expected_files = sample_not_expected_files,
-														run_sample_expected_files = run_sample_expected_files,
-														run_expected_files = run_expected_files,
-														run_not_expected_files = run_not_expected_files
+														run_id = run_analysis.run.run_id
 														)
+				else:
+
+					sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
+					sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
+					run_sample_expected_files = config_dict['pipelines'][run_config_key]['run_sample_expected_files']
+					run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
+					run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
+
+					somatic_enrichment = SomaticEnrichment(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id,
+															sample_expected_files = sample_expected_files,
+															sample_not_expected_files = sample_not_expected_files,
+															run_sample_expected_files = run_sample_expected_files,
+															run_expected_files = run_expected_files,
+															run_not_expected_files = run_not_expected_files
+															)
 
 
 				for sample in sample_ids:
@@ -791,10 +821,29 @@ class Command(BaseCommand):
 
 			elif 'SomaticAmplicon' in run_analysis.pipeline.pipeline_id:
 
-				somatic_amplicon = SomaticAmplicon(results_dir = run_data_dir,
-														sample_names = sample_ids,
-														run_id = run_analysis.run.run_id)
+				run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
 
+				if run_config_key not in config_dict['pipelines']:
+
+					somatic_amplicon = SomaticAmplicon(results_dir = run_data_dir,
+														sample_names = sample_ids,
+														run_id = run_analysis.run.run_id
+														)
+				else:
+
+					sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
+					sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
+					run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
+					run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
+
+					somatic_amplicon = SomaticAmplicon(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id,
+															sample_expected_files = sample_expected_files,
+															sample_not_expected_files = sample_not_expected_files,
+															run_expected_files = run_expected_files,
+															run_not_expected_files = run_not_expected_files
+															)
 
 				for sample in sample_ids:
 
