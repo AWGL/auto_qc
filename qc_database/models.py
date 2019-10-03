@@ -129,8 +129,6 @@ class RunAnalysis(models.Model):
 		return completed.count(True), len(completed)
 
 
-
-
 	def passes_run_level_qc(self):
 
 		interop_qualities = InteropRunQuality.objects.filter(run = self.run)
@@ -143,6 +141,37 @@ class RunAnalysis(models.Model):
 
 		return True
 
+	def get_ntc_sample(self):
+
+		samples = SampleAnalysis.objects.filter(run = self.run,
+												pipeline = self.pipeline,
+												analysis_type = self.analysis_type)
+
+		for sample in samples:
+
+			for ntc_marker in ['ntc', 'NTC']:
+
+				if ntc_marker in sample.sample_id:
+
+					return sample
+
+		return None
+
+	def get_worksheets(self):
+
+		worksheets = []
+
+		samples = SampleAnalysis.objects.filter(
+			run = self.run,
+			pipeline = self.pipeline,
+			analysis_type = self.analysis_type
+			)
+
+		for sample in samples:
+
+			worksheets.append(sample.worksheet.worksheet_id)
+
+		return '|'.join(list(set(worksheets)))
 
 class SampleAnalysis(models.Model):
 
@@ -154,10 +183,146 @@ class SampleAnalysis(models.Model):
 	results_completed = models.BooleanField(default = False)
 	results_valid = models.BooleanField(default=False)
 	sex = models.CharField(max_length=10, null=True, blank=True)
+	contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=0.15)
+	ntc_contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=10.0)
 
 
 	class Meta:
 		unique_together = [['sample', 'run', 'pipeline']]
+
+	def passes_fastqc(self):
+
+		fastqc_objs = SampleFastqcData.objects.filter(sample_analysis=self)
+
+		if len(fastqc_objs) == 0:
+
+			return None
+
+		for fastqc in fastqc_objs:
+
+			if fastqc.basic_statistics != 'PASS':
+
+				return False
+
+			elif fastqc.per_base_sequencing_quality != 'PASS':
+
+				return False
+
+			elif fastqc.per_tile_sequence_quality != 'PASS': 
+
+				return False
+
+			elif fastqc.per_sequence_quality_scores != 'PASS': 
+
+				return False
+
+			elif fastqc.per_base_n_content != 'PASS': 
+
+				return False
+
+		return True
+
+	def get_total_reads(self):
+
+		hs_metrics_obj = SampleHsMetrics.objects.get(sample_analysis= self)
+
+		return hs_metrics_obj.total_reads
+
+	def get_contamination(self):
+
+		contamination_obj = ContaminationMetrics.objects.get(sample_analysis=self)
+
+		return contamination_obj.freemix
+
+	def passes_contamination(self):
+
+		contamination_obj = ContaminationMetrics.objects.get(sample_analysis=self)
+
+		if contamination_obj == None:
+
+			return None
+
+		else:
+
+			if contamination_obj.freemix > self.contamination_cutoff:
+
+				return False
+
+		return True
+
+	def passes_ntc_contamination(self):
+
+		run_analysis = RunAnalysis.objects.get(run = self.run,
+											pipeline = self.pipeline,
+											analysis_type = self.analysis_type
+												)
+
+		total_reads = self.get_total_reads()
+
+		ntc_obj = run_analysis.get_ntc_sample()
+
+		if self == ntc_obj:
+
+			return 'NA'
+
+		if ntc_obj == None:
+
+			return None
+
+		ntc_reads = ntc_obj.get_total_reads()
+
+		if ntc_reads == None:
+
+			return None
+
+		if (ntc_reads * self.ntc_contamination_cutoff) > total_reads:
+
+			return False
+
+
+		return True
+
+	def get_sex(self):
+
+		sex = self.sex
+
+		if sex == '0':
+
+			return 'unknown'
+
+		elif sex == '1':
+
+			return 'male'
+
+		elif sex == '2':
+
+			return 'female'
+
+		else:
+
+			return None
+
+
+	def get_calculated_sex(self):
+
+		sex_obj = CalculatedSexMetrics.objects.get(sample_analysis=self)
+
+		if sex_obj == None:
+
+			return None
+
+		else:
+
+			return sex_obj.calculated_sex.lower()
+
+	def passes_sex_check(self):
+
+		if self.get_calculated_sex() == self.get_sex():
+
+			return True
+
+		return False
+
 
 
 class SampleFastqcData(models.Model):

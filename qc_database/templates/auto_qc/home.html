@@ -20,7 +20,8 @@
 	  <th>Samples Complete</th>
 	  <th>Samples Valid</th>
 	  <th>Run Complete</th>
-	  <th>Run Valid</th> 
+	  <th>Run Valid</th>
+	  <th>Auto QC</th> 
 	</tr>
   </thead>
 
@@ -38,6 +39,7 @@
 		<td> {{run_analysis.get_n_samples_valid|join:" / "}} </td>
 		<td> {{run_analysis.results_completed}} </td>
 		<td> {{run_analysis.results_valid}} </td>
+		<td> <a href="{% url 'view_run_analysis' pk=run_analysis.pk %}">QC</a> </td>
 	
 	</tr>
 	{% endfor %}

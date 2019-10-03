@@ -469,10 +469,13 @@ class Command(BaseCommand):
 				pipeline_obj = Pipeline.objects.get(pipeline_id=pipeline)
 				analysis_type_obj = AnalysisType.objects.get(analysis_type_id=analysis_type)
 
+				#run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+
 				new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
 																		pipeline = pipeline_obj,
 																		analysis_type = analysis_type_obj,
-																		start_date = datetime.datetime.now())
+																		start_date = datetime.datetime.now(),
+																		min_q30_score = 0.8)
 
 
 		# now get all runs and see if they have fastqs

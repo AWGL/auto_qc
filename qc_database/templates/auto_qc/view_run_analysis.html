@@ -1,0 +1,107 @@
+{% extends 'auto_qc/base.html' %}
+{% load static %}
+{% block content %}
+
+
+<br>
+
+<h2> Run Information </h2>
+
+<table id="run_analysis" class="table table-hover table-bordered table-sm">
+ <tbody>
+	<tr>
+		<td> Run </td>
+		<td> {{run_analysis.run.run_id}} </td>
+	</tr>
+	<tr>
+		<td> Worksheets </td>
+		<td> {{run_analysis.get_worksheets}} </td>
+
+	</tr>
+	<tr>
+		<td> Pipeline </td>
+		<td> {{run_analysis.pipeline.pipeline_id}} </td>
+
+	</tr>
+	<tr>
+		<td> Analysis </td>
+		<td> {{run_analysis.analysis_type.analysis_type_id}} </td>
+
+	</tr>
+
+	<tr>
+		<td> AutoQC Pass </td>
+		<td> Coming soon... </td>
+
+	</tr>
+  </tbody>
+
+
+</table>
+
+
+
+
+<h2> Run Level QC </h2>
+
+<table id="run_analysis" class="table table-hover table-bordered table-sm">
+
+  <thead>
+	<tr>
+	  <th>Read</th>
+	  <th>Lane</th>
+	  <th>Percent > q30</th>
+	</tr>
+  </thead>
+
+ <tbody>
+	{% for run_level_quality in run_level_qualities %}
+	<tr>
+		<td> {{run_level_quality.read_number}} </td>
+		<td> {{run_level_quality.lane_number}} </td>
+		<td> {{run_level_quality.percent_q30}} </td>
+	</tr>
+	{% endfor %}
+  </tbody>
+
+
+</table>
+
+
+<h2> Sample Level QC </h2>
+
+<table id="run_analysis" class="table table-hover table-bordered table-sm">
+
+  <thead>
+	<tr>
+	  <th>Sample</th>
+	  <th>FASTQC</th>
+	  <th>Total Reads</th>
+	  <th>Contamination</th>
+	  <th>Passes Contamination</th>
+	  <th>Passes NTC Contamination</th>
+	  <th>Sample Sex</th>
+	  <th>Calculated Sex</th>
+	  <th>Sex Match</th>
+	</tr>
+  </thead>
+
+  <tbody>
+	{% for sample_analysis in sample_analyses %}
+	<tr>
+		<td> {{sample_analysis.sample.sample_id}} </td>
+		<td> {{sample_analysis.passes_fastqc}} </td>
+		<td> {{sample_analysis.get_total_reads}} </td>
+		<td> {{sample_analysis.get_contamination}} </td>
+		<td> {{sample_analysis.passes_contamination}} </td>
+		<td> {{sample_analysis.passes_ntc_contamination}} </td>
+		<td> {{sample_analysis.get_sex}} </td>
+		<td> {{sample_analysis.get_calculated_sex}} </td>
+		<td> {{sample_analysis.passes_sex_check}} </td>
+	</tr>
+	{% endfor %}
+  </tbody>
+
+
+</table>
+{% endblock %}
