@@ -5,6 +5,7 @@
 
 <br>
 
+
 <h2> Run Information </h2>
 
 <table id="run_analysis" class="table table-hover table-bordered table-sm">
@@ -30,14 +31,38 @@
 	</tr>
 
 	<tr>
-		<td> AutoQC Pass </td>
-		<td> Coming soon... </td>
+		<td> Min Q30 Score </td>
+		<td> {{min_q30_score}}%</td>
+
+	</tr>
+
+
+	<tr>
+		<td> Max Contamination Score </td>
+		<td> {{max_contamination_score}}%</td>
+
+	</tr>
+
+	<tr>
+		<td> Max NTC Contamination Score </td>
+		<td> {{max_ntc_contamination_score}}%</td>
 
 	</tr>
   </tbody>
 
 
 </table>
+
+<h2> Auto QC </h2>
+{% if auto_qc.0 == True %}
+<div class="alert alert-success">
+  <strong>Pass</strong> 
+</div>
+{% else %}
+<div class="alert alert-danger">
+  <strong>Fail ({{ auto_qc.1 }})</strong> 
+</div>
+{% endif %}
 
 
 
@@ -56,11 +81,25 @@
 
  <tbody>
 	{% for run_level_quality in run_level_qualities %}
-	<tr>
+
+	{% if run_level_quality.percent_q30 > min_q30_score %}
+	<tr class="table-success">
 		<td> {{run_level_quality.read_number}} </td>
 		<td> {{run_level_quality.lane_number}} </td>
 		<td> {{run_level_quality.percent_q30}} </td>
 	</tr>
+	{% else %}
+	<tr class="table-danger">
+		<td> {{run_level_quality.read_number}} </td>
+		<td> {{run_level_quality.lane_number}} </td>
+		<td> {{run_level_quality.percent_q30}} </td>
+	</tr>
+
+	{% endif %}
+
+
+
+
 	{% endfor %}
   </tbody>
 
@@ -78,26 +117,64 @@
 	  <th>FASTQC</th>
 	  <th>Total Reads</th>
 	  <th>Contamination</th>
-	  <th>Passes Contamination</th>
 	  <th>Passes NTC Contamination</th>
 	  <th>Sample Sex</th>
 	  <th>Calculated Sex</th>
-	  <th>Sex Match</th>
 	</tr>
   </thead>
 
   <tbody>
 	{% for sample_analysis in sample_analyses %}
 	<tr>
+
+		{% if sample_analysis.sample.is_ntc == True %}
+
+			<td class="table-dark"> {{sample_analysis.sample.sample_id}} </td>
+			<td class="table-dark"> {{sample_analysis.passes_fastqc}} </td>
+			<td class="table-dark"> {{sample_analysis.get_total_reads}} </td>
+			<td class="table-dark"> {{sample_analysis.get_contamination}} </td>
+			<td class="table-dark"> {{sample_analysis.passes_ntc_contamination}} </td>
+			<td class="table-dark"> {{sample_analysis.get_sex}} </td>
+			<td class="table-dark"> {{sample_analysis.get_calculated_sex}} </td>
+
+		{% else %}
+
+
 		<td> {{sample_analysis.sample.sample_id}} </td>
-		<td> {{sample_analysis.passes_fastqc}} </td>
+
+		{% if sample_analysis.passes_fastqc == True %}
+			<td class="table-success"> {{sample_analysis.passes_fastqc}} </td>
+		{% else %}
+			<td class="table-danger"> {{sample_analysis.passes_fastqc}} </td>
+		{% endif %}
+
 		<td> {{sample_analysis.get_total_reads}} </td>
-		<td> {{sample_analysis.get_contamination}} </td>
-		<td> {{sample_analysis.passes_contamination}} </td>
-		<td> {{sample_analysis.passes_ntc_contamination}} </td>
-		<td> {{sample_analysis.get_sex}} </td>
-		<td> {{sample_analysis.get_calculated_sex}} </td>
-		<td> {{sample_analysis.passes_sex_check}} </td>
+
+
+		{% if sample_analysis.get_contamination == 'NA' %}
+			<td> {{sample_analysis.get_contamination}} </td>
+		{% elif sample_analysis.get_contamination < sample_analysis.contamination_cutoff %}
+			<td class="table-success"> {{sample_analysis.get_contamination}} </td>
+		{% else %}
+			<td class="table-danger"> {{sample_analysis.get_contamination}} </td>
+		{% endif %}
+
+		{% if sample_analysis.passes_ntc_contamination == True %}
+			<td class="table-success"> {{sample_analysis.passes_ntc_contamination}} </td>
+		{% else %}
+			<td class="table-danger"> {{sample_analysis.passes_ntc_contamination}} </td>
+		{% endif %}
+
+		{% if sample_analysis.passes_sex_check == True %}
+			<td class="table-success"> {{sample_analysis.get_sex}} </td>
+			<td class="table-success"> {{sample_analysis.get_calculated_sex}} </td>
+		{% else %}
+			<td class="table-danger"> {{sample_analysis.get_sex}} </td>
+			<td class="table-danger"> {{sample_analysis.get_calculated_sex}} </td>
+		{% endif %}
+
+	{% endif %}
+
 	</tr>
 	{% endfor %}
   </tbody>

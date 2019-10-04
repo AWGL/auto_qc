@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from .models import *
+
 # Create your views here.
 
 
@@ -21,6 +22,18 @@ def view_run_analysis(request, pk):
 
 	run_level_qualities = InteropRunQuality.objects.filter(run =run_analysis.run)
 
+	auto_qc = run_analysis.passes_auto_qc()
+
+	min_q30_score = round(run_analysis.min_q30_score * 100)
+
+	max_contamination_score = round(sample_analyses[0].contamination_cutoff*100)
+
+	max_ntc_contamination_score = round(sample_analyses[0].ntc_contamination_cutoff)
+
 	return render(request, 'auto_qc/view_run_analysis.html', {'run_analysis': run_analysis,
 															 'sample_analyses': sample_analyses,
-															 'run_level_qualities': run_level_qualities})
+															 'run_level_qualities': run_level_qualities,
+															 'auto_qc': auto_qc,
+															 'min_q30_score': min_q30_score,
+															 'max_contamination_score': max_contamination_score,
+															 'max_ntc_contamination_score': max_ntc_contamination_score})

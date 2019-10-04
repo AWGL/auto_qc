@@ -1,4 +1,6 @@
 from django.db import models
+from django.conf import settings
+from qc_analysis.parsers import *
 
 # Create your models here.
 
@@ -30,6 +32,9 @@ class Run(models.Model):
 	num_indexes = models.IntegerField(blank=True, null=True)
 	length_index1 = models.IntegerField(blank=True, null=True)
 	length_index2 = models.IntegerField(blank=True, null=True)
+
+	def __str__(self):
+		return self.run_id
 
 	def get_status(self):
 
@@ -69,22 +74,49 @@ class InteropRunQuality(models.Model):
 	reads_pf = models.BigIntegerField()
 	yield_g = models.DecimalField(max_digits=10, decimal_places=3)
 
+	def __str__(self):
+		return self.run.run_id + '_' + self.read_number + '_' + self.lane_number
+
+
 
 class WorkSheet(models.Model):
 
 	worksheet_id = models.CharField(max_length=50, primary_key=True)
 
+	def __str__(self):
+		return self.worksheet_id
+
 class Sample(models.Model):
 
 	sample_id = models.CharField(max_length=50, primary_key=True)
+
+	def __str__(self):
+		return self.sample_id
+
+	def is_ntc(self):
+
+		for ntc_marker in ['NTC', 'ntc']:
+
+			if ntc_marker in self.sample_id:
+
+				return True
+
+		return False
 
 class Pipeline(models.Model):
 
 	pipeline_id = models.CharField(max_length=50, primary_key=True)
 
+
+	def __str__(self):
+		return self.pipeline_id
+
 class AnalysisType(models.Model):
 
 	analysis_type_id = models.CharField(max_length=50, primary_key=True)
+
+	def __str__(self):
+		return self.analysis_type_id
 
 class RunAnalysis(models.Model):
 
@@ -100,6 +132,9 @@ class RunAnalysis(models.Model):
 
 	class Meta:
 		unique_together = [['run', 'pipeline', 'analysis_type']]
+
+	def __str__(self):
+		return self.run.run_id + '_' + self.pipeline.pipeline_id + '_' + self.analysis_type.analysis_type_id
 
 	def get_n_samples_completed(self):
 
@@ -173,6 +208,105 @@ class RunAnalysis(models.Model):
 
 		return '|'.join(list(set(worksheets)))
 
+	def passes_auto_qc(self):
+
+		config_dict = parse_config(settings.CONFIG_PATH)
+
+		config_key = self.pipeline.pipeline_id + '-' + self.analysis_type.analysis_type_id
+
+		try:
+
+			checks_to_do = config_dict['pipelines'][config_key]['qc_checks']
+
+		except:
+
+			return False, 'No configuration for this pipeline.'
+
+		samples = SampleAnalysis.objects.filter(run = self.run,
+												pipeline = self.pipeline,
+												analysis_type = self.analysis_type)
+
+		# check is complete and valid
+
+
+		new_samples_list = []
+
+
+		if self.demultiplexing_completed == False:
+
+			return False, 'Demultiplexing not complete for some samples'
+
+		if self.demultiplexing_valid == False:
+
+			return False, 'Demultiplexing not valid for some samples'
+
+		if self.results_completed == False:
+
+			return False, 'Run results not completed'
+
+		if self.results_completed == False:
+
+			return False, 'Run results not valid'
+
+		for sample in samples:
+
+			if sample.results_completed == False:
+
+				return False, 'Results not complete for some samples'
+
+			if sample.results_valid == False:
+
+				return False, 'Results not valid for some samples'
+
+
+			if sample.sample.is_ntc() == False:
+
+				new_samples_list.append(sample)
+
+		if 'pct_q30' in checks_to_do:
+
+			if self.passes_run_level_qc() == False:
+
+				return False, 'Q30 Fail'
+
+		if 'fastqc' in checks_to_do:
+
+			for sample in new_samples_list:
+
+				if sample.passes_fastqc() == False:
+
+					return False, 'FASTQC Fail'
+
+		if 'contamination' in checks_to_do:
+
+			for sample in new_samples_list:
+
+				if sample.passes_contamination() == False:
+
+					return False, 'Contamination Fail'
+
+
+		if 'ntc_contamination' in checks_to_do:
+
+			for sample in new_samples_list:
+
+				if sample.passes_ntc_contamination() == False:
+
+					return False, 'NTC Contamination Fail'
+
+		if 'sex_match' in checks_to_do:
+
+			for sample in new_samples_list:
+
+				if sample.passes_sex_check() == False:
+
+					return False, 'Sex Match Fail'
+
+		return True, 'All Pass'
+
+
+
+
 class SampleAnalysis(models.Model):
 
 	sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
@@ -189,6 +323,9 @@ class SampleAnalysis(models.Model):
 
 	class Meta:
 		unique_together = [['sample', 'run', 'pipeline']]
+
+	def __str__(self):
+		return self.run.run_id + '_' + self.pipeline.pipeline_id + '_' + self.analysis_type.analysis_type_id + '_' + self.sample.sample_id
 
 	def passes_fastqc(self):
 
@@ -224,27 +361,37 @@ class SampleAnalysis(models.Model):
 
 	def get_total_reads(self):
 
-		hs_metrics_obj = SampleHsMetrics.objects.get(sample_analysis= self)
+		try:
+
+			hs_metrics_obj = SampleHsMetrics.objects.get(sample_analysis= self)
+
+		except:
+
+			return None
 
 		return hs_metrics_obj.total_reads
 
 	def get_contamination(self):
 
-		contamination_obj = ContaminationMetrics.objects.get(sample_analysis=self)
+		try:
+
+			contamination_obj = ContaminationMetrics.objects.get(sample_analysis=self)
+
+		except:
+
+			return 'NA'
+
 
 		return contamination_obj.freemix
 
 	def passes_contamination(self):
 
-		contamination_obj = ContaminationMetrics.objects.get(sample_analysis=self)
-
-		if contamination_obj == None:
-
+		try:
+			contamination_obj = ContaminationMetrics.objects.get(sample_analysis=self)
+		except:
 			return None
 
-		else:
-
-			if contamination_obj.freemix > self.contamination_cutoff:
+		if contamination_obj.freemix > self.contamination_cutoff:
 
 				return False
 
@@ -258,6 +405,10 @@ class SampleAnalysis(models.Model):
 												)
 
 		total_reads = self.get_total_reads()
+
+		if total_reads == None:
+
+			return None
 
 		ntc_obj = run_analysis.get_ntc_sample()
 
@@ -300,20 +451,17 @@ class SampleAnalysis(models.Model):
 
 		else:
 
-			return None
+			return 'NA'
 
 
 	def get_calculated_sex(self):
 
-		sex_obj = CalculatedSexMetrics.objects.get(sample_analysis=self)
+		try:
+			sex_obj = CalculatedSexMetrics.objects.get(sample_analysis=self)
+		except:
+			return 'NA'
 
-		if sex_obj == None:
-
-			return None
-
-		else:
-
-			return sex_obj.calculated_sex.lower()
+		return sex_obj.calculated_sex.lower()
 
 	def passes_sex_check(self):
 
@@ -346,7 +494,8 @@ class SampleFastqcData(models.Model):
 	adapter_content = models.CharField(max_length=10)
 	kmer_content = models.CharField(max_length=10, null=True, blank=True)
 
-
+	def __str__(self):
+		return str(self.sample_analysis) + '_' + self.read_number + '_' + self.lane
 
 class SampleHsMetrics(models.Model):
 	"""
@@ -411,6 +560,9 @@ class SampleHsMetrics(models.Model):
 	het_snp_sensitivity = models.DecimalField(max_digits=20, decimal_places=4, null=True)
 	het_snp_q = models.IntegerField(null=True) 
 
+	def __str__(self):
+		return self.sample_analysis
+
 
 class SampleDepthofCoverageMetrics(models.Model):
 
@@ -422,6 +574,8 @@ class SampleDepthofCoverageMetrics(models.Model):
 	granular_third_quartile = models.IntegerField()
 	pct_bases_above_20  = models.DecimalField(max_digits=20, decimal_places=4)
 
+	def __str__(self):
+		return self.sample_analysis
 
 class DuplicationMetrics(models.Model):
 
@@ -437,6 +591,10 @@ class DuplicationMetrics(models.Model):
 	percent_duplication = models.DecimalField(max_digits=20, decimal_places=4, null=True)
 	estimated_library_size = models.BigIntegerField(null=True)
 
+	def __str__(self):
+		return self.sample_analysis
+
+
 class ContaminationMetrics(models.Model):
 
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
@@ -447,11 +605,16 @@ class ContaminationMetrics(models.Model):
 	freelk1 = models.DecimalField(max_digits=20, decimal_places=4)
 	freelk0 = models.DecimalField(max_digits=20, decimal_places=4)
 
+	def __str__(self):
+		return self.sample_analysis
 
 class CalculatedSexMetrics(models.Model):
 
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	calculated_sex = models.CharField(max_length=10)
+
+	def __str__(self):
+		return self.sample_analysis
 
 class AlignmentMetrics(models.Model):
 
@@ -480,6 +643,9 @@ class AlignmentMetrics(models.Model):
 	strand_balance = models.DecimalField(max_digits=6, decimal_places=4)
 	pct_chimeras = models.DecimalField(max_digits=6, decimal_places=4)
 	pct_adapter = models.DecimalField(max_digits=6, decimal_places=4)
+
+	def __str__(self):
+		return str(self.sample_analysis) + '_' + self.category
 
 
 class VariantCallingMetrics(models.Model):
@@ -510,6 +676,8 @@ class VariantCallingMetrics(models.Model):
 	snp_reference_bias = models.DecimalField(max_digits=6, decimal_places=3)
 	num_singletons = models.IntegerField()
 
+	def __str__(self):
+		return self.sample_analysis
 
 class InsertMetrics(models.Model):
 
@@ -535,8 +703,8 @@ class InsertMetrics(models.Model):
 	width_of_95_percent = models.IntegerField(null=True, blank=True)
 	width_of_99_percent = models.IntegerField(null=True, blank=True)
 
-
-
+	def __str__(self):
+		return self.sample_analysis
 
 
 

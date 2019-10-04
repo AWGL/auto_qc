@@ -1,6 +1,7 @@
 pipelines:
 
   GermlineEnrichment-2.5.3-IlluminaTruSightCancer:
+    qc_checks: [pct_q30, fastqc, contamination, ntc_contamination, sex_match]
     min_q30_score: 80
     min_fastq_size: 1000000
     sample_expected_files: ['*.bam',
@@ -27,6 +28,7 @@ pipelines:
                 'BAMs.list']
 
   GermlineEnrichment-2.5.3-IlluminaTruSightOne:
+    qc_checks: [pct_q30, fastqc, contamination, ntc_contamination, sex_match]
     min_fastq_size: 1000000
     sample_expected_files: ['*.bam',
                 '*.g.vcf',
@@ -52,6 +54,7 @@ pipelines:
                 'BAMs.list']
 
   SomaticEnrichment-1.0.0-RochePanCancer:
+    qc_checks: [pct_q30, fastqc, ntc_contamination, sex_match]
     min_fastq_size: 1000000
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
@@ -68,6 +71,7 @@ pipelines:
     run_not_expected_files: ['*.bed']
 
   SomaticAmplicon-1.7.6-NGHS-102X:
+    qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_fastq_size: 10000000
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
@@ -82,6 +86,7 @@ pipelines:
     run_not_expected_files: []
 
   SomaticAmplicon-1.7.6-NGHS-101X:
+    qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_fastq_size: 10000000
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
@@ -96,6 +101,7 @@ pipelines:
     run_not_expected_files: []
 
   SomaticAmplicon-1.7.7-NGHS-101X:
+    qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_fastq_size: 10000000
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
@@ -110,6 +116,7 @@ pipelines:
     run_not_expected_files: []
 
   SomaticAmplicon-1.7.7-NGHS-102X:
+    qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_fastq_size: 10000000
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
