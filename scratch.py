@@ -43,14 +43,11 @@ illumina_qc = IlluminaQC(fastq_dir = '/home/joseph/Documents/auto_qc/data/archiv
 
 #print (germline.get_contamination())
 
-somatic_amplicon = SomaticAmplicon(results_dir = '/media/joseph/Storage/data/results/190906_M00766_0250_000000000-CJN92/NGHS-101X',
-									sample_names = ['19M13120', 'NTC-19-6091-FOCUS4'],
-									run_id = '190906_M00766_0250_000000000-CJN92'
-									)
+germline = GermlineEnrichment(results_dir = '/media/joseph/Storage/data/results/190927_D00501_0360_AH5JTVBCX3/IlluminaTruSightOne',
+								sample_names = ['16M12810'],
+								run_id = '190927_D00501_0360_AH5JTVBCX3')
 
-print (somatic_amplicon.sample_is_complete('19M13265'))
-print (somatic_amplicon.sample_is_valid('19M13265'))
-print (somatic_amplicon.run_is_complete())
-print (somatic_amplicon.run_is_valid())
+print (germline.run_is_complete())
 
-print (somatic_amplicon.get_depth_metrics())
+print (germline.run_is_valid())
+

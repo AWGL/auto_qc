@@ -22,8 +22,17 @@ def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 	instrument_type = get_instrument_type(instrument_id)
 	instrument_date = processed_run_info_dict['instrument_date']
 	lane_count = run_info_dict['RunInfo']['Run']['FlowcellLayout']['@LaneCount']
-	experiment = run_params_dict['RunParameters']['ExperimentName']
-	chemistry = run_params_dict['RunParameters']['Chemistry']
+
+	if instrument_type == 'HiSeq':
+
+		experiment = run_params_dict['RunParameters']['Setup']['ExperimentName']
+		chemistry = None
+
+	else:
+
+		experiment = run_params_dict['RunParameters']['ExperimentName']
+		chemistry = run_params_dict['RunParameters']['Chemistry']
+
 	num_reads = processed_run_info_dict['num_reads']
 	length_read1 = processed_run_info_dict['length_read1']
 	length_read2 = processed_run_info_dict['length_read2']
@@ -84,6 +93,10 @@ def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 
 
 def add_fastqc_data(fastqc_dict, run_analysis_obj):
+	"""
+	Add data from fastqc files to database.
+
+	"""
 
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
@@ -112,7 +125,10 @@ def add_fastqc_data(fastqc_dict, run_analysis_obj):
 				new_fastqc_obj.save()
 
 def add_hs_metrics(hs_metrics_dict, run_analysis_obj):
+	"""
+	Add data from picard hs metrics files to database.
 
+	"""
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
 
@@ -146,7 +162,10 @@ def add_hs_metrics(hs_metrics_dict, run_analysis_obj):
 			new_hsmetrics_obj.save()
 
 def add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis_obj):
+	"""
+	Add data from depth of coverage summary files to database.
 
+	"""
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
 
@@ -173,7 +192,10 @@ def add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis_obj):
 
 
 def add_duplication_metrics(duplication_metrics_dict, run_analysis_obj):
+	"""
+	Add data from picard mark duplicates summary files to database.
 
+	"""
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
 
@@ -203,6 +225,11 @@ def add_duplication_metrics(duplication_metrics_dict, run_analysis_obj):
 			new_duplication_obj.save()
 		
 def add_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
+	"""
+	Add data from contamination summary files to database.
+
+	"""
+
 
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
@@ -234,7 +261,10 @@ def add_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
 			new_contamination_obj.save()
 
 def add_sex_metrics(qc_metrics_dict, run_analysis_obj):
+	"""
+	Add data from sex calculation files to database.
 
+	"""
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
 
@@ -258,7 +288,10 @@ def add_sex_metrics(qc_metrics_dict, run_analysis_obj):
 
 
 def add_alignment_metrics(alignment_metrics_dict, run_analysis_obj):
+	"""
+	Add data from picard alignment metrics files to database.
 
+	"""
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
 
@@ -292,7 +325,10 @@ def add_alignment_metrics(alignment_metrics_dict, run_analysis_obj):
 				new_alignment_obj.save()
 
 def add_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
+	"""
+	Add data from picard variant calling metrics files to database.
 
+	"""
 
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
@@ -323,7 +359,10 @@ def add_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
 			new_variant_obj.save()
 
 def add_insert_metrics(insert_metrics_dict, run_analysis_obj):
+	"""
+	Add data from picard insert metrics files to database.
 
+	"""
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
 
@@ -366,45 +405,38 @@ class Command(BaseCommand):
 	
 	def handle(self, *args, **options):
 
-
 		# Make or get initial model instances
 		raw_data_dir = options['raw_data_dir'][0]
 		fastq_data_dir = options['fastq_data_dir'][0]
 		results_dir = options['results_dir'][0]
 		config = options['config'][0]
 
+		# Read config file and create dictionary
 		config_dict = parse_config(config)
 
 		# don't process existing runs
 		existing_runs = Run.objects.all()
-
 		existing_runs = [run.pk for run in existing_runs]
 
-		# get runs in folder
-
+		# get runs in existing archive directory
 		raw_data_dir = list(Path(raw_data_dir).glob('*/'))
 
-		# for each folder in directory
+		# for each folder in  archieve directory
 		for raw_data in raw_data_dir:
 
+			# skip non directory items
 			if raw_data.is_dir() == False:
-
 				continue
 
 			sample_sheet = raw_data.joinpath('SampleSheet.csv')
 
-			# to do what if sample sheet is named something else?
-			# maybe send warning that a run has appeared but could not be processed
-
+			# skip if no sample sheet
 			if sample_sheet.exists() == False:
 
 				print(f'Could not find sample sheet for {raw_data}')
-
 				continue
 
 			run_id = raw_data.name
-
-			# regardless of whether we have seen it before then 
 			run_obj, created = Run.objects.get_or_create(run_id=run_id)
 		
 			if run_id not in existing_runs:
@@ -427,16 +459,19 @@ class Command(BaseCommand):
 				if run_info.exists() == False or run_parameters.exists() == False:
 
 					print (f'Can\'t find required XML files for {run_id}')
-
 					continue
 
+
+				# add runlog stats to database
 				add_run_log_info(run_info, run_parameters, run_obj, raw_data)
 
-
+			# parse sample sheet
 			sample_sheet_data = sample_sheet_parser(sample_sheet)
 
+			# set to hold different pipeline combinations
 			run_analyses_to_create = set()
 
+			# create sample analysis objects for each sample
 			for sample in sample_sheet_data:
 
 				sample_obj, created = Sample.objects.get_or_create(sample_id=sample)
@@ -461,6 +496,7 @@ class Command(BaseCommand):
 
 				run_analyses_to_create.add((pipeline_and_version, panel ))
 
+			# now create a corresponding run analysis object
 			for run_analysis in run_analyses_to_create:
 
 				pipeline = run_analysis[0]
@@ -469,19 +505,25 @@ class Command(BaseCommand):
 				pipeline_obj = Pipeline.objects.get(pipeline_id=pipeline)
 				analysis_type_obj = AnalysisType.objects.get(analysis_type_id=analysis_type)
 
-				#run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+				run_config_key = pipeline_obj.pipeline_id + '-' + analysis_type_obj.analysis_type_id
+
+				try:
+
+					min_q30_score = config_dict['pipelines'][run_config_key]['min_q30_score']
+
+				except:
+
+					min_q30_score = 0.8
 
 				new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
 																		pipeline = pipeline_obj,
 																		analysis_type = analysis_type_obj,
 																		start_date = datetime.datetime.now(),
-																		min_q30_score = 0.8)
+																		min_q30_score = min_q30_score)
 
 
-		# now get all runs and see if they have fastqs
-
+		# Loop through existing run analysis objects
 		existing_run_analyses = RunAnalysis.objects.all()
-
 
 		for run_analysis in existing_run_analyses:
 
@@ -555,7 +597,6 @@ class Command(BaseCommand):
 														)
 
 				except:
-
 
 					germline_enrichment = GermlineEnrichment(results_dir = run_data_dir,
 														sample_names = sample_ids,

@@ -16,7 +16,7 @@ class Run(models.Model):
 
 	run_id = models.CharField(max_length=50, primary_key=True)
 
-	instrument = models.OneToOneField('Instrument', on_delete=models.CASCADE, blank=True, null=True)
+	instrument = models.ForeignKey(Instrument, on_delete=models.CASCADE, blank=True, null=True)
 	instrument_date = models.DateField(blank=True, null=True)
 	setup_date = models.DateField(blank=True, null=True)
 	samplesheet_date = models.DateField(blank=True, null=True)
@@ -75,7 +75,7 @@ class InteropRunQuality(models.Model):
 	yield_g = models.DecimalField(max_digits=10, decimal_places=3)
 
 	def __str__(self):
-		return self.run.run_id + '_' + self.read_number + '_' + self.lane_number
+		return str(self.run.run_id) + '_' + str(self.read_number) + '_' + str(self.lane_number)
 
 
 
@@ -244,7 +244,7 @@ class RunAnalysis(models.Model):
 
 			return False, 'Run results not completed'
 
-		if self.results_completed == False:
+		if self.results_valid == False:
 
 			return False, 'Run results not valid'
 
@@ -325,7 +325,7 @@ class SampleAnalysis(models.Model):
 		unique_together = [['sample', 'run', 'pipeline']]
 
 	def __str__(self):
-		return self.run.run_id + '_' + self.pipeline.pipeline_id + '_' + self.analysis_type.analysis_type_id + '_' + self.sample.sample_id
+		return f'{self.run.run_id}_{self.pipeline.pipeline_id}_{self.analysis_type.analysis_type_id}_{self.sample.sample_id}'
 
 	def passes_fastqc(self):
 
@@ -471,6 +471,22 @@ class SampleAnalysis(models.Model):
 
 		return False
 
+	def get_run_analysis(self):
+
+		try:
+
+			run_analysis = RunAnalysis.objects.get(
+				run = self.run,
+				pipeline = self.pipeline,
+				analysis_type = self.analysis_type
+				)
+
+		except:
+
+			return None
+
+		return run_analysis
+
 
 
 class SampleFastqcData(models.Model):
@@ -495,7 +511,7 @@ class SampleFastqcData(models.Model):
 	kmer_content = models.CharField(max_length=10, null=True, blank=True)
 
 	def __str__(self):
-		return str(self.sample_analysis) + '_' + self.read_number + '_' + self.lane
+		return f'{self.sample_analysis}_{self.read_number}_{self.lane}'
 
 class SampleHsMetrics(models.Model):
 	"""
@@ -561,7 +577,7 @@ class SampleHsMetrics(models.Model):
 	het_snp_q = models.IntegerField(null=True) 
 
 	def __str__(self):
-		return self.sample_analysis
+		return str(self.sample_analysis)
 
 
 class SampleDepthofCoverageMetrics(models.Model):
@@ -575,7 +591,7 @@ class SampleDepthofCoverageMetrics(models.Model):
 	pct_bases_above_20  = models.DecimalField(max_digits=20, decimal_places=4)
 
 	def __str__(self):
-		return self.sample_analysis
+		return str(self.sample_analysis)
 
 class DuplicationMetrics(models.Model):
 
@@ -592,7 +608,7 @@ class DuplicationMetrics(models.Model):
 	estimated_library_size = models.BigIntegerField(null=True)
 
 	def __str__(self):
-		return self.sample_analysis
+		return str(self.sample_analysis)
 
 
 class ContaminationMetrics(models.Model):
@@ -606,7 +622,7 @@ class ContaminationMetrics(models.Model):
 	freelk0 = models.DecimalField(max_digits=20, decimal_places=4)
 
 	def __str__(self):
-		return self.sample_analysis
+		return str(self.sample_analysis)
 
 class CalculatedSexMetrics(models.Model):
 
@@ -614,7 +630,7 @@ class CalculatedSexMetrics(models.Model):
 	calculated_sex = models.CharField(max_length=10)
 
 	def __str__(self):
-		return self.sample_analysis
+		return str(self.sample_analysis)
 
 class AlignmentMetrics(models.Model):
 
@@ -665,7 +681,7 @@ class VariantCallingMetrics(models.Model):
 	total_indels = models.IntegerField()
 	novel_indels = models.IntegerField()
 	filtered_indels = models.IntegerField()
-	pct_dbsnp_indels = models.DecimalField(max_digits=6, decimal_places=3)
+	pct_dbsnp_indels = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	num_in_db_snp_indels = models.IntegerField()
 	dbsnp_ins_del_ratio = models.DecimalField(max_digits=6, decimal_places=3)
 	novel_ins_del_ratio = models.DecimalField(max_digits=6, decimal_places=3)
@@ -673,11 +689,11 @@ class VariantCallingMetrics(models.Model):
 	num_in_db_snp_multiallelic = models.IntegerField()
 	total_complex_indels = models.IntegerField()
 	num_in_db_snp_complex_indels = models.IntegerField()
-	snp_reference_bias = models.DecimalField(max_digits=6, decimal_places=3)
+	snp_reference_bias = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	num_singletons = models.IntegerField()
 
 	def __str__(self):
-		return self.sample_analysis
+		return str(self.sample_analysis)
 
 class InsertMetrics(models.Model):
 
@@ -704,7 +720,7 @@ class InsertMetrics(models.Model):
 	width_of_99_percent = models.IntegerField(null=True, blank=True)
 
 	def __str__(self):
-		return self.sample_analysis
+		return str(self.sample_analysis)
 
 
 

@@ -65,8 +65,6 @@
 {% endif %}
 
 
-
-
 <h2> Run Level QC </h2>
 
 <table id="run_analysis" class="table table-hover table-bordered table-sm">
@@ -181,4 +179,73 @@
 
 
 </table>
+
+<h2> Bioinformatics QC </h2>
+
+
+<table id="run_analysis" class="table table-hover table-bordered table-sm">
+
+  <thead>
+	<tr>
+	  <th>Sample</th>
+	  <th>Demultiplexing Complete</th>
+	  <th>Demultiplexing Valid</th>
+	  <th>Sample Level Pipeline Complete</th>
+	  <th>Sample Level Pipeline Valid</th>
+	  <th>Run Level Pipeline Complete</th>
+	  <th>Run Level Pipeline Valid</th>
+	</tr>
+  </thead>
+
+  <tbody>
+	{% for sample_analysis in sample_analyses %}
+	<tr>
+
+
+		<td> {{sample_analysis.sample.sample_id}} </td>
+
+
+		{% if sample_analysis.get_run_analysis.demultiplexing_completed == True %}
+			<td class="table-success"> {{sample_analysis.get_run_analysis.demultiplexing_completed}} </td>
+		{% else %}
+			<td class="table-danger"> {{sample_analysis.get_run_analysis.demultiplexing_completed}} </td>
+		{% endif %}
+
+		{% if sample_analysis.get_run_analysis.demultiplexing_valid == True %}
+			<td class="table-success"> {{sample_analysis.get_run_analysis.demultiplexing_completed}} </td>
+		{% else %}
+			<td class="table-danger"> {{sample_analysis.get_run_analysis.demultiplexing_valid}} </td>
+		{% endif %}
+
+		{% if sample_analysis.results_completed == True %}
+			<td class="table-success"> {{sample_analysis.results_completed}} </td>
+		{% else %}
+			<td class="table-danger"> {{sample_analysis.results_completed}} </td>
+		{% endif %}
+
+		{% if sample_analysis.results_valid == True %}
+			<td class="table-success"> {{sample_analysis.results_valid}} </td>
+		{% else %}
+			<td class="table-danger"> {{sample_analysis.results_valid}} </td>
+		{% endif %}
+
+		{% if sample_analysis.get_run_analysis.results_completed == True %}
+			<td class="table-success"> {{sample_analysis.get_run_analysis.results_completed}} </td>
+		{% else %}
+			<td class="table-danger"> {{sample_analysis.get_run_analysis.results_completed}} </td>
+		{% endif %}
+
+		{% if sample_analysis.get_run_analysis.results_valid == True %}
+			<td class="table-success"> {{sample_analysis.get_run_analysis.results_valid}} </td>
+		{% else %}
+			<td class="table-danger"> {{sample_analysis.get_run_analysis.results_valid}} </td>
+		{% endif %}
+
+	</tr>
+	{% endfor %}
+  </tbody>
+
+
+</table>
+
 {% endblock %}
