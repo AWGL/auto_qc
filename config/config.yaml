@@ -3,6 +3,8 @@ pipelines:
   GermlineEnrichment-2.5.3-IlluminaTruSightCancer:
     qc_checks: [pct_q30, fastqc, contamination, ntc_contamination, sex_match]
     min_q30_score: 0.8
+    contamination_cutoff: 0.015
+    ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
     sample_expected_files: ['*.bam',
                 '*.g.vcf',
@@ -30,6 +32,8 @@ pipelines:
   GermlineEnrichment-2.5.3-IlluminaTruSightOne:
     qc_checks: [pct_q30, fastqc, contamination, ntc_contamination, sex_match]
     min_q30_score: 0.8
+    contamination_cutoff: 0.015
+    ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
     sample_expected_files: ['*.bam',
                 '*.g.vcf',
@@ -56,6 +60,8 @@ pipelines:
   GermlineEnrichment-2.5.4-AgilentOGTFH:
     qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_q30_score: 0.8
+    contamination_cutoff: 0.015
+    ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
     sample_expected_files: ['*.bam',
                 '*.g.vcf',
@@ -65,7 +71,8 @@ pipelines:
                   '*_HsMetrics.txt',
                   '*_InsertMetrics.txt',
                   '*_MarkDuplicatesMetrics.txt',
-                  '*_QC.txt']
+                  '*_QC.txt',
+                  '*_FH_VariantReport_filtered.csv']
     sample_not_expected_files: ['*_rmdup.bam',
                    '*_DepthOfCoverage']
     run_expected_files: ['*_filtered_annotated_roi.vcf',
@@ -74,13 +81,17 @@ pipelines:
                 '*_CollectVariantCallingMetrics.txt.variant_calling_detail_metrics',
                 '*_CollectVariantCallingMetrics.txt.variant_calling_summary_metrics',
                 '*_relatedness.relatedness2',
-                'combined_QC.txt']
+                'sv_analysis/*_cnvReport.csv',
+                'combined_QC.txt',
+              ]
     run_not_expected_files: ['*_variants_filtered.vcf',
                 'BAMs.list']
 
   SomaticEnrichment-1.0.0-RochePanCancer:
     qc_checks: [pct_q30, fastqc, ntc_contamination, sex_match]
     min_q30_score: 0.8
+    contamination_cutoff: 0.015
+    ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
@@ -98,6 +109,8 @@ pipelines:
 
   SomaticAmplicon-1.7.6-NGHS-102X:
     min_q30_score: 0.8
+    contamination_cutoff: 0.015
+    ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_fastq_size: 10000000
     sample_expected_files: ['*_VariantReport.txt',
@@ -114,6 +127,8 @@ pipelines:
 
   SomaticAmplicon-1.7.6-NGHS-101X:
     min_q30_score: 0.8
+    contamination_cutoff: 0.015
+    ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_fastq_size: 10000000
     sample_expected_files: ['*_VariantReport.txt',
@@ -130,6 +145,8 @@ pipelines:
 
   SomaticAmplicon-1.7.7-NGHS-101X:
     min_q30_score: 0.8
+    contamination_cutoff: 0.0015
+    ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_fastq_size: 10000000
     sample_expected_files: ['*_VariantReport.txt',
@@ -146,6 +163,8 @@ pipelines:
 
   SomaticAmplicon-1.7.7-NGHS-102X:
     min_q30_score: 0.8
+    contamination_cutoff: 0.015
+    ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_fastq_size: 10000000
     sample_expected_files: ['*_VariantReport.txt',

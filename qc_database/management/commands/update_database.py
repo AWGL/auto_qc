@@ -487,12 +487,27 @@ class Command(BaseCommand):
 				worksheet_obj, created = WorkSheet.objects.get_or_create(worksheet_id= worksheet)
 				analysis_type_obj, created = AnalysisType.objects.get_or_create(analysis_type_id=panel)
 
+				run_config_key = pipeline_obj.pipeline_id + '-' + analysis_type_obj.analysis_type_id
+
+				try:
+					contamination_cutoff = config_dict['pipelines'][run_config_key]['contamination_cutoff']
+					ntc_contamination_cutoff = config_dict['pipelines'][run_config_key]['ntc_contamination_cutoff']
+				except:
+					contamination_cutoff = 0.015
+					ntc_contamination_cutoff = 10
+
 				new_sample_analysis_obj, created = SampleAnalysis.objects.get_or_create(sample=sample_obj,
 																		run = run_obj,
 																		pipeline = pipeline_obj,
 																		analysis_type = analysis_type_obj,
-																		worksheet = worksheet_obj,
-																		sex = sex)
+																		worksheet = worksheet_obj
+																		)
+				if created == True:
+					new_sample_analysis_obj.contamination_cutoff = contamination_cutoff
+					new_sample_analysis_obj.ntc_contamination_cutoff = ntc_contamination_cutoff
+
+				new_sample_analysis_obj.sex = sex
+				new_sample_analysis_obj.save()
 
 				run_analyses_to_create.add((pipeline_and_version, panel ))
 
@@ -517,13 +532,16 @@ class Command(BaseCommand):
 
 				new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
 																		pipeline = pipeline_obj,
-																		analysis_type = analysis_type_obj,
-																		start_date = datetime.datetime.now(),
-																		min_q30_score = min_q30_score)
+																		analysis_type = analysis_type_obj)
+				if created == True:
 
+					new_run_analysis_obj.min_q30_score = min_q30_score
+					new_run_analysis_obj.start_date = datetime.datetime.now()
+
+				new_run_analysis_obj.save()
 
 		# Loop through existing run analysis objects
-		existing_run_analyses = RunAnalysis.objects.all()
+		existing_run_analyses = RunAnalysis.objects.all(watching=True)
 
 		for run_analysis in existing_run_analyses:
 

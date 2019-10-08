@@ -121,14 +121,18 @@ class AnalysisType(models.Model):
 class RunAnalysis(models.Model):
 
 	run = models.ForeignKey(Run, on_delete=models.CASCADE)
-	start_date = models.DateField()
+	start_date = models.DateField(null=True, blank=True)
 	pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE)
 	analysis_type = models.ForeignKey(AnalysisType, on_delete=models.CASCADE)
 	results_completed = models.BooleanField(default=False)
 	results_valid = models.BooleanField(default=False)
 	demultiplexing_completed = models.BooleanField(default=False)
 	demultiplexing_valid = models.BooleanField(default=False)
-	min_q30_score = models.DecimalField(max_digits=6, decimal_places=3)
+	min_q30_score = models.DecimalField(max_digits=6, decimal_places=3, default=0.8, null=True, blank=True)
+	watching = models.BooleanField(default=True)
+	manual_approval = models.BooleanField(default=False)
+	comment = models.TextField(null=True, blank=True)
+
 
 	class Meta:
 		unique_together = [['run', 'pipeline', 'analysis_type']]
@@ -317,12 +321,12 @@ class SampleAnalysis(models.Model):
 	results_completed = models.BooleanField(default = False)
 	results_valid = models.BooleanField(default=False)
 	sex = models.CharField(max_length=10, null=True, blank=True)
-	contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=0.15)
-	ntc_contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=10.0)
+	contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=0.15, null=True, blank=True)
+	ntc_contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=10.0, null=True, blank=True)
 
 
 	class Meta:
-		unique_together = [['sample', 'run', 'pipeline']]
+		unique_together = [['sample', 'run', 'pipeline', 'analysis_type', 'worksheet']]
 
 	def __str__(self):
 		return f'{self.run.run_id}_{self.pipeline.pipeline_id}_{self.analysis_type.analysis_type_id}_{self.sample.sample_id}'

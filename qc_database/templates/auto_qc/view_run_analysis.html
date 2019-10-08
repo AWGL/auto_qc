@@ -1,10 +1,9 @@
 {% extends 'auto_qc/base.html' %}
 {% load static %}
 {% block content %}
-
+{% load crispy_forms_tags %}
 
 <br>
-
 
 <h2> Run Information </h2>
 
@@ -247,5 +246,18 @@
 
 
 </table>
+
+
+
+
+<center>
+  <div>
+
+	<br>
+	
+	{% crispy form %}
+
+</div>
+</center>
 
 {% endblock %}
