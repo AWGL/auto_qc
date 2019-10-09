@@ -47,6 +47,31 @@
 		<td> {{max_ntc_contamination_score}}%</td>
 
 	</tr>
+
+	{% if run_analysis.watching == False %}
+
+	<tr>
+		<td> Sign Off User </td>
+		<td> {{run_analysis.signoff_user}}</td>
+
+	</tr>
+
+	<tr>
+		<td> Manual QC </td>
+		<td> {{run_analysis.manual_approval}}</td>
+
+	</tr>
+
+	<tr>
+		<td> Manual QC Comment</td>
+		<td> {{run_analysis.comment}}</td>
+
+	</tr>
+
+	{% endif %}
+
+
+
   </tbody>
 
 
@@ -254,8 +279,17 @@
   <div>
 
 	<br>
+
+	{% if run_analysis.watching == True %}
 	
 	{% crispy form %}
+
+	{% else %}
+	<hr>
+
+	{% crispy reset_form %}
+
+	{% endif %}
 
 </div>
 </center>

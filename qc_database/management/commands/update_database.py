@@ -7,6 +7,7 @@ import csv
 from pathlib import Path
 import datetime
 
+
 def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 	"""
 	parse data from the xml files and put into run_obj
@@ -421,563 +422,571 @@ class Command(BaseCommand):
 		# get runs in existing archive directory
 		raw_data_dir = list(Path(raw_data_dir).glob('*/'))
 
-		# for each folder in  archieve directory
-		for raw_data in raw_data_dir:
+		with transaction.atomic():
 
-			# skip non directory items
-			if raw_data.is_dir() == False:
-				continue
+			# for each folder in  archieve directory
+			for raw_data in raw_data_dir:
 
-			sample_sheet = raw_data.joinpath('SampleSheet.csv')
+				# skip non directory items
+				if raw_data.is_dir() == False:
+					continue
 
-			# skip if no sample sheet
-			if sample_sheet.exists() == False:
+				sample_sheet = raw_data.joinpath('SampleSheet.csv')
 
-				print(f'Could not find sample sheet for {raw_data}')
-				continue
+				# skip if no sample sheet
+				if sample_sheet.exists() == False:
 
-			run_id = raw_data.name
-			run_obj, created = Run.objects.get_or_create(run_id=run_id)
-		
-			if run_id not in existing_runs:
+					print(f'Could not find sample sheet for {raw_data}')
+					continue
 
-				print (f'A new run has been detected: {run_id}')
+				run_id = raw_data.name
+				run_obj, created = Run.objects.get_or_create(run_id=run_id)
+			
+				if run_id not in existing_runs:
 
-				# parse runlog data 
-				run_info = raw_data.joinpath('RunInfo.xml')
-				run_parameters = raw_data.joinpath('runParameters.xml')
+					print (f'A new run has been detected: {run_id}')
 
-				if run_parameters.exists() == False:
-
-					run_parameters = raw_data.joinpath('RunParameters.xml')
+					# parse runlog data 
+					run_info = raw_data.joinpath('RunInfo.xml')
+					run_parameters = raw_data.joinpath('runParameters.xml')
 
 					if run_parameters.exists() == False:
 
-						print (f'Can\'t find run parameters file for {run_id}')
+						run_parameters = raw_data.joinpath('RunParameters.xml')
+
+						if run_parameters.exists() == False:
+
+							print (f'Can\'t find run parameters file for {run_id}')
+							continue
+
+					if run_info.exists() == False or run_parameters.exists() == False:
+
+						print (f'Can\'t find required XML files for {run_id}')
 						continue
 
-				if run_info.exists() == False or run_parameters.exists() == False:
 
-					print (f'Can\'t find required XML files for {run_id}')
+					# add runlog stats to database
+					add_run_log_info(run_info, run_parameters, run_obj, raw_data)
+
+				try:
+					# parse sample sheet
+					sample_sheet_data = sample_sheet_parser(sample_sheet)
+
+				except Exception as e:
+					print(e)
+					print(f'Could not parse sample sheet for run {run_id}')
 					continue
 
+				# set to hold different pipeline combinations
+				run_analyses_to_create = set()
 
-				# add runlog stats to database
-				add_run_log_info(run_info, run_parameters, run_obj, raw_data)
+				# create sample analysis objects for each sample
+				for sample in sample_sheet_data:
 
-			# parse sample sheet
-			sample_sheet_data = sample_sheet_parser(sample_sheet)
+					sample_obj, created = Sample.objects.get_or_create(sample_id=sample)
+					pipeline = sample_sheet_data[sample]['pipelineName']
+					pipeline_version = sample_sheet_data[sample]['pipelineVersion']
+					panel = sample_sheet_data[sample]['panel']
+					sex = sample_sheet_data[sample].get('sex', None)
+					worksheet = sample_sheet_data[sample]['Sample_Plate']
 
-			# set to hold different pipeline combinations
-			run_analyses_to_create = set()
+					pipeline_and_version = pipeline + '-' + pipeline_version
 
-			# create sample analysis objects for each sample
-			for sample in sample_sheet_data:
+					pipeline_obj, created = Pipeline.objects.get_or_create(pipeline_id= pipeline_and_version)
+					worksheet_obj, created = WorkSheet.objects.get_or_create(worksheet_id= worksheet)
+					analysis_type_obj, created = AnalysisType.objects.get_or_create(analysis_type_id=panel)
 
-				sample_obj, created = Sample.objects.get_or_create(sample_id=sample)
-				pipeline = sample_sheet_data[sample]['pipelineName']
-				pipeline_version = sample_sheet_data[sample]['pipelineVersion']
-				panel = sample_sheet_data[sample]['panel']
-				sex = sample_sheet_data[sample].get('sex', None)
-				worksheet = sample_sheet_data[sample]['Sample_Plate']
+					run_config_key = pipeline_obj.pipeline_id + '-' + analysis_type_obj.analysis_type_id
 
-				pipeline_and_version = pipeline + '-' + pipeline_version
+					try:
+						contamination_cutoff = config_dict['pipelines'][run_config_key]['contamination_cutoff']
+						ntc_contamination_cutoff = config_dict['pipelines'][run_config_key]['ntc_contamination_cutoff']
+					except:
+						contamination_cutoff = 0.015
+						ntc_contamination_cutoff = 10
 
-				pipeline_obj, created = Pipeline.objects.get_or_create(pipeline_id= pipeline_and_version)
-				worksheet_obj, created = WorkSheet.objects.get_or_create(worksheet_id= worksheet)
-				analysis_type_obj, created = AnalysisType.objects.get_or_create(analysis_type_id=panel)
+					new_sample_analysis_obj, created = SampleAnalysis.objects.get_or_create(sample=sample_obj,
+																			run = run_obj,
+																			pipeline = pipeline_obj,
+																			analysis_type = analysis_type_obj,
+																			worksheet = worksheet_obj
+																			)
+					if created == True:
+						new_sample_analysis_obj.contamination_cutoff = contamination_cutoff
+						new_sample_analysis_obj.ntc_contamination_cutoff = ntc_contamination_cutoff
 
-				run_config_key = pipeline_obj.pipeline_id + '-' + analysis_type_obj.analysis_type_id
+					new_sample_analysis_obj.sex = sex
+					new_sample_analysis_obj.save()
 
-				try:
-					contamination_cutoff = config_dict['pipelines'][run_config_key]['contamination_cutoff']
-					ntc_contamination_cutoff = config_dict['pipelines'][run_config_key]['ntc_contamination_cutoff']
-				except:
-					contamination_cutoff = 0.015
-					ntc_contamination_cutoff = 10
+					run_analyses_to_create.add((pipeline_and_version, panel ))
 
-				new_sample_analysis_obj, created = SampleAnalysis.objects.get_or_create(sample=sample_obj,
-																		run = run_obj,
-																		pipeline = pipeline_obj,
-																		analysis_type = analysis_type_obj,
-																		worksheet = worksheet_obj
-																		)
-				if created == True:
-					new_sample_analysis_obj.contamination_cutoff = contamination_cutoff
-					new_sample_analysis_obj.ntc_contamination_cutoff = ntc_contamination_cutoff
+				# now create a corresponding run analysis object
+				for run_analysis in run_analyses_to_create:
 
-				new_sample_analysis_obj.sex = sex
-				new_sample_analysis_obj.save()
+					pipeline = run_analysis[0]
+					analysis_type = run_analysis[1]
 
-				run_analyses_to_create.add((pipeline_and_version, panel ))
+					pipeline_obj = Pipeline.objects.get(pipeline_id=pipeline)
+					analysis_type_obj = AnalysisType.objects.get(analysis_type_id=analysis_type)
 
-			# now create a corresponding run analysis object
-			for run_analysis in run_analyses_to_create:
+					run_config_key = pipeline_obj.pipeline_id + '-' + analysis_type_obj.analysis_type_id
 
-				pipeline = run_analysis[0]
-				analysis_type = run_analysis[1]
+					try:
 
-				pipeline_obj = Pipeline.objects.get(pipeline_id=pipeline)
-				analysis_type_obj = AnalysisType.objects.get(analysis_type_id=analysis_type)
+						min_q30_score = config_dict['pipelines'][run_config_key]['min_q30_score']
 
-				run_config_key = pipeline_obj.pipeline_id + '-' + analysis_type_obj.analysis_type_id
+					except:
 
-				try:
+						min_q30_score = 0.8
 
-					min_q30_score = config_dict['pipelines'][run_config_key]['min_q30_score']
+					new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
+																			pipeline = pipeline_obj,
+																			analysis_type = analysis_type_obj)
+					if created == True:
 
-				except:
+						new_run_analysis_obj.min_q30_score = min_q30_score
+						new_run_analysis_obj.start_date = datetime.datetime.now()
 
-					min_q30_score = 0.8
+					new_run_analysis_obj.save()
 
-				new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
-																		pipeline = pipeline_obj,
-																		analysis_type = analysis_type_obj)
-				if created == True:
+			# Loop through existing run analysis objects
+			existing_run_analyses = RunAnalysis.objects.filter(watching=True)
 
-					new_run_analysis_obj.min_q30_score = min_q30_score
-					new_run_analysis_obj.start_date = datetime.datetime.now()
+			for run_analysis in existing_run_analyses:
 
-				new_run_analysis_obj.save()
+				# make IlluminaQC object
 
-		# Loop through existing run analysis objects
-		existing_run_analyses = RunAnalysis.objects.all(watching=True)
+				run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
 
-		for run_analysis in existing_run_analyses:
+				samples = SampleAnalysis.objects.filter(run = run_analysis.run,
+												 pipeline= run_analysis.pipeline,
+												 analysis_type= run_analysis.analysis_type)
 
-			# make IlluminaQC object
+				sample_ids = [sample.sample.sample_id for sample in samples]
 
-			run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+				run_fastq_dir = Path(fastq_data_dir).joinpath(run_analysis.run.run_id)
 
-			samples = SampleAnalysis.objects.filter(run = run_analysis.run,
-											 pipeline= run_analysis.pipeline,
-											 analysis_type= run_analysis.analysis_type)
+				run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id, run_analysis.analysis_type.analysis_type_id)
 
-			sample_ids = [sample.sample.sample_id for sample in samples]
+				lanes = run_analysis.run.lanes
 
-			run_fastq_dir = Path(fastq_data_dir).joinpath(run_analysis.run.run_id)
+				illumina_qc = IlluminaQC(fastq_dir= run_fastq_dir,
+										results_dir= results_dir,
+										sample_names = sample_ids,
+										n_lanes = lanes,
+										min_fastq_size = config_dict['pipelines'][run_config_key]['min_fastq_size'],
+										run_id = run_analysis.run.run_id)
 
-			run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id, run_analysis.analysis_type.analysis_type_id)
+				has_completed = illumina_qc.demultiplex_run_is_complete()
 
-			lanes = run_analysis.run.lanes
+				is_valid = illumina_qc.demultiplex_run_is_valid()
 
-			illumina_qc = IlluminaQC(fastq_dir= run_fastq_dir,
-									results_dir= results_dir,
-									sample_names = sample_ids,
-									n_lanes = lanes,
-									min_fastq_size = config_dict['pipelines'][run_config_key]['min_fastq_size'],
-									run_id = run_analysis.run.run_id)
+				if run_analysis.demultiplexing_completed == False and has_completed == True:
 
-			has_completed = illumina_qc.demultiplex_run_is_complete()
+					if is_valid == True:
 
-			is_valid = illumina_qc.demultiplex_run_is_valid()
-
-			if run_analysis.demultiplexing_completed == False and has_completed == True:
-
-				if is_valid == True:
-
-					print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now completed demultiplexing')
+						print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now completed demultiplexing')
 
 
-				else:
+					else:
 
-					print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now failed demultiplexing')
-					run_analysis.demultiplexing_completed = has_completed
-					run_analysis.demultiplexing_valid = is_valid
+						print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now failed demultiplexing')
+						run_analysis.demultiplexing_completed = has_completed
+						run_analysis.demultiplexing_valid = is_valid
+						run_analysis.save()
+						# remove continue if we want downstream checks
+						continue
+
+				run_analysis.demultiplexing_completed = has_completed
+				run_analysis.demultiplexing_valid = is_valid
+				run_analysis.save()
+
+				# now check pipeline results -do we bother if demultiplexing fails?
+
+				# for germline enrichment
+				if 'GermlineEnrichment' in run_analysis.pipeline.pipeline_id:
+
+					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+
+					try:
+						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
+						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
+						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
+						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
+
+						germline_enrichment = GermlineEnrichment(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id,
+															sample_expected_files = sample_expected_files,
+															sample_not_expected_files = sample_not_expected_files,
+															run_expected_files = run_expected_files,
+															run_not_expected_files = run_not_expected_files
+															)
+
+					except:
+
+						germline_enrichment = GermlineEnrichment(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id
+															)
+
+					for sample in sample_ids:
+
+						sample_complete = germline_enrichment.sample_is_complete(sample)
+						sample_valid = germline_enrichment.sample_is_valid(sample)
+
+						sample_obj = Sample.objects.get(sample_id = sample)
+
+						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
+																		run = run_analysis.run,
+																		pipeline = run_analysis.pipeline)
+
+						if sample_analysis_obj.results_completed == False and sample_complete == True:
+
+							if sample_valid == True:
+
+								print (f'Sample {sample} on run {run_analysis.run.run_id} has finished GermlineEnrichment script one successfully.')
+
+							else:
+								print (f'Sample {sample} on run {run_analysis.run.run_id} has failed GermlineEnrichment script one.')
+
+						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
+
+							print (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
+
+
+						sample_analysis_obj.results_completed = sample_complete
+						sample_analysis_obj.results_valid = sample_valid
+						sample_analysis_obj.save()
+
+					run_complete = germline_enrichment.run_and_samples_complete()
+					run_valid = germline_enrichment.run_and_samples_valid()
+
+					if run_analysis.results_completed == False and run_complete == True:
+
+						if run_valid == True:
+
+							print (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							print ('putting fastqc into db')
+
+							print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = germline_enrichment.get_fastqc_data()
+							add_fastqc_data(fastqc_dict, run_analysis)
+
+							print (f'Putting hs metrics into db for run {run_analysis.run.run_id}')
+							hs_metrics_dict = germline_enrichment.get_hs_metrics()
+							add_hs_metrics(hs_metrics_dict, run_analysis)
+
+							print (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
+							depth_metrics_dict = germline_enrichment.get_depth_metrics()
+							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+
+							print (f'Putting duplication into db for run {run_analysis.run.run_id}')
+							duplication_metrics_dict = germline_enrichment.get_duplication_metrics()
+							add_duplication_metrics(duplication_metrics_dict, run_analysis)
+
+							print (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
+							contamination_metrics_dict = germline_enrichment.get_contamination()
+							add_contamination_metrics(contamination_metrics_dict, run_analysis)
+
+							print (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
+							sex_dict = germline_enrichment.get_calculated_sex()
+							add_sex_metrics(sex_dict, run_analysis)
+
+							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							alignment_metrics_dict = germline_enrichment.get_alignment_metrics()
+							add_alignment_metrics(alignment_metrics_dict, run_analysis)
+
+							print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							variant_calling_metrics_dict = germline_enrichment.get_variant_calling_metrics()
+							add_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
+
+							print (f'Putting insert metrics into db for run {run_analysis.run.run_id}')
+							insert_metrics_dict = germline_enrichment.get_insert_metrics()
+							add_insert_metrics(insert_metrics_dict, run_analysis)
+
+						else:
+
+							print (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+
+					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
+
+							print (f'Run {run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = germline_enrichment.get_fastqc_data()
+							add_fastqc_data(fastqc_dict, run_analysis)
+
+							print (f'Putting hs metrics into db for run {run_analysis.run.run_id}')
+							hs_metrics_dict = germline_enrichment.get_hs_metrics()
+							add_hs_metrics(hs_metrics_dict, run_analysis)
+
+							print (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
+							depth_metrics_dict = germline_enrichment.get_depth_metrics()
+							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+
+							print (f'Putting duplication into db for run {run_analysis.run.run_id}')
+							duplication_metrics_dict = germline_enrichment.get_duplication_metrics()
+							add_duplication_metrics(duplication_metrics_dict, run_analysis)
+
+							print (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
+							contamination_metrics_dict = germline_enrichment.get_contamination()
+							add_contamination_metrics(contamination_metrics_dict, run_analysis)
+
+							print (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
+							sex_dict = germline_enrichment.get_calculated_sex()
+							add_sex_metrics(sex_dict, run_analysis)
+
+							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							alignment_metrics_dict = germline_enrichment.get_alignment_metrics()
+							add_alignment_metrics(alignment_metrics_dict, run_analysis)
+
+							print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							variant_calling_metrics_dict = germline_enrichment.get_variant_calling_metrics()
+							add_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
+
+							print (f'Putting insert metrics into db for run {run_analysis.run.run_id}')
+							insert_metrics_dict = germline_enrichment.get_insert_metrics()
+							add_insert_metrics(insert_metrics_dict, run_analysis)
+
+					run_analysis.results_completed = run_complete
+					run_analysis.results_valid = run_valid
+
 					run_analysis.save()
-					# remove continue if we want downstream checks
-					continue
 
-			run_analysis.demultiplexing_completed = has_completed
-			run_analysis.demultiplexing_valid = is_valid
-			run_analysis.save()
+				elif 'SomaticEnrichment' in run_analysis.pipeline.pipeline_id:
 
-			# now check pipeline results -do we bother if demultiplexing fails?
+					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
 
-			# for germline enrichment
-			if 'GermlineEnrichment' in run_analysis.pipeline.pipeline_id:
+					if run_config_key not in config_dict['pipelines']:
 
-				run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
-
-				try:
-					sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
-					sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
-					run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
-					run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
-
-					germline_enrichment = GermlineEnrichment(results_dir = run_data_dir,
-														sample_names = sample_ids,
-														run_id = run_analysis.run.run_id,
-														sample_expected_files = sample_expected_files,
-														sample_not_expected_files = sample_not_expected_files,
-														run_expected_files = run_expected_files,
-														run_not_expected_files = run_not_expected_files
-														)
-
-				except:
-
-					germline_enrichment = GermlineEnrichment(results_dir = run_data_dir,
-														sample_names = sample_ids,
-														run_id = run_analysis.run.run_id
-														)
-
-				for sample in sample_ids:
-
-					sample_complete = germline_enrichment.sample_is_complete(sample)
-					sample_valid = germline_enrichment.sample_is_valid(sample)
-
-					sample_obj = Sample.objects.get(sample_id = sample)
-
-					sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
-																	run = run_analysis.run,
-																	pipeline = run_analysis.pipeline)
-
-					if sample_analysis_obj.results_completed == False and sample_complete == True:
-
-						if sample_valid == True:
-
-							print (f'Sample {sample} on run {run_analysis.run.run_id} has finished GermlineEnrichment script one successfully.')
-
-						else:
-							print (f'Sample {sample} on run {run_analysis.run.run_id} has failed GermlineEnrichment script one.')
-
-					elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
-
-						print (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
-
-
-					sample_analysis_obj.results_completed = sample_complete
-					sample_analysis_obj.results_valid = sample_valid
-					sample_analysis_obj.save()
-
-				run_complete = germline_enrichment.run_and_samples_complete()
-				run_valid = germline_enrichment.run_and_samples_valid()
-
-				if run_analysis.results_completed == False and run_complete == True:
-
-					if run_valid == True:
-
-						print (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-						print ('putting fastqc into db')
-
-						print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-						fastqc_dict = germline_enrichment.get_fastqc_data()
-						add_fastqc_data(fastqc_dict, run_analysis)
-
-						print (f'Putting hs metrics into db for run {run_analysis.run.run_id}')
-						hs_metrics_dict = germline_enrichment.get_hs_metrics()
-						add_hs_metrics(hs_metrics_dict, run_analysis)
-
-						print (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
-						depth_metrics_dict = germline_enrichment.get_depth_metrics()
-						add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
-
-						print (f'Putting duplication into db for run {run_analysis.run.run_id}')
-						duplication_metrics_dict = germline_enrichment.get_duplication_metrics()
-						add_duplication_metrics(duplication_metrics_dict, run_analysis)
-
-						print (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
-						contamination_metrics_dict = germline_enrichment.get_contamination()
-						add_contamination_metrics(contamination_metrics_dict, run_analysis)
-
-						print (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
-						sex_dict = germline_enrichment.get_calculated_sex()
-						add_sex_metrics(sex_dict, run_analysis)
-
-						print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
-						alignment_metrics_dict = germline_enrichment.get_alignment_metrics()
-						add_alignment_metrics(alignment_metrics_dict, run_analysis)
-
-						print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
-						variant_calling_metrics_dict = germline_enrichment.get_variant_calling_metrics()
-						add_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
-
-						print (f'Putting insert metrics into db for run {run_analysis.run.run_id}')
-						insert_metrics_dict = germline_enrichment.get_insert_metrics()
-						add_insert_metrics(insert_metrics_dict, run_analysis)
-
-					else:
-
-						print (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
-
-				elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
-
-						print (f'Run {run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-
-						print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-						fastqc_dict = germline_enrichment.get_fastqc_data()
-						add_fastqc_data(fastqc_dict, run_analysis)
-
-						print (f'Putting hs metrics into db for run {run_analysis.run.run_id}')
-						hs_metrics_dict = germline_enrichment.get_hs_metrics()
-						add_hs_metrics(hs_metrics_dict, run_analysis)
-
-						print (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
-						depth_metrics_dict = germline_enrichment.get_depth_metrics()
-						add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
-
-						print (f'Putting duplication into db for run {run_analysis.run.run_id}')
-						duplication_metrics_dict = germline_enrichment.get_duplication_metrics()
-						add_duplication_metrics(duplication_metrics_dict, run_analysis)
-
-						print (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
-						contamination_metrics_dict = germline_enrichment.get_contamination()
-						add_contamination_metrics(contamination_metrics_dict, run_analysis)
-
-						print (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
-						sex_dict = germline_enrichment.get_calculated_sex()
-						add_sex_metrics(sex_dict, run_analysis)
-
-						print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
-						alignment_metrics_dict = germline_enrichment.get_alignment_metrics()
-						add_alignment_metrics(alignment_metrics_dict, run_analysis)
-
-						print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
-						variant_calling_metrics_dict = germline_enrichment.get_variant_calling_metrics()
-						add_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
-
-						print (f'Putting insert metrics into db for run {run_analysis.run.run_id}')
-						insert_metrics_dict = germline_enrichment.get_insert_metrics()
-						add_insert_metrics(insert_metrics_dict, run_analysis)
-
-				run_analysis.results_completed = run_complete
-				run_analysis.results_valid = run_valid
-
-				run_analysis.save()
-
-			elif 'SomaticEnrichment' in run_analysis.pipeline.pipeline_id:
-
-				run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
-
-				if run_config_key not in config_dict['pipelines']:
-
-					somatic_enrichment = SomaticEnrichment(results_dir = run_data_dir,
-														sample_names = sample_ids,
-														run_id = run_analysis.run.run_id
-														)
-				else:
-
-					sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
-					sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
-					run_sample_expected_files = config_dict['pipelines'][run_config_key]['run_sample_expected_files']
-					run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
-					run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
-
-					somatic_enrichment = SomaticEnrichment(results_dir = run_data_dir,
+						somatic_enrichment = SomaticEnrichment(results_dir = run_data_dir,
 															sample_names = sample_ids,
-															run_id = run_analysis.run.run_id,
-															sample_expected_files = sample_expected_files,
-															sample_not_expected_files = sample_not_expected_files,
-															run_sample_expected_files = run_sample_expected_files,
-															run_expected_files = run_expected_files,
-															run_not_expected_files = run_not_expected_files
+															run_id = run_analysis.run.run_id
 															)
-
-
-				for sample in sample_ids:
-
-					sample_complete = somatic_enrichment.sample_is_complete(sample)
-					sample_valid = somatic_enrichment.sample_is_valid(sample)
-
-					sample_obj = Sample.objects.get(sample_id = sample)
-
-					sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
-																	run = run_analysis.run,
-																	pipeline = run_analysis.pipeline)
-
-					if sample_analysis_obj.results_completed == False and sample_complete == True:
-
-						if sample_valid == True:
-
-							print (f'Sample {sample} on run {run_analysis.run.run_id} has finished sample level SomaticEnrichment successfully.')
-
-						else:
-							print (f'Sample {sample} on run {run_analysis.run.run_id} has failed sample level SomaticEnrichment.')
-
-					elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
-
-						print (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
-
-		
-					sample_analysis_obj.results_completed = sample_complete
-					sample_analysis_obj.results_valid = sample_valid
-					sample_analysis_obj.save()
-
-				run_complete = somatic_enrichment.run_and_samples_complete()
-				run_valid = somatic_enrichment.run_and_samples_valid()
-
-				if run_analysis.results_completed == False and run_complete == True:
-
-					if run_valid == True:
-
-						print (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-
-						print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-						fastqc_dict = somatic_enrichment.get_fastqc_data()
-						add_fastqc_data(fastqc_dict, run_analysis)
-						
-						print (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
-						hs_metrics_dict = somatic_enrichment.get_hs_metrics()
-						add_hs_metrics(hs_metrics_dict, run_analysis)
-
-						print (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
-						depth_metrics_dict = somatic_enrichment.get_depth_metrics()
-						add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
-
-						print (f'Putting duplication metrics data into db for run {run_analysis.run.run_id}')
-						duplication_metrics_dict = somatic_enrichment.get_duplication_metrics()
-						add_duplication_metrics(duplication_metrics_dict, run_analysis)
-
-						print (f'Putting sex metrics data into db for run {run_analysis.run.run_id}')
-						sex_dict = somatic_enrichment.get_calculated_sex()
-						add_sex_metrics(sex_dict, run_analysis)
-
-						print (f'Putting alignment metrics data into db for run {run_analysis.run.run_id}')
-						alignment_metrics_dict = somatic_enrichment.get_alignment_metrics()
-						add_alignment_metrics(alignment_metrics_dict, run_analysis)
-
-						print (f'Putting insert metrics data into db for run {run_analysis.run.run_id}')
-						insert_metrics_dict = somatic_enrichment.get_insert_metrics()
-						add_insert_metrics(insert_metrics_dict, run_analysis)
-
 					else:
 
-						print (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
+						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
+						run_sample_expected_files = config_dict['pipelines'][run_config_key]['run_sample_expected_files']
+						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
+						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
 
-				elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
+						somatic_enrichment = SomaticEnrichment(results_dir = run_data_dir,
+																sample_names = sample_ids,
+																run_id = run_analysis.run.run_id,
+																sample_expected_files = sample_expected_files,
+																sample_not_expected_files = sample_not_expected_files,
+																run_sample_expected_files = run_sample_expected_files,
+																run_expected_files = run_expected_files,
+																run_not_expected_files = run_not_expected_files
+																)
 
-						print (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-						print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-						fastqc_dict = somatic_enrichment.get_fastqc_data()
-						add_fastqc_data(fastqc_dict, run_analysis)
-						
-						print (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
-						hs_metrics_dict = somatic_enrichment.get_hs_metrics()
-						add_hs_metrics(hs_metrics_dict, run_analysis)
+					for sample in sample_ids:
 
-						print (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
-						depth_metrics_dict = somatic_enrichment.get_depth_metrics()
-						add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+						sample_complete = somatic_enrichment.sample_is_complete(sample)
+						sample_valid = somatic_enrichment.sample_is_valid(sample)
 
-						print (f'Putting duplication metrics data into db for run {run_analysis.run.run_id}')
-						duplication_metrics_dict = somatic_enrichment.get_duplication_metrics()
-						add_duplication_metrics(duplication_metrics_dict, run_analysis)
+						sample_obj = Sample.objects.get(sample_id = sample)
 
-						print (f'Putting sex metrics data into db for run {run_analysis.run.run_id}')
-						sex_dict = somatic_enrichment.get_calculated_sex()
-						add_sex_metrics(sex_dict, run_analysis)
+						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
+																		run = run_analysis.run,
+																		pipeline = run_analysis.pipeline)
 
-						print (f'Putting alignment metrics data into db for run {run_analysis.run.run_id}')
-						alignment_metrics_dict = somatic_enrichment.get_alignment_metrics()
-						add_alignment_metrics(alignment_metrics_dict, run_analysis)
+						if sample_analysis_obj.results_completed == False and sample_complete == True:
 
-						print (f'Putting insert metrics data into db for run {run_analysis.run.run_id}')
-						insert_metrics_dict = somatic_enrichment.get_insert_metrics()
-						add_insert_metrics(insert_metrics_dict, run_analysis)
+							if sample_valid == True:
 
-				run_analysis.results_completed = run_complete
-				run_analysis.results_valid = run_valid
+								print (f'Sample {sample} on run {run_analysis.run.run_id} has finished sample level SomaticEnrichment successfully.')
 
-				run_analysis.save()
+							else:
+								print (f'Sample {sample} on run {run_analysis.run.run_id} has failed sample level SomaticEnrichment.')
 
-			elif 'SomaticAmplicon' in run_analysis.pipeline.pipeline_id:
+						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
 
-				run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+							print (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
 
-				if run_config_key not in config_dict['pipelines']:
+			
+						sample_analysis_obj.results_completed = sample_complete
+						sample_analysis_obj.results_valid = sample_valid
+						sample_analysis_obj.save()
 
-					somatic_amplicon = SomaticAmplicon(results_dir = run_data_dir,
-														sample_names = sample_ids,
-														run_id = run_analysis.run.run_id
-														)
-				else:
+					run_complete = somatic_enrichment.run_and_samples_complete()
+					run_valid = somatic_enrichment.run_and_samples_valid()
 
-					sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
-					sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
-					run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
-					run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
+					if run_analysis.results_completed == False and run_complete == True:
 
-					somatic_amplicon = SomaticAmplicon(results_dir = run_data_dir,
+						if run_valid == True:
+
+							print (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = somatic_enrichment.get_fastqc_data()
+							add_fastqc_data(fastqc_dict, run_analysis)
+							
+							print (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
+							hs_metrics_dict = somatic_enrichment.get_hs_metrics()
+							add_hs_metrics(hs_metrics_dict, run_analysis)
+
+							print (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
+							depth_metrics_dict = somatic_enrichment.get_depth_metrics()
+							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+
+							print (f'Putting duplication metrics data into db for run {run_analysis.run.run_id}')
+							duplication_metrics_dict = somatic_enrichment.get_duplication_metrics()
+							add_duplication_metrics(duplication_metrics_dict, run_analysis)
+
+							print (f'Putting sex metrics data into db for run {run_analysis.run.run_id}')
+							sex_dict = somatic_enrichment.get_calculated_sex()
+							add_sex_metrics(sex_dict, run_analysis)
+
+							print (f'Putting alignment metrics data into db for run {run_analysis.run.run_id}')
+							alignment_metrics_dict = somatic_enrichment.get_alignment_metrics()
+							add_alignment_metrics(alignment_metrics_dict, run_analysis)
+
+							print (f'Putting insert metrics data into db for run {run_analysis.run.run_id}')
+							insert_metrics_dict = somatic_enrichment.get_insert_metrics()
+							add_insert_metrics(insert_metrics_dict, run_analysis)
+
+						else:
+
+							print (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+
+					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
+
+							print (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = somatic_enrichment.get_fastqc_data()
+							add_fastqc_data(fastqc_dict, run_analysis)
+							
+							print (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
+							hs_metrics_dict = somatic_enrichment.get_hs_metrics()
+							add_hs_metrics(hs_metrics_dict, run_analysis)
+
+							print (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
+							depth_metrics_dict = somatic_enrichment.get_depth_metrics()
+							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+
+							print (f'Putting duplication metrics data into db for run {run_analysis.run.run_id}')
+							duplication_metrics_dict = somatic_enrichment.get_duplication_metrics()
+							add_duplication_metrics(duplication_metrics_dict, run_analysis)
+
+							print (f'Putting sex metrics data into db for run {run_analysis.run.run_id}')
+							sex_dict = somatic_enrichment.get_calculated_sex()
+							add_sex_metrics(sex_dict, run_analysis)
+
+							print (f'Putting alignment metrics data into db for run {run_analysis.run.run_id}')
+							alignment_metrics_dict = somatic_enrichment.get_alignment_metrics()
+							add_alignment_metrics(alignment_metrics_dict, run_analysis)
+
+							print (f'Putting insert metrics data into db for run {run_analysis.run.run_id}')
+							insert_metrics_dict = somatic_enrichment.get_insert_metrics()
+							add_insert_metrics(insert_metrics_dict, run_analysis)
+
+					run_analysis.results_completed = run_complete
+					run_analysis.results_valid = run_valid
+
+					run_analysis.save()
+
+				elif 'SomaticAmplicon' in run_analysis.pipeline.pipeline_id:
+
+					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+
+					if run_config_key not in config_dict['pipelines']:
+
+						somatic_amplicon = SomaticAmplicon(results_dir = run_data_dir,
 															sample_names = sample_ids,
-															run_id = run_analysis.run.run_id,
-															sample_expected_files = sample_expected_files,
-															sample_not_expected_files = sample_not_expected_files,
-															run_expected_files = run_expected_files,
-															run_not_expected_files = run_not_expected_files
+															run_id = run_analysis.run.run_id
 															)
-
-				for sample in sample_ids:
-
-					sample_complete = somatic_amplicon.sample_is_complete(sample)
-					sample_valid = somatic_amplicon.sample_is_valid(sample)
-
-					sample_obj = Sample.objects.get(sample_id = sample)
-
-					sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
-																	run = run_analysis.run,
-																	pipeline = run_analysis.pipeline)
-
-					if sample_analysis_obj.results_completed == False and sample_complete == True:
-
-						if sample_valid == True:
-
-							print (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level SomaticAmplicon successfully.')
-
-						else:
-							print (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level SomaticAmplicon.')
-
-					elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
-
-						print (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now completed successfully.')
-
-		
-					sample_analysis_obj.results_completed = sample_complete
-					sample_analysis_obj.results_valid = sample_valid
-					sample_analysis_obj.save()
-
-				run_complete = somatic_amplicon.run_is_complete()
-				run_valid = somatic_amplicon.run_is_valid()
-
-				if run_analysis.results_completed == False and run_complete == True:
-
-					if run_valid == True:
-
-						print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-
-						print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-						fastqc_dict = somatic_amplicon.get_fastqc_data()
-						add_fastqc_data(fastqc_dict, run_analysis)
-						
-						print (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
-						hs_metrics_dict = somatic_amplicon.get_hs_metrics()
-						add_hs_metrics(hs_metrics_dict, run_analysis)
-
-						print (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
-						depth_metrics_dict = somatic_amplicon.get_depth_metrics()
-						add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
-
 					else:
 
-						print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
+						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
+						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
+						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
 
-				elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
+						somatic_amplicon = SomaticAmplicon(results_dir = run_data_dir,
+																sample_names = sample_ids,
+																run_id = run_analysis.run.run_id,
+																sample_expected_files = sample_expected_files,
+																sample_not_expected_files = sample_not_expected_files,
+																run_expected_files = run_expected_files,
+																run_not_expected_files = run_not_expected_files
+																)
 
-						print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+					for sample in sample_ids:
 
-						print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-						fastqc_dict = somatic_amplicon.get_fastqc_data()
-						add_fastqc_data(fastqc_dict, run_analysis)
-						
-						print (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
-						hs_metrics_dict = somatic_amplicon.get_hs_metrics()
-						add_hs_metrics(hs_metrics_dict, run_analysis)
+						sample_complete = somatic_amplicon.sample_is_complete(sample)
+						sample_valid = somatic_amplicon.sample_is_valid(sample)
 
-						print (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
-						depth_metrics_dict = somatic_amplicon.get_depth_metrics()
-						add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+						sample_obj = Sample.objects.get(sample_id = sample)
 
-				run_analysis.results_completed = run_complete
-				run_analysis.results_valid = run_valid
+						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
+																		run = run_analysis.run,
+																		pipeline = run_analysis.pipeline)
 
-				run_analysis.save()
+						if sample_analysis_obj.results_completed == False and sample_complete == True:
+
+							if sample_valid == True:
+
+								print (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level SomaticAmplicon successfully.')
+
+							else:
+								print (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level SomaticAmplicon.')
+
+						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
+
+							print (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now completed successfully.')
+
+			
+						sample_analysis_obj.results_completed = sample_complete
+						sample_analysis_obj.results_valid = sample_valid
+						sample_analysis_obj.save()
+
+					run_complete = somatic_amplicon.run_is_complete()
+					run_valid = somatic_amplicon.run_is_valid()
+
+					if run_analysis.results_completed == False and run_complete == True:
+
+						if run_valid == True:
+
+							print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = somatic_amplicon.get_fastqc_data()
+							add_fastqc_data(fastqc_dict, run_analysis)
+							
+							print (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
+							hs_metrics_dict = somatic_amplicon.get_hs_metrics()
+							add_hs_metrics(hs_metrics_dict, run_analysis)
+
+							print (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
+							depth_metrics_dict = somatic_amplicon.get_depth_metrics()
+							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+
+						else:
+
+							print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+
+					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
+
+							print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = somatic_amplicon.get_fastqc_data()
+							add_fastqc_data(fastqc_dict, run_analysis)
+							
+							print (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
+							hs_metrics_dict = somatic_amplicon.get_hs_metrics()
+							add_hs_metrics(hs_metrics_dict, run_analysis)
+
+							print (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
+							depth_metrics_dict = somatic_amplicon.get_depth_metrics()
+							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+
+					run_analysis.results_completed = run_complete
+					run_analysis.results_valid = run_valid
+
+					run_analysis.save()

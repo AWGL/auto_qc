@@ -132,7 +132,7 @@ class RunAnalysis(models.Model):
 	watching = models.BooleanField(default=True)
 	manual_approval = models.BooleanField(default=False)
 	comment = models.TextField(null=True, blank=True)
-
+	signoff_user = models.ForeignKey('auth.User', on_delete=models.CASCADE, null=True, blank=True)
 
 	class Meta:
 		unique_together = [['run', 'pipeline', 'analysis_type']]

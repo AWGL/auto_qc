@@ -1,10 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import *
 from .forms import *
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate
+from django.contrib.auth.forms import UserCreationForm
+from django.db import transaction
 
-# Create your views here.
 
-
+@transaction.atomic
+@login_required
 def home(request):
 
 	run_analyses = RunAnalysis.objects.filter(watching=True).order_by('start_date')
@@ -12,7 +16,8 @@ def home(request):
 
 	return render(request, 'auto_qc/home.html', {'run_analyses': run_analyses})
 
-
+@transaction.atomic
+@login_required
 def view_run_analysis(request, pk):
 
 	run_analysis = get_object_or_404(RunAnalysis, pk=pk)
@@ -31,33 +36,45 @@ def view_run_analysis(request, pk):
 
 	max_ntc_contamination_score = round(sample_analyses[0].ntc_contamination_cutoff, 1)
 
-
 	if request.method == 'POST':
 
-		form = RunAnalysisSignOffForm(request.POST, run_analysis_id= run_analysis.pk)
+		if 'run-analysis-signoff-form' in request.POST:
 
-		if form.is_valid():
+			form = RunAnalysisSignOffForm(request.POST, run_analysis_id= run_analysis.pk, comment =run_analysis.comment)
 
-			approval = form.cleaned_data['approval']
-			comment = form.cleaned_data['comment']
+			if form.is_valid():
 
-			if approval == 'Pass':
+				approval = form.cleaned_data['approval']
+				comment = form.cleaned_data['comment']
 
-				run_analysis.manual_approval = True
+				if approval == 'Pass':
 
-			else:
+					run_analysis.manual_approval = True
 
-				run_analysis.manual_approval = False
+				else:
 
-			run_analysis.comment = comment
-			run_analysis.watching = False
+					run_analysis.manual_approval = False
+
+				run_analysis.comment = comment
+				run_analysis.watching = False
+				run_analysis.signoff_user = request.user
+				run_analysis.save()
+
+				return redirect('home')
+
+		elif 'reset-form'  in request.POST:
+
+			reset_form = ResetRunForm(run_analysis_id= run_analysis.pk)
+
+			run_analysis.manual_approval = False
+			run_analysis.watching = True
+			run_analysis.signoff_user = None
 			run_analysis.save()
 
 			return redirect('home')
 
-	else:
-
-		form = RunAnalysisSignOffForm(run_analysis_id= run_analysis.pk)
+	form = RunAnalysisSignOffForm(run_analysis_id= run_analysis.pk, comment =run_analysis.comment)
+	reset_form = ResetRunForm(run_analysis_id= run_analysis.pk)
 
 	return render(request, 'auto_qc/view_run_analysis.html', {'run_analysis': run_analysis,
 															 'sample_analyses': sample_analyses,
@@ -66,10 +83,47 @@ def view_run_analysis(request, pk):
 															 'min_q30_score': min_q30_score,
 															 'max_contamination_score': max_contamination_score,
 															 'max_ntc_contamination_score': max_ntc_contamination_score,
-															 'form': form})
+															 'form': form,
+															 'reset_form': reset_form})
 
+@transaction.atomic
+@login_required
 def view_archived_run_analysis(request):
 
 	run_analyses = RunAnalysis.objects.filter(watching=False).order_by('start_date')
 
-	return render(request, 'auto_qc/home.html', {'run_analyses': run_analyses})
+	return render(request, 'auto_qc/archived_run_analysis.html', {'run_analyses': run_analyses})
+
+
+@transaction.atomic
+def signup(request):
+	"""
+	Allow users to sign up
+	User accounts are inactive by default - an admin must activate it using the admin page.
+	"""
+
+	if request.method == 'POST':
+
+		form = UserCreationForm(request.POST)
+
+		if form.is_valid():
+
+			form.save()
+			
+			username = form.cleaned_data.get('username')
+			raw_password = form.cleaned_data.get('password1')
+			user = authenticate(username=username, password=raw_password)
+			user.is_active = False
+			user.save()
+
+			return redirect('home')
+
+		else:
+
+			form = UserCreationForm()
+			return render(request, 'auto_qc/signup.html', {'form': form, 'warning' : ['Could not create an account.']})
+
+	else:
+
+		form = UserCreationForm()
+		return render(request, 'auto_qc/signup.html', {'form': form, 'warning': []})

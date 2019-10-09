@@ -6,7 +6,6 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, HTML
 
 
-# File upload forms ---------------------------------------------------
 class RunAnalysisSignOffForm(forms.Form):
 	"""
 	Form for signing off a run analysis
@@ -17,17 +16,38 @@ class RunAnalysisSignOffForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		
 		self.run_analysis_id = kwargs.pop('run_analysis_id')
-
+		self.comment = kwargs.pop('comment')
 		super(RunAnalysisSignOffForm, self).__init__(*args, **kwargs)
 		self.helper = FormHelper()
 		self.helper.form_id = 'run-analysis-signoff-form'
 		self.helper.label_class = 'col-lg-2'
+		self.fields['comment'].initial = self.comment
 		self.helper.field_class = 'col-lg-8'
 		self.helper.form_method = 'post'
-		#self.helper.form_action = reverse('view_run_analysis', pk= self.run_analysis_id)
-		self.helper.add_input(Submit('submit', 'Submit', css_class='btn-success'))
+		self.helper.add_input(Submit('run-analysis-signoff-form', 'Submit', css_class='btn-success'))
 		self.helper.form_class = 'form-horizontal'
 		self.helper.layout = Layout(
 			Field('approval', title=False),
 			Field('comment', placeholder='Write a comment if you want.', title=False),
+		)
+
+
+class ResetRunForm(forms.Form):
+	"""
+	Form for resetting a run analysis
+	"""
+
+	def __init__(self, *args, **kwargs):
+		
+		self.run_analysis_id = kwargs.pop('run_analysis_id')
+
+		super(ResetRunForm, self).__init__(*args, **kwargs)
+		self.helper = FormHelper()
+		self.helper.form_id = 'reset-form'
+		self.helper.label_class = 'col-lg-2'
+		self.helper.field_class = 'col-lg-8'
+		self.helper.form_method = 'post'
+		self.helper.add_input(Submit('reset-form', 'Move To Pending', css_class='btn-success'))
+		self.helper.form_class = 'form-horizontal'
+		self.helper.layout = Layout(
 		)

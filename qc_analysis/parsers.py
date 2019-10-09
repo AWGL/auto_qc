@@ -19,7 +19,6 @@ def sample_sheet_parser(sample_sheet_path):
 
 		for row in spamreader:
 
-
 			sample_id = row[0]
 
 			if sample_id == 'Sample_ID':
@@ -40,11 +39,18 @@ def sample_sheet_parser(sample_sheet_path):
 					sample_sheet_dict[sample_id][desc[i]] = col
 
 				description = sample_sheet_dict[sample_id]['Description'].split(';')
+
 				for item in description:
 
 					split_item = item.split('=')
 
 					sample_sheet_dict[sample_id][split_item[0]] = split_item[1]
+
+				for tag in ['pipelineName', 'pipelineVersion', 'panel']:
+
+					if tag not in sample_sheet_dict[sample_id]:
+
+						raise Exception(f'The following items are required in the description field: pipelineName, pipelineVersion, panel and sex. {tag} was not in it for {sample_sheet_path}')
 
 	return sample_sheet_dict
 
