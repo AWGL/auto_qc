@@ -177,6 +177,25 @@ pipelines:
     sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
     run_expected_files: []
     run_not_expected_files: []
+
+
+  SomaticAmplicon-1.7.8-TruSightMyeloid:
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, ntc_contamination]
+    min_fastq_size: 10000000
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_qc.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage'
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
    
 
 
