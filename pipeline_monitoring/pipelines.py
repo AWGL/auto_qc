@@ -381,7 +381,7 @@ class IlluminaQC:
 				sample_names,
 				n_lanes,
 				run_id,
-				min_fastq_size=10000000,
+				min_fastq_size=1000000,
 				ntc_patterns = ['NTC', 'ntc'],
 				run_complete_marker = '1_IlluminaQC.sh.e*',
 				copy_complete_marker = '*.variables'):

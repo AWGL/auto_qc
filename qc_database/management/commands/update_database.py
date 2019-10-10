@@ -576,11 +576,19 @@ class Command(BaseCommand):
 
 				lanes = run_analysis.run.lanes
 
+				try:
+
+					min_fastq_size = config_dict['pipelines'][run_config_key]['min_fastq_size']
+
+				except:
+
+					min_fastq_size = 100000
+
 				illumina_qc = IlluminaQC(fastq_dir= run_fastq_dir,
 										results_dir= results_dir,
 										sample_names = sample_ids,
 										n_lanes = lanes,
-										min_fastq_size = config_dict['pipelines'][run_config_key]['min_fastq_size'],
+										min_fastq_size = min_fastq_size,
 										run_id = run_analysis.run.run_id)
 
 				has_completed = illumina_qc.demultiplex_run_is_complete()
