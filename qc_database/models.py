@@ -372,23 +372,23 @@ class SampleAnalysis(models.Model):
 
 		for fastqc in fastqc_objs:
 
-			if fastqc.basic_statistics != 'PASS':
+			if fastqc.basic_statistics == 'FAIL':
 
 				return False
 
-			elif fastqc.per_base_sequencing_quality != 'PASS':
+			elif fastqc.per_base_sequencing_quality == 'FAIL':
 
 				return False
 
-			elif fastqc.per_tile_sequence_quality != 'PASS': 
+			elif fastqc.per_tile_sequence_quality == 'FAIL': 
 
 				return False
 
-			elif fastqc.per_sequence_quality_scores != 'PASS': 
+			elif fastqc.per_sequence_quality_scores == 'FAIL': 
 
 				return False
 
-			elif fastqc.per_base_n_content != 'PASS': 
+			elif fastqc.per_base_n_content == 'FAIL': 
 
 				return False
 
