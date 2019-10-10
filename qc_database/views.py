@@ -10,6 +10,10 @@ from django.db import transaction
 @transaction.atomic
 @login_required
 def home(request):
+	"""
+	Return a list of active run analysis objects
+
+	"""
 
 	run_analyses = RunAnalysis.objects.filter(watching=True).order_by('start_date')
 
@@ -19,6 +23,10 @@ def home(request):
 @transaction.atomic
 @login_required
 def view_run_analysis(request, pk):
+	"""	
+	View a specific run analysis object
+
+	"""
 
 	run_analysis = get_object_or_404(RunAnalysis, pk=pk)
 
@@ -38,6 +46,7 @@ def view_run_analysis(request, pk):
 
 	if request.method == 'POST':
 
+		# if the user submitted the signoff form
 		if 'run-analysis-signoff-form' in request.POST:
 
 			form = RunAnalysisSignOffForm(request.POST, run_analysis_id= run_analysis.pk, comment =run_analysis.comment)
@@ -62,7 +71,8 @@ def view_run_analysis(request, pk):
 
 				return redirect('home')
 
-		elif 'reset-form'  in request.POST:
+		# if the user resets the run analysis to be watched
+		elif 'reset-form' in request.POST:
 
 			reset_form = ResetRunForm(run_analysis_id= run_analysis.pk)
 
@@ -89,7 +99,10 @@ def view_run_analysis(request, pk):
 @transaction.atomic
 @login_required
 def view_archived_run_analysis(request):
+	"""
+	View run analyses which are not being watched,
 
+	"""
 	run_analyses = RunAnalysis.objects.filter(watching=False).order_by('start_date')
 
 	return render(request, 'auto_qc/archived_run_analysis.html', {'run_analyses': run_analyses})

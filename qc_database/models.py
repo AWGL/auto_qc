@@ -2,9 +2,11 @@ from django.db import models
 from django.conf import settings
 from qc_analysis.parsers import *
 
-# Create your models here.
-
 class Instrument(models.Model):
+	"""
+	Model to hold a sequencer
+
+	"""
 
 	instrument_id = models.CharField(max_length=255, primary_key=True)
 	instrument_type = models.CharField(max_length=255)
@@ -13,6 +15,12 @@ class Instrument(models.Model):
 		return self.instrument_id
 
 class Run(models.Model):
+	"""
+	A run from a sequencer e.g 190927_D00501_0360_AH5JTVBCX3
+
+	Populated with information from the RunParams and Runinfo files.
+
+	"""
 
 	run_id = models.CharField(max_length=50, primary_key=True)
 
@@ -36,26 +44,12 @@ class Run(models.Model):
 	def __str__(self):
 		return self.run_id
 
-	def get_status(self):
-
-		if self.demultiplexing_completed == False:
-
-			return 'demultiplexing'
-
-		elif self.demultiplexing_completed == True and self.demultiplexing_valid == True:
-
-			return 'demultiplexing_complete'
-
-		elif self.demultiplexing_completed == True and self.demultiplexing_valid == False:
-
-			return 'demultiplexing_failed'
-
-		else:
-
-			return 'other'
-
 
 class InteropRunQuality(models.Model):
+	"""
+	An interop summary file for Illumina 
+
+	"""
 
 	run = models.ForeignKey(Run, on_delete=models.CASCADE)
 	read_number = models.IntegerField()
@@ -80,6 +74,9 @@ class InteropRunQuality(models.Model):
 
 
 class WorkSheet(models.Model):
+	"""	
+	A worksheet from Shire e.g. 19-5648
+	"""
 
 	worksheet_id = models.CharField(max_length=50, primary_key=True)
 
@@ -87,6 +84,10 @@ class WorkSheet(models.Model):
 		return self.worksheet_id
 
 class Sample(models.Model):
+	"""
+	A sample e.g. 18M13236
+
+	"""
 
 	sample_id = models.CharField(max_length=50, primary_key=True)
 
@@ -94,6 +95,9 @@ class Sample(models.Model):
 		return self.sample_id
 
 	def is_ntc(self):
+		"""
+		Does the sample name match an ntc pattern.
+		"""
 
 		for ntc_marker in ['NTC', 'ntc']:
 
@@ -104,14 +108,21 @@ class Sample(models.Model):
 		return False
 
 class Pipeline(models.Model):
+	"""
+	A pipeline - should be pipelinename + version
+
+	"""
 
 	pipeline_id = models.CharField(max_length=50, primary_key=True)
-
 
 	def __str__(self):
 		return self.pipeline_id
 
 class AnalysisType(models.Model):
+	"""
+	An analysis type e.g. IlluminaTruSightCancer
+
+	"""
 
 	analysis_type_id = models.CharField(max_length=50, primary_key=True)
 
@@ -119,6 +130,13 @@ class AnalysisType(models.Model):
 		return self.analysis_type_id
 
 class RunAnalysis(models.Model):
+	"""
+	A run analysis is a Run object which has been analysed with \
+	specific Pipeline and a specific AnalysisType.
+
+	For example 190927_D00501_0360_AH5JTVBCX3 analysed with GermlineEnrichment-2.5.3 on IlluminaTruSightCancer
+
+	"""
 
 	run = models.ForeignKey(Run, on_delete=models.CASCADE)
 	start_date = models.DateField(null=True, blank=True)
@@ -213,6 +231,12 @@ class RunAnalysis(models.Model):
 		return '|'.join(list(set(worksheets)))
 
 	def passes_auto_qc(self):
+		"""
+		Check whether the run analysis passes all QC checks.
+
+		Reads from config file to find out which checks to complete.
+
+		"""
 
 		config_dict = parse_config(settings.CONFIG_PATH)
 
@@ -231,7 +255,6 @@ class RunAnalysis(models.Model):
 												analysis_type = self.analysis_type)
 
 		# check is complete and valid
-
 
 		new_samples_list = []
 
@@ -312,6 +335,11 @@ class RunAnalysis(models.Model):
 
 
 class SampleAnalysis(models.Model):
+	"""
+	A SampleAnalysis object is a Sample analysed on a specific Run with a specific Pipeline on \
+	a specific AnalysisType.
+
+	"""
 
 	sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
 	run = models.ForeignKey(Run, on_delete=models.CASCADE)
@@ -332,6 +360,9 @@ class SampleAnalysis(models.Model):
 		return f'{self.run.run_id}_{self.pipeline.pipeline_id}_{self.analysis_type.analysis_type_id}_{self.sample.sample_id}'
 
 	def passes_fastqc(self):
+		"""
+		Does the sample have a PASS for the key FASTQC metrics?
+		"""
 
 		fastqc_objs = SampleFastqcData.objects.filter(sample_analysis=self)
 
@@ -585,6 +616,10 @@ class SampleHsMetrics(models.Model):
 
 
 class SampleDepthofCoverageMetrics(models.Model):
+	"""
+	Model for GATK DepthOfCoverage summary metrics
+
+	"""
 
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	total = models.BigIntegerField()
@@ -598,6 +633,10 @@ class SampleDepthofCoverageMetrics(models.Model):
 		return str(self.sample_analysis)
 
 class DuplicationMetrics(models.Model):
+	"""
+	Metrics from the MarkDuplicates program.
+
+	"""
 
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	library = models.CharField(max_length=255)
@@ -616,6 +655,9 @@ class DuplicationMetrics(models.Model):
 
 
 class ContaminationMetrics(models.Model):
+	"""
+	Metrics from the Contamination program
+	"""
 
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	num_snps = models.IntegerField()
@@ -629,6 +671,9 @@ class ContaminationMetrics(models.Model):
 		return str(self.sample_analysis)
 
 class CalculatedSexMetrics(models.Model):
+	"""
+	Store the calculated sex
+	"""
 
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	calculated_sex = models.CharField(max_length=10)
@@ -637,6 +682,10 @@ class CalculatedSexMetrics(models.Model):
 		return str(self.sample_analysis)
 
 class AlignmentMetrics(models.Model):
+	"""
+	Store alignment metrics
+
+	"""
 
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	category = models.CharField(max_length=16)
@@ -669,6 +718,10 @@ class AlignmentMetrics(models.Model):
 
 
 class VariantCallingMetrics(models.Model):
+	"""
+	Store variant calling detail metrics
+
+	"""
 
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	het_homvar_ratio = models.DecimalField(max_digits=7, decimal_places=3)
@@ -700,6 +753,10 @@ class VariantCallingMetrics(models.Model):
 		return str(self.sample_analysis)
 
 class InsertMetrics(models.Model):
+	"""
+	Store insert metrics
+
+	"""
 
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	mode_insert_size = models.IntegerField(null=True, blank=True) 

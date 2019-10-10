@@ -439,6 +439,12 @@ class Command(BaseCommand):
 					print(f'Could not find sample sheet for {raw_data}')
 					continue
 
+				copy_complete = raw_data.joinpath('run_copy_complete.txt')
+
+				if copy_complete.exists() == False:
+
+					continue
+
 				run_id = raw_data.name
 				run_obj, created = Run.objects.get_or_create(run_id=run_id)
 			

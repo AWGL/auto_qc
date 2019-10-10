@@ -2,8 +2,8 @@ pipelines:
 
   GermlineEnrichment-2.5.3-IlluminaTruSightCancer:
     qc_checks: [pct_q30, fastqc, contamination, ntc_contamination, sex_match]
-    min_q30_score: 0.8
-    contamination_cutoff: 0.015
+    min_q30_score: 0.75
+    contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
     sample_expected_files: ['*.bam',
@@ -32,7 +32,7 @@ pipelines:
   GermlineEnrichment-2.5.3-IlluminaTruSightOne:
     qc_checks: [pct_q30, fastqc, contamination, ntc_contamination, sex_match]
     min_q30_score: 0.8
-    contamination_cutoff: 0.015
+    contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
     sample_expected_files: ['*.bam',
@@ -60,7 +60,7 @@ pipelines:
   GermlineEnrichment-2.5.4-AgilentOGTFH:
     qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_q30_score: 0.8
-    contamination_cutoff: 0.015
+    contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
     sample_expected_files: ['*.bam',
@@ -90,7 +90,7 @@ pipelines:
   SomaticEnrichment-1.0.0-RochePanCancer:
     qc_checks: [pct_q30, fastqc, ntc_contamination, sex_match]
     min_q30_score: 0.8
-    contamination_cutoff: 0.015
+    contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
     sample_expected_files: ['*_VariantReport.txt',
@@ -109,7 +109,7 @@ pipelines:
 
   SomaticAmplicon-1.7.6-NGHS-102X:
     min_q30_score: 0.8
-    contamination_cutoff: 0.015
+    contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_fastq_size: 10000000
@@ -127,7 +127,7 @@ pipelines:
 
   SomaticAmplicon-1.7.6-NGHS-101X:
     min_q30_score: 0.8
-    contamination_cutoff: 0.015
+    contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_fastq_size: 10000000
@@ -145,7 +145,7 @@ pipelines:
 
   SomaticAmplicon-1.7.7-NGHS-101X:
     min_q30_score: 0.8
-    contamination_cutoff: 0.0015
+    contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_fastq_size: 10000000
@@ -163,7 +163,7 @@ pipelines:
 
   SomaticAmplicon-1.7.7-NGHS-102X:
     min_q30_score: 0.8
-    contamination_cutoff: 0.015
+    contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination]
     min_fastq_size: 10000000
