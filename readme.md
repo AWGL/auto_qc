@@ -67,7 +67,15 @@ It is recommended you set up a cronjob to automate the update of the database.
 
 ## Test
 
+```
+python manage.py test
+```
+
 ## Run Webapp
+
+```
+python manage.py runserver
+```
 
 ## FAQ
 
