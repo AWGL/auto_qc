@@ -150,7 +150,12 @@ class RunAnalysis(models.Model):
 	watching = models.BooleanField(default=True)
 	manual_approval = models.BooleanField(default=False)
 	comment = models.TextField(null=True, blank=True)
-	signoff_user = models.ForeignKey('auth.User', on_delete=models.CASCADE, null=True, blank=True)
+	signoff_user = models.ForeignKey('auth.User', on_delete=models.CASCADE, null=True, blank=True, related_name='signoff_user')
+	sensitivity = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	sensitivity_lower_ci = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	sensitivity_higher_ci = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	sensitivity_user = models.ForeignKey('auth.User', on_delete=models.CASCADE, null=True, blank=True, related_name='sensitivity_user')
+
 
 	class Meta:
 		unique_together = [['run', 'pipeline', 'analysis_type']]
@@ -627,7 +632,8 @@ class SampleDepthofCoverageMetrics(models.Model):
 	granular_first_quartile = models.IntegerField()
 	granular_median = models.IntegerField()
 	granular_third_quartile = models.IntegerField()
-	pct_bases_above_20  = models.DecimalField(max_digits=20, decimal_places=4)
+	pct_bases_above_20  = models.DecimalField(max_digits=8, decimal_places=3, null=True, blank=True)
+	pct_bases_above_500 = models.DecimalField(max_digits=8, decimal_places=3, null=True, blank=True)
 
 	def __str__(self):
 		return str(self.sample_analysis)

@@ -178,12 +178,11 @@ def add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis_obj):
 														run=run,
 														pipeline = pipeline)
 
-		existing_data = SampleHsMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+		existing_data = SampleDepthofCoverageMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 
 		if len(existing_data) < 1:
 
 			sample_data = depth_metrics_dict[key]
-			del sample_data['%_bases_above_20']
 			del sample_data['sample_id']
 
 			sample_data['sample_analysis'] = sample_analysis_obj
@@ -966,7 +965,7 @@ class Command(BaseCommand):
 
 						if run_valid == True:
 
-							print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							print (f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
 							print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
 							fastqc_dict = somatic_amplicon.get_fastqc_data()

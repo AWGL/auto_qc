@@ -275,6 +275,28 @@
 
 
 
+	{% if run_analysis.watching == True and run_analysis.analysis_type.analysis_type_id == 'IlluminaTruSightOne' %}
+	<center>
+  		<div>
+
+	<br>
+	{% crispy sensitivity_form %}
+
+	
+</div>
+</center>
+
+	<hr>
+	{% endif %}
+
+
+
+
+
+
+
+
+
 <center>
   <div>
 
@@ -293,5 +315,6 @@
 
 </div>
 </center>
+
 
 {% endblock %}

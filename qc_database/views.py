@@ -44,6 +44,10 @@ def view_run_analysis(request, pk):
 
 	max_ntc_contamination_score = round(sample_analyses[0].ntc_contamination_cutoff, 1)
 
+	form = RunAnalysisSignOffForm(run_analysis_id= run_analysis.pk, comment =run_analysis.comment)
+	reset_form = ResetRunForm(run_analysis_id= run_analysis.pk)
+	sensitivity_form = SensitivityForm(instance = run_analysis)
+
 	if request.method == 'POST':
 
 		# if the user submitted the signoff form
@@ -76,15 +80,25 @@ def view_run_analysis(request, pk):
 
 			reset_form = ResetRunForm(run_analysis_id= run_analysis.pk)
 
-			run_analysis.manual_approval = False
-			run_analysis.watching = True
-			run_analysis.signoff_user = None
-			run_analysis.save()
+			if reset_form.is_valid():
 
-			return redirect('home')
+				run_analysis.manual_approval = False
+				run_analysis.watching = True
+				run_analysis.signoff_user = None
+				run_analysis.save()
 
-	form = RunAnalysisSignOffForm(run_analysis_id= run_analysis.pk, comment =run_analysis.comment)
-	reset_form = ResetRunForm(run_analysis_id= run_analysis.pk)
+				return redirect('home')
+
+		elif 'sensitivity-form' in request.POST:
+
+			sensitivity_form = SensitivityForm(request.POST, instance=run_analysis)
+
+			if sensitivity_form.is_valid():
+
+				sensitivity_form.save()
+				run_analysis.sensitivity_user = request.user
+				run_analysis.save()
+
 
 	return render(request, 'auto_qc/view_run_analysis.html', {'run_analysis': run_analysis,
 															 'sample_analyses': sample_analyses,
@@ -94,7 +108,8 @@ def view_run_analysis(request, pk):
 															 'max_contamination_score': max_contamination_score,
 															 'max_ntc_contamination_score': max_ntc_contamination_score,
 															 'form': form,
-															 'reset_form': reset_form})
+															 'reset_form': reset_form,
+															 'sensitivity_form': sensitivity_form})
 
 @transaction.atomic
 @login_required
