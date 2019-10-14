@@ -77,17 +77,15 @@ def view_run_analysis(request, pk):
 
 		# if the user resets the run analysis to be watched
 		elif 'reset-form' in request.POST:
-
+			
 			reset_form = ResetRunForm(run_analysis_id= run_analysis.pk)
 
-			if reset_form.is_valid():
+			run_analysis.manual_approval = False
+			run_analysis.watching = True
+			run_analysis.signoff_user = None
+			run_analysis.save()
 
-				run_analysis.manual_approval = False
-				run_analysis.watching = True
-				run_analysis.signoff_user = None
-				run_analysis.save()
-
-				return redirect('home')
+			return redirect('home')
 
 		elif 'sensitivity-form' in request.POST:
 

@@ -197,7 +197,7 @@ class RunAnalysis(models.Model):
 
 		for interop_quality in interop_qualities:
 
-			if interop_quality.percent_q30 < self.min_q30_score:
+			if interop_quality.percent_q30 < (self.min_q30_score*100):
 
 				return False
 
