@@ -544,9 +544,20 @@ class Command(BaseCommand):
 
 						min_q30_score = 0.8
 
+
+					try:
+
+						checks_to_try = config_dict['pipelines'][run_config_key]['qc_checks']
+						checks_to_try = ','.join(checks_to_try)
+
+					except:
+
+						checks_to_try = None
+
 					new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
 																			pipeline = pipeline_obj,
-																			analysis_type = analysis_type_obj)
+																			analysis_type = analysis_type_obj,
+																			auto_qc_checks = checks_to_try)
 					if created == True:
 
 						new_run_analysis_obj.min_q30_score = min_q30_score

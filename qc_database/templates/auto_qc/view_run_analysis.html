@@ -68,9 +68,25 @@
 
 	</tr>
 
+
 	{% endif %}
 
+	{% if run_analysis.analysis_type.analysis_type_id == 'IlluminaTruSightOne' and  run_analysis.sensitivity != None %}
 
+	<tr>
+		<td> Sensitivity</td>
+		<td> {{run_analysis.sensitivity}} ({{run_analysis.sensitivity_lower_ci}}-{{run_analysis.sensitivity_higher_ci}})</td>
+
+	</tr>
+
+	<tr>
+		<td> Sensitivity User </td>
+		<td> {{run_analysis.sensitivity_user}}</td>
+
+	</tr>
+
+
+	{% endif %}
 
   </tbody>
 
@@ -78,14 +94,41 @@
 </table>
 
 <h2> Auto QC </h2>
+
 {% if auto_qc.0 == True %}
 <div class="alert alert-success">
-  <strong>Pass</strong> 
+
+  <a class="btn btn-success" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+    Pass
+  </a>
+
+<div class="collapse" id="collapseExample">
+	<br>
+  <div class="card card-body">
+   The following checks were performed: bioinformatics,{{run_analysis.auto_qc_checks}}
+  </div>
+</div>
+
 </div>
 {% else %}
+
 <div class="alert alert-danger">
-  <strong>Fail ({{ auto_qc.1 }})</strong> 
+
+  <a class="btn btn-danger" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+    Fail ({{ auto_qc.1 }})
+  </a>
+
+<div class="collapse" id="collapseExample">
+	<br>
+  <div class="card card-body">
+     The following checks were performed: bioinformatics,{{run_analysis.auto_qc_checks}}
+  </div>
 </div>
+
+</div>
+
+
+
 {% endif %}
 
 
@@ -282,7 +325,7 @@
 	<br>
 	{% crispy sensitivity_form %}
 
-	
+
 </div>
 </center>
 
@@ -315,6 +358,8 @@
 
 </div>
 </center>
+
+
 
 
 {% endblock %}

@@ -6,7 +6,7 @@ class TestAutoQC(TestCase):
 	Test that AutoQC works
 	"""
 
-	fixtures = ['test_data2']
+	fixtures = ['test_data']
 
 	def setUp(self):
 
@@ -15,7 +15,7 @@ class TestAutoQC(TestCase):
 
 	def test_q30_fail(self):
 
-		run_analysis= RunAnalysis.objects.get(pk=47)
+		run_analysis= RunAnalysis.objects.get(pk=59)
 
 		interops = InteropRunQuality.objects.filter(
 			run = run_analysis.run
@@ -33,7 +33,7 @@ class TestAutoQC(TestCase):
 	
 	def test_fastqc_fail(self):
 
-		run_analysis= RunAnalysis.objects.get(pk=47)
+		run_analysis= RunAnalysis.objects.get(pk=59)
 
 		samples = SampleAnalysis.objects.filter(
 			run = run_analysis.run,
@@ -56,7 +56,7 @@ class TestAutoQC(TestCase):
 	
 	def test_contamination_fail(self):
 
-		run_analysis= RunAnalysis.objects.get(pk=47)
+		run_analysis= RunAnalysis.objects.get(pk=59)
 
 		samples = SampleAnalysis.objects.filter(
 			run = run_analysis.run,
@@ -76,7 +76,7 @@ class TestAutoQC(TestCase):
 
 	def test_ntc_contamination_fail(self):
 
-		run_analysis= RunAnalysis.objects.get(pk=47)
+		run_analysis= RunAnalysis.objects.get(pk=59)
 
 		samples = SampleAnalysis.objects.filter(
 			run = run_analysis.run,
@@ -96,7 +96,7 @@ class TestAutoQC(TestCase):
 
 	def test_sex_match_fail(self):
 
-		run_analysis= RunAnalysis.objects.get(pk=47)
+		run_analysis= RunAnalysis.objects.get(pk=59)
 
 		samples = SampleAnalysis.objects.filter(
 			run = run_analysis.run,

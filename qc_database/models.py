@@ -155,7 +155,7 @@ class RunAnalysis(models.Model):
 	sensitivity_lower_ci = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	sensitivity_higher_ci = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	sensitivity_user = models.ForeignKey('auth.User', on_delete=models.CASCADE, null=True, blank=True, related_name='sensitivity_user')
-
+	auto_qc_checks = models.TextField(null=True, blank=True)
 
 	class Meta:
 		unique_together = [['run', 'pipeline', 'analysis_type']]
@@ -243,17 +243,13 @@ class RunAnalysis(models.Model):
 
 		"""
 
-		config_dict = parse_config(settings.CONFIG_PATH)
+		checks_to_do = self.auto_qc_checks
 
-		config_key = self.pipeline.pipeline_id + '-' + self.analysis_type.analysis_type_id
+		if checks_to_do == None:
 
-		try:
+			return False, 'No Configuration For this Pipeline.'
 
-			checks_to_do = config_dict['pipelines'][config_key]['qc_checks']
-
-		except:
-
-			return False, 'No configuration for this pipeline.'
+		checks_to_do = checks_to_do.split(',')
 
 		samples = SampleAnalysis.objects.filter(run = self.run,
 												pipeline = self.pipeline,
@@ -262,7 +258,6 @@ class RunAnalysis(models.Model):
 		# check is complete and valid
 
 		new_samples_list = []
-
 
 		if self.demultiplexing_completed == False:
 
@@ -633,6 +628,7 @@ class SampleDepthofCoverageMetrics(models.Model):
 	granular_median = models.IntegerField()
 	granular_third_quartile = models.IntegerField()
 	pct_bases_above_20  = models.DecimalField(max_digits=8, decimal_places=3, null=True, blank=True)
+	pct_bases_above_250 = models.DecimalField(max_digits=8, decimal_places=3, null=True, blank=True)
 	pct_bases_above_500 = models.DecimalField(max_digits=8, decimal_places=3, null=True, blank=True)
 
 	def __str__(self):
