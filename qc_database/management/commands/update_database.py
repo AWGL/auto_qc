@@ -493,7 +493,9 @@ class Command(BaseCommand):
 					pipeline_version = sample_sheet_data[sample]['pipelineVersion']
 					panel = sample_sheet_data[sample]['panel']
 					sex = sample_sheet_data[sample].get('sex', None)
-					worksheet = sample_sheet_data[sample]['Sample_Plate']
+
+
+					worksheet = sample_sheet_data[sample].get('Sample_Plate', 'Unknown')
 
 					pipeline_and_version = pipeline + '-' + pipeline_version
 

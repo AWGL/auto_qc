@@ -112,3 +112,4 @@ class TestAutoQC(TestCase):
 		sex.save()
 
 		self.assertEqual(run_analysis.passes_auto_qc(), (False, 'Sex Match Fail'))
+
