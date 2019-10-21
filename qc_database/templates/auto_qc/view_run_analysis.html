@@ -181,6 +181,7 @@
 	  <th>Sample</th>
 	  <th>FASTQC</th>
 	  <th>Total Reads</th>
+	  <th>Total Variants</th>
 	  <th>Contamination</th>
 	  <th>Passes NTC Contamination</th>
 	  <th>Sample Sex</th>
@@ -197,6 +198,7 @@
 			<td class="table-dark"> {{sample_analysis.sample.sample_id}} </td>
 			<td class="table-dark"> {{sample_analysis.passes_fastqc}} </td>
 			<td class="table-dark"> {{sample_analysis.get_total_reads}} </td>
+			<td class="table-dark"> {{sample_analysis.get_variant_count}} </td>
 			<td class="table-dark"> {{sample_analysis.get_contamination}} </td>
 			<td class="table-dark"> {{sample_analysis.passes_ntc_contamination}} </td>
 			<td class="table-dark"> {{sample_analysis.get_sex}} </td>
@@ -214,6 +216,7 @@
 		{% endif %}
 
 		<td> {{sample_analysis.get_total_reads}} </td>
+		<td> {{sample_analysis.get_variant_count}} </td>
 
 
 		{% if sample_analysis.get_contamination == 'NA' %}

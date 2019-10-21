@@ -851,7 +851,6 @@ class SomaticEnrichment:
 
 class SomaticAmplicon:
 
-
 	def __init__(self,
 				results_dir,
 				sample_names,
@@ -1042,4 +1041,26 @@ class SomaticAmplicon:
 			run_depth_metrics_dict[sample] = parsed_depth_metrics
 
 		return run_depth_metrics_dict
+
+
+	def get_variant_count(self):
+
+		results_path = Path(self.results_dir)
+
+		sample_variant_count_dict = {}
+
+		for sample in self.sample_names:
+
+			vcf_file = results_path.joinpath(sample).glob(f'*{sample}*_filtered_meta_annotated.vcf')
+
+			vcf_file = list(vcf_file)[0]	
+
+			vcf_count_metrics = get_passing_variant_count(vcf_file, [sample])
+
+			sample_variant_count_dict[sample] = vcf_count_metrics
+
+		return sample_variant_count_dict
+
+
+
 

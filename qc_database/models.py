@@ -522,6 +522,20 @@ class SampleAnalysis(models.Model):
 
 		return run_analysis
 
+	def get_variant_count(self):
+
+		try:
+
+			variant_calling_metrics = VariantCallingMetrics.objects.get(sample_analysis=self)
+
+			return variant_calling_metrics.total_snps + variant_calling_metrics.total_indels + variant_calling_metrics.total_complex_indels
+
+		except:
+
+			pass
+
+		return 'NA'
+
 
 
 class SampleFastqcData(models.Model):
@@ -785,11 +799,20 @@ class InsertMetrics(models.Model):
 	def __str__(self):
 		return str(self.sample_analysis)
 
+class VCFVariantCount(models.Model):
+
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	variant_count = models.IntegerField()
 
 
+class InteropIndexMetrics(models.Model):
 
+	sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
+	run = models.ForeignKey(Run, on_delete=models.CASCADE)
+	pct_reads_identified = models.DecimalField(max_digits=10, decimal_places=3)
 
-
+	def __str__(self):
+		return str(self.run) + '_' + str(self.sample)
 
 
 

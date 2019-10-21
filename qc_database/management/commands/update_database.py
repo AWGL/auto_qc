@@ -90,7 +90,7 @@ def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 
 	run_obj.save()
 
-	return None
+	return interop_dict
 
 
 def add_fastqc_data(fastqc_dict, run_analysis_obj):
@@ -391,7 +391,52 @@ def add_insert_metrics(insert_metrics_dict, run_analysis_obj):
 			new_insert_obj = InsertMetrics(**sample_data)
 			new_insert_obj.save()
 
+def add_interop_index_metrics(index_metrics_dict, run_analysis_obj):
 
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in index_metrics_dict:
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		existing_data = InteropIndexMetrics.objects.filter(sample= sample_obj)
+
+		if len(existing_data) < 1:
+
+			sample_data = index_metrics_dict[key]
+
+			InteropIndexMetrics.objects.create(sample= sample_obj,
+												run = run,
+												pct_reads_identified=sample_data['% Reads Identified (PF)'] )
+
+
+
+def add_variant_count_metrics(variant_count_metrics_dict, run_analysis_obj):
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	print (variant_count_metrics_dict)
+
+	for key in variant_count_metrics_dict:
+		
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+		
+		existing_data = VCFVariantCount.objects.filter(sample_analysis= sample_analysis_obj)
+		
+		if len(existing_data) < 1:
+
+			sample_data = variant_count_metrics_dict[key][key]
+
+			print (sample_data)
+
+			new_count_obj = VCFVariantCount(sample_analysis = sample_analysis_obj, variant_count= sample_data)
+			new_count_obj.save()
 
 
 class Command(BaseCommand):
@@ -471,7 +516,12 @@ class Command(BaseCommand):
 
 
 					# add runlog stats to database
-					add_run_log_info(run_info, run_parameters, run_obj, raw_data)
+					interop_data = add_run_log_info(run_info, run_parameters, run_obj, raw_data)
+
+				else:
+
+					interop_data = None
+
 
 				try:
 					# parse sample sheet
@@ -493,7 +543,6 @@ class Command(BaseCommand):
 					pipeline_version = sample_sheet_data[sample]['pipelineVersion']
 					panel = sample_sheet_data[sample]['panel']
 					sex = sample_sheet_data[sample].get('sex', None)
-
 
 					worksheet = sample_sheet_data[sample].get('Sample_Plate', 'Unknown')
 
@@ -566,6 +615,14 @@ class Command(BaseCommand):
 						new_run_analysis_obj.start_date = datetime.datetime.now()
 
 					new_run_analysis_obj.save()
+
+					# add index stats
+					if interop_data != None:
+
+						index_metrics = interop_data['index_stats']
+
+						add_interop_index_metrics(index_metrics, new_run_analysis_obj)
+
 
 			# Loop through existing run analysis objects
 			existing_run_analyses = RunAnalysis.objects.filter(watching=True)
@@ -992,6 +1049,11 @@ class Command(BaseCommand):
 							depth_metrics_dict = somatic_amplicon.get_depth_metrics()
 							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
 
+
+							print (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
+							variant_count_metrics_dict = somatic_amplicon.get_variant_count()
+							add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
+
 						else:
 
 							print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
@@ -1011,6 +1073,10 @@ class Command(BaseCommand):
 							print (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
 							depth_metrics_dict = somatic_amplicon.get_depth_metrics()
 							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+
+							print (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
+							variant_count_metrics_dict = somatic_amplicon.get_variant_count()
+							add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid

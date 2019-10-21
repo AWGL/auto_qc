@@ -6,6 +6,9 @@ import json
 from interop import py_interop_run_metrics, py_interop_run, py_interop_summary
 import yaml
 import math
+import pandas as pd
+from pysam import VariantFile
+
 
 def sample_sheet_parser(sample_sheet_path):
 
@@ -146,7 +149,7 @@ def extract_data_from_run_info_dict(run_info_dict):
 
 	return runinfo_sorted_dict
 
-def parse_interop_data(run_folder, num_reads, num_lanes):
+def parse_interop_data(run_folder_dir, num_reads, num_lanes):
 	"""
 	Parses summary statistics out of interops data using the Illumina interops package
 	"""
@@ -154,34 +157,34 @@ def parse_interop_data(run_folder, num_reads, num_lanes):
 	# make empty dict to store output
 	interop_dict = {'read_summaries': {}}
 
-	
+
 	# taken from illumina interops package documentation, all of this is required, 
 	# even though only the summary variable is used further on
 	run_metrics = py_interop_run_metrics.run_metrics()
 	valid_to_load = py_interop_run.uchar_vector(py_interop_run.MetricCount, 0)
 	py_interop_run_metrics.list_summary_metrics_to_load(valid_to_load)
-	run_folder = run_metrics.read(run_folder, valid_to_load)
+	run_folder = run_metrics.read(run_folder_dir, valid_to_load)
 	summary = py_interop_summary.run_summary()
 	py_interop_summary.summarize_run_metrics(run_metrics, summary)
-	
-	
+
+
 	for read in range(num_reads):
-		
+
 		new_read = read + 1
-		
+
 		if new_read not in interop_dict['read_summaries']:
-			
+
 			interop_dict['read_summaries'][new_read] = {}
-		
-			
+
+
 		for lane in range(num_lanes):
-			
+
 			new_lane = lane + 1
-				
+
 			if new_lane not in interop_dict['read_summaries'][new_read]:
-					
+
 				interop_dict['read_summaries'][new_read][new_lane] = {}
-					
+
 			interop_dict['read_summaries'][read+1][lane+1]['percent_q30'] = summary.at(read).at(lane).percent_gt_q30()
 			interop_dict['read_summaries'][read+1][lane+1]['density'] = summary.at(read).at(lane).density().mean()
 			interop_dict['read_summaries'][read+1][lane+1]['density_pf'] = summary.at(read).at(lane).density_pf().mean()
@@ -199,8 +202,46 @@ def parse_interop_data(run_folder, num_reads, num_lanes):
 			for key in interop_dict['read_summaries'][read+1][lane+1]:
 
 				if math.isnan(interop_dict['read_summaries'][read+1][lane+1][key]):
-				
+
 					interop_dict['read_summaries'][read+1][lane+1][key] = None
+
+
+	run_metrics = py_interop_run_metrics.run_metrics()
+	valid_to_load = py_interop_run.uchar_vector(py_interop_run.MetricCount, 0)
+	py_interop_run_metrics.list_index_metrics_to_load(valid_to_load)
+	run_folder = run_metrics.read(run_folder_dir, valid_to_load)
+	my_summary = py_interop_summary.index_flowcell_summary()
+	py_interop_summary.summarize_index_metrics(run_metrics, my_summary)
+
+	columns = ( ('Index Number', 'id'),
+	('Sample Id', 'sample_id'),
+	('Project', 'project_name'),
+	('Index 1 (I7)', 'index1'),
+	('Index 2 (I5)', 'index2'),
+	('% Reads Identified (PF)', 'fraction_mapped'))
+
+	df = pd.DataFrame()
+
+	for x in range(num_lanes):
+
+		d = []
+
+		for label, func in columns:
+
+			lane_summary = my_summary.at(x)
+
+			d.append( (label, pd.Series([getattr(lane_summary.at(i), func)() for i in range(lane_summary.size())], index=[lane_summary.at(i).id() for i in range(lane_summary.size())])))
+
+		new_df = pd.DataFrame.from_dict(dict(d))
+		new_df['lane'] = x
+
+		df = df.append(new_df )
+
+	df_grouped = df.groupby('Sample Id').mean()
+
+	index_dict = df_grouped.to_dict('index')
+
+	interop_dict['index_stats'] = index_dict
 
 	return interop_dict
 
@@ -559,3 +600,51 @@ def parse_config(config_location):
 	"""
 	with open(config_location, 'r') as stream:
 		return yaml.safe_load(stream)
+
+def get_passing_variant_count(vcf_path, samples):
+	"""
+	count number of passing variants in vcf
+
+	"""
+	
+	bcf_in = VariantFile(vcf_path)
+
+	count_dict = {}
+
+	for rec in bcf_in.fetch():
+
+		chrom = rec.chrom
+		pos = rec.pos
+		ref = rec.ref
+		alt = rec.alts
+		filter_status = rec.filter.keys()
+		info = rec.info
+		quality = rec.qual
+
+		for sample in samples:
+
+			sample_genotype_data = rec.samples[sample]
+
+			gt_list = []
+
+			for allele in sample_genotype_data['GT']:
+
+				if allele == None or allele == 0:
+
+					pass
+
+				else:
+
+					gt_list.append(allele)
+
+			if 'PASS' in filter_status and len(gt_list) > 0:
+
+				if sample not in count_dict:
+
+					count_dict[sample] = 0
+
+				else:
+
+					count_dict[sample] = count_dict[sample] + 1
+					
+	return count_dict
