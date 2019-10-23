@@ -113,3 +113,21 @@ class TestAutoQC(TestCase):
 
 		self.assertEqual(run_analysis.passes_auto_qc(), (False, 'Sex Match Fail'))
 
+	def test_variant_count_fail(self):
+
+		run_analysis= RunAnalysis.objects.get(pk=59)
+
+		samples = SampleAnalysis.objects.filter(
+			run = run_analysis.run,
+			pipeline = run_analysis.pipeline,
+			analysis_type = run_analysis.analysis_type
+			)
+
+		sex = CalculatedSexMetrics.objects.get(sample_analysis=samples[0])
+
+		self.assertEqual(run_analysis.passes_auto_qc(), (True, 'All Pass'))
+
+		sex.calculated_sex = 'FEMALE'
+		sex.save()
+
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, 'Sex Match Fail'))

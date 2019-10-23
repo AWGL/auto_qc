@@ -156,6 +156,10 @@ class RunAnalysis(models.Model):
 	sensitivity_higher_ci = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	sensitivity_user = models.ForeignKey('auth.User', on_delete=models.CASCADE, null=True, blank=True, related_name='sensitivity_user')
 	auto_qc_checks = models.TextField(null=True, blank=True)
+	min_variants = models.IntegerField()
+	max_variants = models.IntegerField()
+
+
 
 	class Meta:
 		unique_together = [['run', 'pipeline', 'analysis_type']]
@@ -328,6 +332,15 @@ class RunAnalysis(models.Model):
 				if sample.passes_sex_check() == False:
 
 					return False, 'Sex Match Fail'
+
+		if 'variant_check' in checks_to_do:
+
+			for sample in new_samples_list:
+
+				if sample.passes_variant_count_check() == False:
+
+					return False, 'Variant Count Fail'		
+
 
 		return True, 'All Pass'
 
@@ -524,6 +537,7 @@ class SampleAnalysis(models.Model):
 
 	def get_variant_count(self):
 
+
 		try:
 
 			variant_calling_metrics = VariantCallingMetrics.objects.get(sample_analysis=self)
@@ -532,9 +546,42 @@ class SampleAnalysis(models.Model):
 
 		except:
 
-			pass
+			try:
+
+				variant_count_metrics = VCFVariantCount.objects.get(sample_analysis=self)
+
+				return variant_count_metrics.variant_count
+
+			except:
+
+				pass
 
 		return 'NA'
+
+	def passes_variant_count_check(self):
+
+		run_analysis = self.get_run_analysis()
+
+		if run_analysis == None:
+
+			return False
+
+		min_variants = run_analysis.min_variants
+		max_variants = run_analysis.max_variants
+
+		variant_count = self.get_variant_count()
+
+		if variant_count == 'NA':
+
+			return False
+
+		else:
+
+			if variant_count > min_variants and variant_count < max_variants:
+
+				return True
+
+		return False
 
 
 

@@ -216,7 +216,14 @@
 		{% endif %}
 
 		<td> {{sample_analysis.get_total_reads}} </td>
-		<td> {{sample_analysis.get_variant_count}} </td>
+
+		{% if sample_analysis.get_variant_count == 'NA' %}
+			<td> {{sample_analysis.get_variant_count}} </td>
+		{% elif sample_analysis.get_variant_count > run_analysis.min_variants and sample_analysis.get_variant_count < run_analysis.max_variants  %}
+			<td class="table-success"> {{sample_analysis.get_variant_count}} </td>
+		{% else %}
+			<td class="table-danger"> {{sample_analysis.get_variant_count}} </td>
+		{% endif %}
 
 
 		{% if sample_analysis.get_contamination == 'NA' %}

@@ -1,11 +1,13 @@
 pipelines:
 
   GermlineEnrichment-2.5.3-IlluminaTruSightCancer:
-    qc_checks: [pct_q30, fastqc, contamination, ntc_contamination, sex_match]
+    qc_checks: [pct_q30, fastqc, variant_check, contamination, ntc_contamination, sex_match]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
+    min_variants: 600
+    max_variants: 950
     sample_expected_files: ['*.bam',
                 '*.g.vcf',
                   '*_AlignmentSummaryMetrics.txt',
@@ -30,11 +32,13 @@ pipelines:
                 'BAMs.list']
 
   GermlineEnrichment-2.5.3-IlluminaTruSightOne:
-    qc_checks: [pct_q30, fastqc, contamination, ntc_contamination, sex_match]
+    qc_checks: [pct_q30, fastqc, variant_check, contamination, ntc_contamination, sex_match]
     min_q30_score: 0.8
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
+    min_variants: 20000
+    max_variants: 35000
     sample_expected_files: ['*.bam',
                 '*.g.vcf',
                   '*_AlignmentSummaryMetrics.txt',
@@ -58,11 +62,13 @@ pipelines:
                 'BAMs.list']
 
   GermlineEnrichment-2.5.4-AgilentOGTFH:
-    qc_checks: [pct_q30, fastqc, ntc_contamination]
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_q30_score: 0.8
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
+    min_variants: 10
+    max_variants: 500
     sample_expected_files: ['*.bam',
                 '*.g.vcf',
                   '*_AlignmentSummaryMetrics.txt',
@@ -88,11 +94,13 @@ pipelines:
                 'BAMs.list']
 
   SomaticEnrichment-1.0.0-RochePanCancer:
-    qc_checks: [pct_q30, fastqc, ntc_contamination, sex_match]
+    qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, sex_match]
     min_q30_score: 0.8
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
+    min_variants: 10
+    max_variants: 500
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_AlignmentSummaryMetrics.txt',
@@ -111,8 +119,10 @@ pipelines:
     min_q30_score: 0.8
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
-    qc_checks: [pct_q30, fastqc, ntc_contamination]
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
+    min_variants: 10
+    max_variants: 500
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
@@ -128,8 +138,10 @@ pipelines:
     min_q30_score: 0.8
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
-    qc_checks: [pct_q30, fastqc, ntc_contamination]
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
+    min_variants: 10
+    max_variants: 500
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
@@ -146,8 +158,10 @@ pipelines:
     min_q30_score: 0.8
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
-    qc_checks: [pct_q30, fastqc, ntc_contamination]
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
+    min_variants: 10
+    max_variants: 500
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
@@ -164,8 +178,10 @@ pipelines:
     min_q30_score: 0.8
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
-    qc_checks: [pct_q30, fastqc, ntc_contamination]
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
+    min_variants: 10
+    max_variants: 500
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
@@ -183,8 +199,10 @@ pipelines:
     min_q30_score: 0.8
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
-    qc_checks: [pct_q30, fastqc, ntc_contamination]
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
+    min_variants: 10
+    max_variants: 500
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',

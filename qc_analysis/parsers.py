@@ -646,5 +646,11 @@ def get_passing_variant_count(vcf_path, samples):
 				else:
 
 					count_dict[sample] = count_dict[sample] + 1
-					
+	
+	if len(count_dict) == 0:
+
+		for sample in samples:
+
+			count_dict[sample] = 0
+
 	return count_dict

@@ -848,6 +848,24 @@ class SomaticEnrichment:
 
 		return insert_metrics_dict
 
+	def get_variant_count(self):
+
+		results_path = Path(self.results_dir)
+
+		sample_variant_count_dict = {}
+
+		for sample in self.sample_names:
+
+			vcf_file = results_path.joinpath(sample).glob(f'*{sample}*_filteredStrLeftAligned_annotated.vcf')
+
+			vcf_file = list(vcf_file)[0]	
+
+			vcf_count_metrics = get_passing_variant_count(vcf_file, [sample])
+
+			sample_variant_count_dict[sample] = vcf_count_metrics
+
+		return sample_variant_count_dict
+
 
 class SomaticAmplicon:
 

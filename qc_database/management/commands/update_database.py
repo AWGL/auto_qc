@@ -417,8 +417,6 @@ def add_variant_count_metrics(variant_count_metrics_dict, run_analysis_obj):
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
 
-	print (variant_count_metrics_dict)
-
 	for key in variant_count_metrics_dict:
 		
 		sample_obj = Sample.objects.get(sample_id=key)
@@ -432,8 +430,6 @@ def add_variant_count_metrics(variant_count_metrics_dict, run_analysis_obj):
 		if len(existing_data) < 1:
 
 			sample_data = variant_count_metrics_dict[key][key]
-
-			print (sample_data)
 
 			new_count_obj = VCFVariantCount(sample_analysis = sample_analysis_obj, variant_count= sample_data)
 			new_count_obj.save()
@@ -605,10 +601,22 @@ class Command(BaseCommand):
 
 						checks_to_try = None
 
+					try:
+
+						min_variants =  config_dict['pipelines'][run_config_key]['min_variants']
+						max_variants =  config_dict['pipelines'][run_config_key]['max_variants']
+
+					except:
+
+						min_variants =  25
+						max_variants =  1000			
+
 					new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
 																			pipeline = pipeline_obj,
 																			analysis_type = analysis_type_obj,
-																			auto_qc_checks = checks_to_try)
+																			auto_qc_checks = checks_to_try,
+																			min_variants=min_variants,
+																			max_variants= max_variants)
 					if created == True:
 
 						new_run_analysis_obj.min_q30_score = min_q30_score
@@ -932,6 +940,10 @@ class Command(BaseCommand):
 							insert_metrics_dict = somatic_enrichment.get_insert_metrics()
 							add_insert_metrics(insert_metrics_dict, run_analysis)
 
+							print (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
+							variant_count_metrics_dict = somatic_enrichment.get_variant_count()
+							add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
+
 						else:
 
 							print (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
@@ -967,6 +979,10 @@ class Command(BaseCommand):
 							print (f'Putting insert metrics data into db for run {run_analysis.run.run_id}')
 							insert_metrics_dict = somatic_enrichment.get_insert_metrics()
 							add_insert_metrics(insert_metrics_dict, run_analysis)
+
+							print (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
+							variant_count_metrics_dict = somatic_enrichment.get_variant_count()
+							add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
