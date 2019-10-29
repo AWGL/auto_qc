@@ -7,7 +7,7 @@ pipelines:
     ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
     min_variants: 600
-    max_variants: 950
+    max_variants: 1100
     sample_expected_files: ['*.bam',
                 '*.g.vcf',
                   '*_AlignmentSummaryMetrics.txt',
@@ -99,8 +99,8 @@ pipelines:
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
-    min_variants: 10
-    max_variants: 500
+    min_variants: 75
+    max_variants: 600
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_AlignmentSummaryMetrics.txt',
@@ -122,7 +122,7 @@ pipelines:
     qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
     min_variants: 10
-    max_variants: 500
+    max_variants: 250
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
@@ -141,7 +141,7 @@ pipelines:
     qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
     min_variants: 10
-    max_variants: 500
+    max_variants: 250
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
@@ -161,7 +161,7 @@ pipelines:
     qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
     min_variants: 10
-    max_variants: 500
+    max_variants: 250
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
@@ -181,7 +181,7 @@ pipelines:
     qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
     min_variants: 10
-    max_variants: 500
+    max_variants: 250
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
@@ -202,7 +202,7 @@ pipelines:
     qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
     min_variants: 10
-    max_variants: 500
+    max_variants: 250
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',

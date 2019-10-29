@@ -29,24 +29,51 @@
 
 	</tr>
 
+	{% if 'pct_q30' in checks_to_do %}
+
 	<tr>
 		<td> Min Q30 Score </td>
 		<td> {{min_q30_score}}%</td>
 
 	</tr>
 
+	{% endif %}
 
+	{% if 'contamination' in checks_to_do %}
 	<tr>
 		<td> Max Contamination Score </td>
 		<td> {{max_contamination_score}}%</td>
 
 	</tr>
 
+	{% endif %}
+
+	{% if 'ntc_contamination' in checks_to_do %}
+
 	<tr>
 		<td> Max NTC Contamination Score </td>
 		<td> {{max_ntc_contamination_score}}%</td>
 
 	</tr>
+
+	{% endif %}
+
+
+	{% if 'variant_check' in checks_to_do %}
+
+	<tr>
+		<td> Min Number of Variants </td>
+		<td> {{run_analysis.min_variants}}</td>
+
+	</tr>
+
+	<tr>
+		<td> Max Number of Variants </td>
+		<td> {{run_analysis.max_variants}}</td>
+
+	</tr>
+
+	{% endif %}
 
 	{% if run_analysis.watching == False %}
 
