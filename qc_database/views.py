@@ -32,21 +32,30 @@ def view_run_analysis(request, pk):
 
 	sample_analyses = SampleAnalysis.objects.filter(run = run_analysis.run,
 													pipeline = run_analysis.pipeline,
-													analysis_type=run_analysis.analysis_type )
+													analysis_type = run_analysis.analysis_type )
 
-	run_level_qualities = InteropRunQuality.objects.filter(run =run_analysis.run)
+	run_level_qualities = InteropRunQuality.objects.filter(run = run_analysis.run)
 
 	auto_qc = run_analysis.passes_auto_qc()
 
 	min_q30_score = round(run_analysis.min_q30_score * 100)
-
 	max_contamination_score = round(sample_analyses[0].contamination_cutoff*100, 1)
-
 	max_ntc_contamination_score = round(sample_analyses[0].ntc_contamination_cutoff, 1)
+
+	checks_to_do = run_analysis.auto_qc_checks
+
+	if checks_to_do == None:
+
+		checks_to_do = []
+
+
+	checks_to_do = checks_to_do.split(',')
 
 	form = RunAnalysisSignOffForm(run_analysis_id= run_analysis.pk, comment =run_analysis.comment)
 	reset_form = ResetRunForm(run_analysis_id= run_analysis.pk)
 	sensitivity_form = SensitivityForm(instance = run_analysis)
+
+
 
 	if request.method == 'POST':
 
@@ -77,7 +86,7 @@ def view_run_analysis(request, pk):
 
 		# if the user resets the run analysis to be watched
 		elif 'reset-form' in request.POST:
-			
+
 			reset_form = ResetRunForm(run_analysis_id= run_analysis.pk)
 
 			run_analysis.manual_approval = False
@@ -107,7 +116,8 @@ def view_run_analysis(request, pk):
 															 'max_ntc_contamination_score': max_ntc_contamination_score,
 															 'form': form,
 															 'reset_form': reset_form,
-															 'sensitivity_form': sensitivity_form})
+															 'sensitivity_form': sensitivity_form,
+															 'checks_to_do': checks_to_do})
 
 @transaction.atomic
 @login_required
