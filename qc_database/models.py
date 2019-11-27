@@ -71,7 +71,9 @@ class InteropRunQuality(models.Model):
 	def __str__(self):
 		return str(self.run.run_id) + '_' + str(self.read_number) + '_' + str(self.lane_number)
 
+	def display_cluster_density(self):
 
+		return round(self.density / 1000)
 
 class WorkSheet(models.Model):
 	"""	
@@ -156,8 +158,8 @@ class RunAnalysis(models.Model):
 	sensitivity_higher_ci = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	sensitivity_user = models.ForeignKey('auth.User', on_delete=models.CASCADE, null=True, blank=True, related_name='sensitivity_user')
 	auto_qc_checks = models.TextField(null=True, blank=True)
-	min_variants = models.IntegerField()
-	max_variants = models.IntegerField()
+	min_variants = models.IntegerField(null=True, blank=True)
+	max_variants = models.IntegerField(null=True, blank=True)
 
 
 

@@ -210,38 +210,7 @@ def parse_interop_data(run_folder_dir, num_reads, num_lanes):
 	valid_to_load = py_interop_run.uchar_vector(py_interop_run.MetricCount, 0)
 	py_interop_run_metrics.list_index_metrics_to_load(valid_to_load)
 	run_folder = run_metrics.read(run_folder_dir, valid_to_load)
-	my_summary = py_interop_summary.index_flowcell_summary()
-	py_interop_summary.summarize_index_metrics(run_metrics, my_summary)
 
-	columns = ( ('Index Number', 'id'),
-	('Sample Id', 'sample_id'),
-	('Project', 'project_name'),
-	('Index 1 (I7)', 'index1'),
-	('Index 2 (I5)', 'index2'),
-	('% Reads Identified (PF)', 'fraction_mapped'))
-
-	df = pd.DataFrame()
-
-	for x in range(num_lanes):
-
-		d = []
-
-		for label, func in columns:
-
-			lane_summary = my_summary.at(x)
-
-			d.append( (label, pd.Series([getattr(lane_summary.at(i), func)() for i in range(lane_summary.size())], index=[lane_summary.at(i).id() for i in range(lane_summary.size())])))
-
-		new_df = pd.DataFrame.from_dict(dict(d))
-		new_df['lane'] = x
-
-		df = df.append(new_df )
-
-	df_grouped = df.groupby('Sample Id').mean()
-
-	index_dict = df_grouped.to_dict('index')
-
-	interop_dict['index_stats'] = index_dict
 
 	return interop_dict
 
