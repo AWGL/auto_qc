@@ -381,7 +381,7 @@ def add_insert_metrics(insert_metrics_dict, run_analysis_obj):
 			sample_data = insert_metrics_dict[key]
 
 			sample_data['sample_analysis'] = sample_analysis_obj
-
+			
 			for key in sample_data:
 
 				if sample_data[key] == '?' or sample_data[key] == '':

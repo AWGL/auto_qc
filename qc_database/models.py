@@ -825,8 +825,8 @@ class InsertMetrics(models.Model):
 
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	mode_insert_size = models.IntegerField(null=True, blank=True) 
-	median_insert_size = models.IntegerField()
-	median_absolute_deviation = models.IntegerField()
+	median_insert_size = models.DecimalField(max_digits=10, decimal_places=3)
+	median_absolute_deviation = models.DecimalField(max_digits=6, decimal_places=3)
 	min_insert_size = models.IntegerField()
 	max_insert_size = models.BigIntegerField()
 	mean_insert_size = models.DecimalField(max_digits=10, decimal_places=3)
