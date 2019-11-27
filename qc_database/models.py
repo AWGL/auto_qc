@@ -71,7 +71,9 @@ class InteropRunQuality(models.Model):
 	def __str__(self):
 		return str(self.run.run_id) + '_' + str(self.read_number) + '_' + str(self.lane_number)
 
+	def display_cluster_density(self):
 
+		return round(self.density / 1000)
 
 class WorkSheet(models.Model):
 	"""	
