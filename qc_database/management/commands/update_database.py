@@ -56,6 +56,8 @@ def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 	run_obj.num_indexes = num_indexes
 	run_obj.length_index1 = length_index1
 	run_obj.length_index2 = length_index2
+
+	print (num_reads, num_indexes, lane_count)
 	
 	interop_dict = parse_interop_data(str(raw_data_dir), int(num_reads) + int(num_indexes), int(lane_count))
 
@@ -391,6 +393,7 @@ def add_insert_metrics(insert_metrics_dict, run_analysis_obj):
 			new_insert_obj = InsertMetrics(**sample_data)
 			new_insert_obj.save()
 
+"""
 def add_interop_index_metrics(index_metrics_dict, run_analysis_obj):
 
 	pipeline = run_analysis_obj.pipeline
@@ -411,7 +414,7 @@ def add_interop_index_metrics(index_metrics_dict, run_analysis_obj):
 												pct_reads_identified=sample_data['% Reads Identified (PF)'] )
 
 
-
+"""
 def add_variant_count_metrics(variant_count_metrics_dict, run_analysis_obj):
 
 	pipeline = run_analysis_obj.pipeline
@@ -611,26 +614,31 @@ class Command(BaseCommand):
 						min_variants =  25
 						max_variants =  1000			
 
+
+					print (run_obj)
 					new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
 																			pipeline = pipeline_obj,
-																			analysis_type = analysis_type_obj,
-																			auto_qc_checks = checks_to_try,
-																			min_variants=min_variants,
-																			max_variants= max_variants)
+																			analysis_type = analysis_type_obj)
+
+
 					if created == True:
 
+						new_run_analysis_obj.auto_qc_checks = checks_to_try
+						new_run_analysis_obj.min_variants = min_variants
+						new_run_analysis_obj.max_variants = max_variants
 						new_run_analysis_obj.min_q30_score = min_q30_score
 						new_run_analysis_obj.start_date = datetime.datetime.now()
 
 					new_run_analysis_obj.save()
 
+					"""
 					# add index stats
 					if interop_data != None:
 
 						index_metrics = interop_data['index_stats']
 
 						add_interop_index_metrics(index_metrics, new_run_analysis_obj)
-
+					"""
 
 			# Loop through existing run analysis objects
 			existing_run_analyses = RunAnalysis.objects.filter(watching=True)

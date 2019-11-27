@@ -201,8 +201,8 @@ pipelines:
     ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
-    min_variants: 10
-    max_variants: 250
+    min_variants: 100
+    max_variants: 700
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',

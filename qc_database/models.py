@@ -158,8 +158,8 @@ class RunAnalysis(models.Model):
 	sensitivity_higher_ci = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	sensitivity_user = models.ForeignKey('auth.User', on_delete=models.CASCADE, null=True, blank=True, related_name='sensitivity_user')
 	auto_qc_checks = models.TextField(null=True, blank=True)
-	min_variants = models.IntegerField()
-	max_variants = models.IntegerField()
+	min_variants = models.IntegerField(null=True, blank=True)
+	max_variants = models.IntegerField(null=True, blank=True)
 
 
 
