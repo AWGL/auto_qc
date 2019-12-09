@@ -5,8 +5,14 @@ source activate auto_qc
 
 cd /export/home/webapps/auto_qc 
 
-python manage.py update_database --raw_data_dir /data/archive/hiseq --fastq_data_dir /data/archive/fastq/ --results_dir /data/results/ --config /export/home/webapps/auto_qc/config/config.yaml
-python manage.py update_database --raw_data_dir /data/archive/miseq --fastq_data_dir /data/archive/fastq/ --results_dir /data/results/ --config /export/home/webapps/auto_qc/config/config.yaml
-python manage.py update_database --raw_data_dir /data/archive/nextseq --fastq_data_dir /data/archive/fastq/ --results_dir /data/results/ --config /export/home/webapps/auto_qc/config/config.yaml
+
+echo doing the hiseq >> auto_cron_log.txt
+python manage.py update_database --raw_data_dir /data/archive/hiseq --fastq_data_dir /data/archive/fastq/ --results_dir /data/results/ --config /export/home/webapps/auto_qc/config/config.yaml >> auto_cron_log.txt 2>&1
+
+echo doing the miseq >> auto_cron_log.txt
+python manage.py update_database --raw_data_dir /data/archive/miseq --fastq_data_dir /data/archive/fastq/ --results_dir /data/results/ --config /export/home/webapps/auto_qc/config/config.yaml >> auto_cron_log.txt 2>&1
+
+echo doing the nextseq >> auto_cron_log.txt
+python manage.py update_database --raw_data_dir /data/archive/nextseq --fastq_data_dir /data/archive/fastq/ --results_dir /data/results/ --config /export/home/webapps/auto_qc/config/config.yaml >> auto_cron_log.txt 2>&1
 
 source deactivate
