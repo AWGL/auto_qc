@@ -22,7 +22,6 @@
 	  <th>Samples Valid</th>
 	  <th>Run Complete</th>
 	  <th>Run Valid</th>
-	  <th>Auto QC</th> 
 	  <th>Manual QC</th> 
 	</tr>
   </thead>
@@ -70,7 +69,7 @@
 		<td  class="table-danger" > {{run_analysis.results_valid}} </td>
 		{% endif %}
 
-		{% if run_analysis.passes_auto_qc.0 == True %}
+		{% if run_analysis.manual_approval == True %}
 		<td class="table-success">
 		 <a href="{% url 'view_run_analysis' pk=run_analysis.pk %}"> 
 				Pass
@@ -82,18 +81,6 @@
 		 <a href="{% url 'view_run_analysis' pk=run_analysis.pk %}"> 
 				Fail
 		 </a> 
-		</td>
-
-		{% endif %}
-
-		{% if run_analysis.manual_approval == True %}
-		<td class="table-success">
-			Pass
-		</td>
-		
-		{% else %}
-		<td class="table-danger">
-			Fail
 		</td>
 
 

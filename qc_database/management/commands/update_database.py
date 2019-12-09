@@ -393,28 +393,7 @@ def add_insert_metrics(insert_metrics_dict, run_analysis_obj):
 			new_insert_obj = InsertMetrics(**sample_data)
 			new_insert_obj.save()
 
-"""
-def add_interop_index_metrics(index_metrics_dict, run_analysis_obj):
 
-	pipeline = run_analysis_obj.pipeline
-	run = run_analysis_obj.run
-
-	for key in index_metrics_dict:
-
-		sample_obj = Sample.objects.get(sample_id=key)
-
-		existing_data = InteropIndexMetrics.objects.filter(sample= sample_obj)
-
-		if len(existing_data) < 1:
-
-			sample_data = index_metrics_dict[key]
-
-			InteropIndexMetrics.objects.create(sample= sample_obj,
-												run = run,
-												pct_reads_identified=sample_data['% Reads Identified (PF)'] )
-
-
-"""
 def add_variant_count_metrics(variant_count_metrics_dict, run_analysis_obj):
 
 	pipeline = run_analysis_obj.pipeline
@@ -615,7 +594,6 @@ class Command(BaseCommand):
 						max_variants =  1000			
 
 
-					print (run_obj)
 					new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
 																			pipeline = pipeline_obj,
 																			analysis_type = analysis_type_obj)
@@ -631,14 +609,7 @@ class Command(BaseCommand):
 
 					new_run_analysis_obj.save()
 
-					"""
-					# add index stats
-					if interop_data != None:
 
-						index_metrics = interop_data['index_stats']
-
-						add_interop_index_metrics(index_metrics, new_run_analysis_obj)
-					"""
 
 			# Loop through existing run analysis objects
 			existing_run_analyses = RunAnalysis.objects.filter(watching=True)

@@ -48,8 +48,9 @@ def view_run_analysis(request, pk):
 
 		checks_to_do = []
 
-
-	checks_to_do = checks_to_do.split(',')
+	else:
+		
+		checks_to_do = checks_to_do.split(',')
 
 	form = RunAnalysisSignOffForm(run_analysis_id= run_analysis.pk, comment =run_analysis.comment)
 	reset_form = ResetRunForm(run_analysis_id= run_analysis.pk)
