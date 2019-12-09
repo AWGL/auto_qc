@@ -22,14 +22,19 @@
 	  <th>Samples Valid</th>
 	  <th>Run Complete</th>
 	  <th>Run Valid</th>
-	  <th>Auto QC</th> 
 	</tr>
   </thead>
 
   <tbody>
 	{% for run_analysis in run_analyses %}
 	<tr>
-		<td> {{run_analysis.pk}} </td>
+
+		<td>
+		 <a href="{% url 'view_run_analysis' pk=run_analysis.pk %}"> 
+				{{run_analysis.pk}}
+		 </a> 
+		</td>
+
 		<td> {{run_analysis.run.run_id}} </td>
 		<td> {{run_analysis.get_worksheets}} </td>
 		<td> {{run_analysis.analysis_type.analysis_type_id}} </td>
@@ -69,11 +74,7 @@
 		<td  class="table-danger" > {{run_analysis.results_valid}} </td>
 		{% endif %}
 
-		<td>
-		 <a href="{% url 'view_run_analysis' pk=run_analysis.pk %}"> 
-				Click
-		 </a> 
-		</td>
+
 		
 
 
