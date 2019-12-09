@@ -1,0 +1,12 @@
+#!/bin/sh
+set -euo pipefail
+
+source activate auto_qc
+
+cd /export/home/webapps/auto_qc 
+
+python manage.py update_database --raw_data_dir /data/archive/hiseq --fastq_data_dir /data/archive/fastq/ --results_dir /data/results/ --config /export/home/webapps/auto_qc/config/config.yaml
+python manage.py update_database --raw_data_dir /data/archive/miseq --fastq_data_dir /data/archive/fastq/ --results_dir /data/results/ --config /export/home/webapps/auto_qc/config/config.yaml
+python manage.py update_database --raw_data_dir /data/archive/nextseq --fastq_data_dir /data/archive/fastq/ --results_dir /data/results/ --config /export/home/webapps/auto_qc/config/config.yaml
+
+source deactivate
