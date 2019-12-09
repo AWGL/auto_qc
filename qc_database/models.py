@@ -629,10 +629,10 @@ class SampleHsMetrics(models.Model):
 	pf_unique_reads = models.BigIntegerField(null=True)
 	pct_pf_reads = models.DecimalField(max_digits=20, decimal_places=4, null=True)
 	pct_pf_uq_reads = models.DecimalField(max_digits=20, decimal_places=4, null=True)
-	pf_uq_reads_aligned = models.IntegerField(null=True)
+	pf_uq_reads_aligned = models.BigIntegerField(null=True)
 	pct_pf_uq_reads_aligned = models.DecimalField(max_digits=20, decimal_places=4, null=True) 
-	pf_bases_aligned = models.IntegerField(null=True)
-	pf_uq_bases_aligned = models.IntegerField(null=True)
+	pf_bases_aligned = models.BigIntegerField(null=True)
+	pf_uq_bases_aligned = models.BigIntegerField(null=True)
 	on_bait_bases = models.BigIntegerField(null=True) 
 	near_bait_bases = models.BigIntegerField(null=True)
 	off_bait_bases = models.BigIntegerField(null=True)
@@ -672,7 +672,7 @@ class SampleHsMetrics(models.Model):
 	at_dropout = models.DecimalField(max_digits=20, decimal_places=4, null=True)
 	gc_dropout = models.DecimalField(max_digits=20, decimal_places=4, null=True)
 	het_snp_sensitivity = models.DecimalField(max_digits=20, decimal_places=4, null=True)
-	het_snp_q = models.IntegerField(null=True) 
+	het_snp_q = models.BigIntegerField(null=True) 
 
 	def __str__(self):
 		return str(self.sample_analysis)

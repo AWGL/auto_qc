@@ -75,13 +75,41 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+"""
+f= open('/export/home/webapps/password.txt')
+
+password = f.readline()
+password = password.strip()
+f.close()
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'auto_qc',
+	'USER': 'auto_qc_user',
+	'PASSWORD': password,
+	'HOST': 'localhost',
+	'PORT': '',
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Password validation
