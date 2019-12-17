@@ -208,6 +208,7 @@
   <thead>
 	<tr>
 	  <th>Sample</th>
+	  <th>Worksheet</th>
 	  <th>FASTQC</th>
 	  <th>Total Reads</th>
 	  <th>Total Variants</th>
@@ -225,6 +226,7 @@
 		{% if sample_analysis.sample.is_ntc == True %}
 
 			<td class="table-dark"> {{sample_analysis.sample.sample_id}} </td>
+			<td class="table-dark"> {{sample_analysis.worksheet}} </td>
 			<td class="table-dark"> {{sample_analysis.passes_fastqc}} </td>
 			<td class="table-dark"> {{sample_analysis.get_total_reads}} </td>
 			<td class="table-dark"> {{sample_analysis.get_variant_count}} </td>
@@ -237,6 +239,7 @@
 
 
 		<td> {{sample_analysis.sample.sample_id}} </td>
+		<td> {{sample_analysis.worksheet}} </td>
 
 		{% if sample_analysis.passes_fastqc == True %}
 			<td class="table-success"> {{sample_analysis.passes_fastqc}} </td>

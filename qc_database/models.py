@@ -209,11 +209,15 @@ class RunAnalysis(models.Model):
 
 		return True
 
-	def get_ntc_sample(self):
+	def get_ntc_sample(self, worksheet):
 
 		samples = SampleAnalysis.objects.filter(run = self.run,
 												pipeline = self.pipeline,
-												analysis_type = self.analysis_type)
+												analysis_type = self.analysis_type,
+												worksheet = worksheet
+												)
+
+		ntc_samples = []
 
 		for sample in samples:
 
@@ -221,9 +225,9 @@ class RunAnalysis(models.Model):
 
 				if ntc_marker in sample.sample_id:
 
-					return sample
+					ntc_samples.append(sample)
 
-		return None
+		return ntc_samples
 
 	def get_worksheets(self):
 
@@ -460,25 +464,27 @@ class SampleAnalysis(models.Model):
 
 			return None
 
-		ntc_obj = run_analysis.get_ntc_sample()
+		ntc_objs = run_analysis.get_ntc_sample(self.worksheet)
 
-		if self == ntc_obj:
-
-			return 'NA'
-
-		if ntc_obj == None:
+		if len(ntc_objs) == 0:
 
 			return None
 
-		ntc_reads = ntc_obj.get_total_reads()
+		for ntc in ntc_objs:
 
-		if ntc_reads == None:
+			ntc_reads = ntc.get_total_reads()
 
-			return None
+			if self == ntc:
 
-		if (ntc_reads * self.ntc_contamination_cutoff) > total_reads:
+				return 'NA'
 
-			return False
+			if ntc_reads == None:
+
+				return False
+
+			if (ntc_reads * self.ntc_contamination_cutoff) > total_reads:
+
+				return False
 
 
 		return True
