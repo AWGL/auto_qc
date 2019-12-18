@@ -62,7 +62,7 @@ class GermlineEnrichment:
 
 		marker = sample_path.glob(self.sample_complete_marker)
 
-		if len(list(marker)) == 1:
+		if len(list(marker)) >= 1:
 
 			return True
 
@@ -112,7 +112,7 @@ class GermlineEnrichment:
 
 		marker = results_path.glob(self.run_complete_marker)
 
-		if len(list(marker)) == 1:
+		if len(list(marker)) >= 1:
 
 			return True
 
@@ -402,7 +402,7 @@ class IlluminaQC:
 
 		marker = results_path.glob(self.run_complete_marker)
 
-		if len(list(marker)) == 1:
+		if len(list(marker)) >= 1:
 
 			return True
 
@@ -531,7 +531,7 @@ class SomaticEnrichment:
 
 		marker = sample_path.glob(self.sample_complete_marker)
 
-		if len(list(marker)) == 1:
+		if len(list(marker)) >= 1:
 
 			return True
 
@@ -911,7 +911,7 @@ class SomaticAmplicon:
 
 		marker = sample_path.glob(self.sample_complete_marker)
 
-		if len(list(marker)) == 1:
+		if len(list(marker)) >= 1:
 
 			return True
 
