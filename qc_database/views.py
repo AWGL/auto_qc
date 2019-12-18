@@ -30,9 +30,11 @@ def view_run_analysis(request, pk):
 
 	run_analysis = get_object_or_404(RunAnalysis, pk=pk)
 
-	sample_analyses = SampleAnalysis.objects.filter(run = run_analysis.run,
-													pipeline = run_analysis.pipeline,
-													analysis_type = run_analysis.analysis_type )
+	sample_analyses = SampleAnalysis.objects.filter(
+		run = run_analysis.run,
+		pipeline = run_analysis.pipeline,
+		analysis_type = run_analysis.analysis_type
+	).order_by('worksheet', 'sample')
 
 	run_level_qualities = InteropRunQuality.objects.filter(run = run_analysis.run)
 
