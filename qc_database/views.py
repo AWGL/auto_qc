@@ -15,7 +15,7 @@ def home(request):
 
 	"""
 
-	run_analyses = RunAnalysis.objects.filter(watching=True).order_by('start_date')
+	run_analyses = RunAnalysis.objects.filter(watching=True).order_by('run')
 
 
 	return render(request, 'auto_qc/home.html', {'run_analyses': run_analyses})
@@ -127,7 +127,7 @@ def view_archived_run_analysis(request):
 	View run analyses which are not being watched,
 
 	"""
-	run_analyses = RunAnalysis.objects.filter(watching=False).order_by('start_date')
+	run_analyses = RunAnalysis.objects.filter(watching=False).order_by('run')
 
 	return render(request, 'auto_qc/archived_run_analysis.html', {'run_analyses': run_analyses})
 
