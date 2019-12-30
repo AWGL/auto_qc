@@ -1,6 +1,9 @@
 from django.db import models
 from django.conf import settings
 from qc_analysis.parsers import *
+from auditlog.registry import auditlog
+from auditlog.models import AuditlogHistoryField
+
 
 class Instrument(models.Model):
 	"""
@@ -13,6 +16,7 @@ class Instrument(models.Model):
 
 	def __str__(self):
 		return self.instrument_id
+
 
 class Run(models.Model):
 	"""
@@ -40,6 +44,8 @@ class Run(models.Model):
 	num_indexes = models.IntegerField(blank=True, null=True)
 	length_index1 = models.IntegerField(blank=True, null=True)
 	length_index2 = models.IntegerField(blank=True, null=True)
+
+	history = AuditlogHistoryField()
 
 	def __str__(self):
 		return self.run_id
@@ -75,6 +81,7 @@ class InteropRunQuality(models.Model):
 
 		return round(self.density / 1000)
 
+
 class WorkSheet(models.Model):
 	"""	
 	A worksheet from Shire e.g. 19-5648
@@ -84,6 +91,7 @@ class WorkSheet(models.Model):
 
 	def __str__(self):
 		return self.worksheet_id
+
 
 class Sample(models.Model):
 	"""
@@ -109,6 +117,7 @@ class Sample(models.Model):
 
 		return False
 
+
 class Pipeline(models.Model):
 	"""
 	A pipeline - should be pipelinename + version
@@ -120,6 +129,7 @@ class Pipeline(models.Model):
 	def __str__(self):
 		return self.pipeline_id
 
+
 class AnalysisType(models.Model):
 	"""
 	An analysis type e.g. IlluminaTruSightCancer
@@ -130,6 +140,7 @@ class AnalysisType(models.Model):
 
 	def __str__(self):
 		return self.analysis_type_id
+
 
 class RunAnalysis(models.Model):
 	"""
@@ -161,7 +172,7 @@ class RunAnalysis(models.Model):
 	min_variants = models.IntegerField(null=True, blank=True)
 	max_variants = models.IntegerField(null=True, blank=True)
 
-
+	history = AuditlogHistoryField()
 
 	class Meta:
 		unique_together = [['run', 'pipeline', 'analysis_type']]
@@ -371,6 +382,7 @@ class SampleAnalysis(models.Model):
 	contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=0.15, null=True, blank=True)
 	ntc_contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=10.0, null=True, blank=True)
 
+	history = AuditlogHistoryField()
 
 	class Meta:
 		unique_together = [['sample', 'run', 'pipeline', 'analysis_type', 'worksheet']]
@@ -617,6 +629,7 @@ class SampleFastqcData(models.Model):
 	def __str__(self):
 		return f'{self.sample_analysis}_{self.read_number}_{self.lane}'
 
+
 class SampleHsMetrics(models.Model):
 	"""
 	Model to store output from the Picard HS metrics program.
@@ -703,6 +716,7 @@ class SampleDepthofCoverageMetrics(models.Model):
 	def __str__(self):
 		return str(self.sample_analysis)
 
+
 class DuplicationMetrics(models.Model):
 	"""
 	Metrics from the MarkDuplicates program.
@@ -741,6 +755,7 @@ class ContaminationMetrics(models.Model):
 	def __str__(self):
 		return str(self.sample_analysis)
 
+
 class CalculatedSexMetrics(models.Model):
 	"""
 	Store the calculated sex
@@ -751,6 +766,7 @@ class CalculatedSexMetrics(models.Model):
 
 	def __str__(self):
 		return str(self.sample_analysis)
+
 
 class AlignmentMetrics(models.Model):
 	"""
@@ -823,6 +839,7 @@ class VariantCallingMetrics(models.Model):
 	def __str__(self):
 		return str(self.sample_analysis)
 
+
 class InsertMetrics(models.Model):
 	"""
 	Store insert metrics
@@ -854,6 +871,7 @@ class InsertMetrics(models.Model):
 	def __str__(self):
 		return str(self.sample_analysis)
 
+
 class VCFVariantCount(models.Model):
 
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
@@ -871,6 +889,6 @@ class InteropIndexMetrics(models.Model):
 
 
 
-
-
-
+auditlog.register(Run)
+auditlog.register(RunAnalysis)
+auditlog.register(SampleAnalysis)
