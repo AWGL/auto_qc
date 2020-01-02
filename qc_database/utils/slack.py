@@ -2,7 +2,7 @@ import subprocess
 
 def message_slack(message):
     # url saved in file so it isn't posted on github
-    with open('slack_url.txt') as f:
+    with open('/home/webapps/auto_qc/qc_database/utils/slack_url.txt') as f:
         slack_url = f.read()
     
     # build curl command and run it
