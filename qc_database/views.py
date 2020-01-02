@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import *
 from .forms import *
+from .utils import message_slack
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import UserCreationForm
@@ -75,15 +76,29 @@ def view_run_analysis(request, pk):
 				if approval == 'Pass':
 
 					run_analysis.manual_approval = True
+					status_message = f':heavy_check_mark: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has passed QC*\n'
 
 				else:
 
 					run_analysis.manual_approval = False
+					status_message = f':x: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has failed QC*\n'
 
 				run_analysis.comment = comment
 				run_analysis.watching = False
 				run_analysis.signoff_user = request.user
 				run_analysis.save()
+
+				# message run status to slack
+				message_slack(
+					status_message +
+					f'```Run ID:          {run_analysis.run}\n' + 
+					f'Worksheet ID:    {run_analysis.get_worksheets()}\n' + 
+					f'Panel:           {run_analysis.analysis_type}\n' + 
+					f'Pipeline:        {run_analysis.pipeline}\n' + 
+					f'Signed off by:   {run_analysis.signoff_user}\n' +
+					f'Comments:        {run_analysis.comment}\n' +
+					f'QC link:         http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
+				)
 
 				return redirect('home')
 
