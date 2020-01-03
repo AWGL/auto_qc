@@ -609,6 +609,17 @@ class Command(BaseCommand):
 						new_run_analysis_obj.min_q30_score = min_q30_score
 						new_run_analysis_obj.start_date = datetime.datetime.now()
 						# TODO or maybe here?
+						i=0
+						while i < 3:
+							try:
+								message_slack(
+									f'*{new_run_analysis_obj.analysis_type} run {new_run_analysis_obj.get_worksheets()} has finished sequencing*\n' +
+									f'```Run ID:   {new_run_analysis_obj.run}\n' + 
+									f'QC link:   http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
+								)
+								i = 3
+							except:
+								i += 1
 
 					new_run_analysis_obj.save()
 
