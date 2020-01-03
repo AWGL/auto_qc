@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from qc_database.models import *
 from qc_analysis.parsers import *
-from .utils.slack import message_slack
+from ...utils.slack import message_slack
 from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, SomaticEnrichment, SomaticAmplicon
 from django.db import transaction
 import csv
