@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from qc_database.models import *
 from qc_analysis.parsers import *
+from .utils.slack import message_slack
 from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, SomaticEnrichment, SomaticAmplicon
 from django.db import transaction
 import csv
@@ -473,6 +474,7 @@ class Command(BaseCommand):
 				if run_id not in existing_runs:
 
 					print (f'A new run has been detected: {run_id}')
+					# TODO - add slack message here?
 
 					# parse runlog data 
 					run_info = raw_data.joinpath('RunInfo.xml')
@@ -606,6 +608,7 @@ class Command(BaseCommand):
 						new_run_analysis_obj.max_variants = max_variants
 						new_run_analysis_obj.min_q30_score = min_q30_score
 						new_run_analysis_obj.start_date = datetime.datetime.now()
+						# TODO or maybe here?
 
 					new_run_analysis_obj.save()
 
@@ -656,7 +659,9 @@ class Command(BaseCommand):
 					if is_valid == True:
 
 						print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now completed demultiplexing')
-
+						
+						# set slack status message
+						status_message = f':heavy_check_mark: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has generated FASTQs successfully*\n'
 
 					else:
 
@@ -664,12 +669,29 @@ class Command(BaseCommand):
 						run_analysis.demultiplexing_completed = has_completed
 						run_analysis.demultiplexing_valid = is_valid
 						run_analysis.save()
+						
+						# set slack status message
+						status_message = f':heavy_exclamation mark: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has failed FASTQ generation*\n'
+						
 						# remove continue if we want downstream checks
 						continue
 
 				run_analysis.demultiplexing_completed = has_completed
 				run_analysis.demultiplexing_valid = is_valid
 				run_analysis.save()
+
+				# send slack message, try 3 times before skipping (in case internet cuts out)
+				i=0
+				while i < 3:
+					try:
+						message_slack(
+							status_message +
+							f'```Run ID:          {run_analysis.run}\n' + 
+							f'QC link:         http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
+						)
+						i = 3
+					except:
+						i += 1
 
 				# now check pipeline results -do we bother if demultiplexing fails?
 
