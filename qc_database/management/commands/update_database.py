@@ -692,6 +692,9 @@ class Command(BaseCommand):
 				run_analysis.save()
 
 				# now check pipeline results -do we bother if demultiplexing fails?
+				
+				# set to false, will be overwritten if pipeline is comleted
+				run_complete = False
 
 				# for germline enrichment
 				if 'GermlineEnrichment' in run_analysis.pipeline.pipeline_id:
