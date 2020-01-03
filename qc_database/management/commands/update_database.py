@@ -694,7 +694,7 @@ class Command(BaseCommand):
 				# now check pipeline results -do we bother if demultiplexing fails?
 				
 				# set to false, will be overwritten if pipeline is comleted
-				run_complete = False
+				send_to_slack = False
 
 				# for germline enrichment
 				if 'GermlineEnrichment' in run_analysis.pipeline.pipeline_id:
@@ -798,6 +798,8 @@ class Command(BaseCommand):
 							insert_metrics_dict = germline_enrichment.get_insert_metrics()
 							add_insert_metrics(insert_metrics_dict, run_analysis)
 
+							send_to_slack = True
+
 						else:
 
 							print (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
@@ -841,6 +843,8 @@ class Command(BaseCommand):
 							print (f'Putting insert metrics into db for run {run_analysis.run.run_id}')
 							insert_metrics_dict = germline_enrichment.get_insert_metrics()
 							add_insert_metrics(insert_metrics_dict, run_analysis)
+
+							send_to_slack = True
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
@@ -946,6 +950,8 @@ class Command(BaseCommand):
 							variant_count_metrics_dict = somatic_enrichment.get_variant_count()
 							add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
 
+							send_to_slack = True
+
 						else:
 
 							print (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
@@ -985,6 +991,8 @@ class Command(BaseCommand):
 							print (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
 							variant_count_metrics_dict = somatic_enrichment.get_variant_count()
 							add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
+
+							send_to_slack = True
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
@@ -1072,6 +1080,8 @@ class Command(BaseCommand):
 							variant_count_metrics_dict = somatic_amplicon.get_variant_count()
 							add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
 
+							send_to_slack = True
+
 						else:
 
 							print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
@@ -1096,13 +1106,15 @@ class Command(BaseCommand):
 							variant_count_metrics_dict = somatic_amplicon.get_variant_count()
 							add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
 
+							send_to_slack = True
+
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
 
 					run_analysis.save()
 
 				# message slack
-				if run_complete:
+				if send_to_slack:
 					message_slack(
 						f':heavy_exclamation_mark: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} is ready for QC*\n' +
 						f'```Run ID:          {run_analysis.run}\n' + 
