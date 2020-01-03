@@ -674,24 +674,24 @@ class Command(BaseCommand):
 						status_message = f':heavy_exclamation mark: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has failed FASTQ generation*\n'
 						
 						# remove continue if we want downstream checks
-						continue
+						#continue
+
+					# send slack message, try 3 times before skipping (in case internet cuts out)
+					i=0
+					while i < 3:
+						try:
+							message_slack(
+								status_message +
+								f'```Run ID:   {run_analysis.run}\n' + 
+								f'QC link:   http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
+							)
+							i = 3
+						except:
+							i += 1
 
 				run_analysis.demultiplexing_completed = has_completed
 				run_analysis.demultiplexing_valid = is_valid
 				run_analysis.save()
-
-				# send slack message, try 3 times before skipping (in case internet cuts out)
-				i=0
-				while i < 3:
-					try:
-						message_slack(
-							status_message +
-							f'```Run ID:          {run_analysis.run}\n' + 
-							f'QC link:         http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
-						)
-						i = 3
-					except:
-						i += 1
 
 				# now check pipeline results -do we bother if demultiplexing fails?
 
