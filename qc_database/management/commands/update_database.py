@@ -474,7 +474,6 @@ class Command(BaseCommand):
 				if run_id not in existing_runs:
 
 					print (f'A new run has been detected: {run_id}')
-					# TODO - add slack message here?
 
 					# parse runlog data 
 					run_info = raw_data.joinpath('RunInfo.xml')
@@ -608,18 +607,12 @@ class Command(BaseCommand):
 						new_run_analysis_obj.max_variants = max_variants
 						new_run_analysis_obj.min_q30_score = min_q30_score
 						new_run_analysis_obj.start_date = datetime.datetime.now()
-						# TODO or maybe here?
-						i=0
-						while i < 3:
-							try:
-								message_slack(
-									f'*{new_run_analysis_obj.analysis_type} run {new_run_analysis_obj.get_worksheets()} has finished sequencing*\n' +
-									f'```Run ID:   {new_run_analysis_obj.run}\n' + 
-									f'QC link:   http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
-								)
-								i = 3
-							except:
-								i += 1
+
+						# message slack
+						message_slack(
+							f'*{new_run_analysis_obj.analysis_type} run {new_run_analysis_obj.get_worksheets()} has finished sequencing*\n' +
+							f'```Run ID:          {new_run_analysis_obj.run}```'
+						)
 
 					new_run_analysis_obj.save()
 
@@ -687,18 +680,12 @@ class Command(BaseCommand):
 						# remove continue if we want downstream checks
 						#continue
 
-					# send slack message, try 3 times before skipping (in case internet cuts out)
-					i=0
-					while i < 3:
-						try:
-							message_slack(
-								status_message +
-								f'```Run ID:   {run_analysis.run}\n' + 
-								f'QC link:   http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
-							)
-							i = 3
-						except:
-							i += 1
+					# send slack message
+					message_slack(
+						status_message +
+						f'```Run ID:          {run_analysis.run}\n' + 
+						f'QC link:          http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
+					)
 
 				run_analysis.demultiplexing_completed = has_completed
 				run_analysis.demultiplexing_valid = is_valid
