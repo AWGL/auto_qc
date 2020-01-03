@@ -610,7 +610,7 @@ class Command(BaseCommand):
 
 						# message slack
 						message_slack(
-							f'*{new_run_analysis_obj.analysis_type} run {new_run_analysis_obj.get_worksheets()} has finished sequencing*\n' +
+							f':information_source: *{new_run_analysis_obj.analysis_type} run {new_run_analysis_obj.get_worksheets()} has finished sequencing*\n' +
 							f'```Run ID:          {new_run_analysis_obj.run}```'
 						)
 
@@ -665,7 +665,7 @@ class Command(BaseCommand):
 						print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now completed demultiplexing')
 						
 						# set slack status message
-						status_message = f':heavy_check_mark: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has generated FASTQs successfully*\n'
+						status_message = f':information_source: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has generated FASTQs successfully*\n'
 
 					else:
 
@@ -1097,3 +1097,11 @@ class Command(BaseCommand):
 					run_analysis.results_valid = run_valid
 
 					run_analysis.save()
+
+				# message slack
+				if run_complete:
+					message_slack(
+						f':heavy_exclamation_mark: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} is ready for QC*\n' +
+						f'```Run ID:          {run_analysis.run}\n' + 
+						f'QC link:          http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
+					)
