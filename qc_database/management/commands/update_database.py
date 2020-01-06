@@ -675,7 +675,7 @@ class Command(BaseCommand):
 						run_analysis.save()
 						
 						# set slack status message
-						status_message = f':heavy_exclamation mark: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has failed FASTQ generation*\n'
+						status_message = f':heavy_exclamation_mark: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has failed FASTQ generation*\n'
 						
 						# remove continue if we want downstream checks
 						#continue
