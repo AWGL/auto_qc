@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from qc_database.models import *
 from qc_analysis.parsers import *
 from ...utils.slack import message_slack
-from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, SomaticEnrichment, SomaticAmplicon
+from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, SomaticEnrichment, SomaticAmplicon, Cruk
 from django.db import transaction
 import csv
 from pathlib import Path
@@ -1107,6 +1107,125 @@ class Command(BaseCommand):
 							add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
 
 							send_to_slack = True
+
+					run_analysis.results_completed = run_complete
+					run_analysis.results_valid = run_valid
+
+					run_analysis.save()
+
+				elif 'CRUK' in run_analysis.pipeline.pipeline_id: # Working here
+
+					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+
+					if run_config_key not in config_dict['pipelines']:
+
+						cruk = Cruk(results_dir=run_data_dir,
+														   sample_names=sample_ids,
+														   run_id=run_analysis.run.run_id
+														   )
+					else:
+
+						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
+						sample_not_expected_files = config_dict['pipelines'][run_config_key][
+							'sample_not_expected_files']
+						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
+						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
+
+						cruk = Cruk(results_dir=run_data_dir,
+														   sample_names=sample_ids,
+														   run_id=run_analysis.run.run_id,
+														   sample_expected_files=sample_expected_files,
+														   sample_not_expected_files=sample_not_expected_files,
+														   run_expected_files=run_expected_files,
+														   run_not_expected_files=run_not_expected_files
+														   )
+
+					for sample in sample_ids:
+
+						sample_complete = cruk.sample_is_complete(sample)
+						sample_valid = cruk.sample_is_valid(sample)
+
+						sample_obj = Sample.objects.get(sample_id=sample)
+
+						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
+																		 run=run_analysis.run,
+																		 pipeline=run_analysis.pipeline)
+
+						if sample_analysis_obj.results_completed == False and sample_complete == True:
+
+							if sample_valid == True:
+
+								print(
+									f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level Cruk successfully.')
+
+							else:
+								print(
+									f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level Cruk.')
+
+						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
+
+							print(
+								f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now completed successfully.')
+
+						sample_analysis_obj.results_completed = sample_complete
+						sample_analysis_obj.results_valid = sample_valid
+						sample_analysis_obj.save()
+
+					run_complete = cruk.run_is_complete()
+					run_valid = cruk.run_is_valid()
+
+					if run_analysis.results_completed == False and run_complete == True:
+
+						if run_valid == True:
+
+							print(
+								f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							print(f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = cruk.get_fastqc_data()
+							add_fastqc_data(fastqc_dict, run_analysis)
+
+							#print(f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
+							#hs_metrics_dict = somatic_amplicon.get_hs_metrics()
+							#add_hs_metrics(hs_metrics_dict, run_analysis)
+
+							#print(f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
+							#depth_metrics_dict = somatic_amplicon.get_depth_metrics()
+							#add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+
+							#print(f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
+							#variant_count_metrics_dict = somatic_amplicon.get_variant_count()
+							#add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
+
+							send_to_slack = True
+
+						else:
+
+							print(
+								f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+
+					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
+
+						print(
+							f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+						print(f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+						fastqc_dict = cruk.get_fastqc_data()
+						add_fastqc_data(fastqc_dict, run_analysis)
+
+						#print(f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
+						#hs_metrics_dict = somatic_amplicon.get_hs_metrics()
+						#add_hs_metrics(hs_metrics_dict, run_analysis)
+
+						#print(f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
+						#depth_metrics_dict = somatic_amplicon.get_depth_metrics()
+						#add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+
+						#print(f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
+						#variant_count_metrics_dict = somatic_amplicon.get_variant_count()
+						#add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
+
+						send_to_slack = True
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
