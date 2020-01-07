@@ -1175,7 +1175,7 @@ class Cruk:
 
 	def run_is_valid(self):
 		"""
-		Check everyone except NTC has the CNV logs
+		Check results are available for all samples (bam, bai and Excel file)
 		"""
 
 		results_path = Path(self.results_dir)
