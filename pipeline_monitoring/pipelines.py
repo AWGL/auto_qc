@@ -1102,6 +1102,7 @@ class Cruk:
 		self.run_id = run_id
 		self.ntc_patterns = ntc_patterns
 		self.sample_complete_marker = '1_SomaticAmplicon.sh.e*'
+		self.run_complete_marker = 'cruk_smp.out'  # File in which marker is contained
 		self.sample_expected_files = sample_expected_files
 		self.sample_not_expected_files = sample_not_expected_files
 		self.run_expected_files = run_expected_files
@@ -1125,7 +1126,6 @@ class Cruk:
 			return True
 
 		return False
-
 
 	def sample_is_valid(self, sample):
 		"""
@@ -1159,22 +1159,19 @@ class Cruk:
 
 		return True
 
-
 	def run_is_complete(self):
 		"""
-		Check everyone except NTC has the CNV logs
+		Check final entry text is present in log file as final line
 		"""
 
 		results_path = Path(self.results_dir)
 
-		for sample in self.sample_names:
-
-			if self.sample_is_complete(sample) == False:
-
-				return False
-
-		return True
-
+		with open(os.path.join(results_path, self.run_complete_marker)) as f:
+			lines = f.read().splitlines()
+			last_line = lines[-1]
+			if last_line == "CRUK workflow completed":
+				return True
+		return False
 
 	def run_is_valid(self):
 		"""
@@ -1232,7 +1229,7 @@ class Cruk:
 
 
 				return fastqc_dict
-
+	"""
 	def get_hs_metrics(self):
 
 		results_path = Path(self.results_dir)
@@ -1269,7 +1266,6 @@ class Cruk:
 
 		return run_depth_metrics_dict
 
-
 	def get_variant_count(self):
 
 		results_path = Path(self.results_dir)
@@ -1287,5 +1283,6 @@ class Cruk:
 			sample_variant_count_dict[sample] = vcf_count_metrics
 
 		return sample_variant_count_dict
+	"""
 
 
