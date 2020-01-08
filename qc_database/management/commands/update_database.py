@@ -1122,7 +1122,7 @@ class Command(BaseCommand):
 						cruk = Cruk(results_dir=run_data_dir,
 														   sample_names=sample_ids,
 														   run_id=run_analysis.run.run_id,
-														   worksheet_id=run_analysis.experiment
+														   worksheet_id=run_analysis.run.experiment
 														   )
 					else:
 
@@ -1135,7 +1135,7 @@ class Command(BaseCommand):
 						cruk = Cruk(results_dir=run_data_dir,
 														   sample_names=sample_ids,
 														   run_id=run_analysis.run.run_id,
-														   worksheet_id=run_analysis.experiment,
+														   worksheet_id=run_analysis.run.experiment,
 														   sample_expected_files=sample_expected_files,
 														   sample_not_expected_files=sample_not_expected_files,
 														   run_expected_files=run_expected_files,
