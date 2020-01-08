@@ -447,7 +447,7 @@ class Command(BaseCommand):
 
 		with transaction.atomic():
 
-			# for each folder in  archieve directory
+			# for each folder in  archive directory
 			for raw_data in raw_data_dir:
 
 				# skip non directory items
@@ -1113,7 +1113,7 @@ class Command(BaseCommand):
 
 					run_analysis.save()
 
-				elif 'CRUK' in run_analysis.pipeline.pipeline_id: # Working here
+				elif 'CRUK' in run_analysis.pipeline.pipeline_id:
 
 					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
 
@@ -1121,7 +1121,8 @@ class Command(BaseCommand):
 
 						cruk = Cruk(results_dir=run_data_dir,
 														   sample_names=sample_ids,
-														   run_id=run_analysis.run.run_id
+														   run_id=run_analysis.run.run_id,
+														   worksheet_id=run_analysis.experiment
 														   )
 					else:
 
@@ -1134,6 +1135,7 @@ class Command(BaseCommand):
 						cruk = Cruk(results_dir=run_data_dir,
 														   sample_names=sample_ids,
 														   run_id=run_analysis.run.run_id,
+														   worksheet_id=run_analysis.experiment,
 														   sample_expected_files=sample_expected_files,
 														   sample_not_expected_files=sample_not_expected_files,
 														   run_expected_files=run_expected_files,
