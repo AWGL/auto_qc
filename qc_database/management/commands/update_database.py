@@ -1173,10 +1173,8 @@ class Command(BaseCommand):
 						sample_analysis_obj.save()
 
 					# Extract worksheet id
-					cruk_worksheets = list(set([d.get('Sample_Plate') for s, d in sample_sheet_data.items()]))
-
 					run_complete = cruk.run_is_complete()
-					run_valid = cruk.run_is_valid(cruk_worksheets)
+					run_valid = cruk.run_is_valid(sample_sheet_data)
 
 					if run_analysis.results_completed == False and run_complete == True:
 

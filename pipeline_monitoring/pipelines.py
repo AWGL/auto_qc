@@ -1108,7 +1108,7 @@ class Cruk:
 		self.run_expected_files = run_expected_files
 		self.run_not_expected_files = run_not_expected_files
 
-	def sample_is_complete(self, sample):
+	def sample_is_complete(self, sample): # TODO
 		"""
 		Look for presence of file indicating that a sample has completed the pipeline.
 
@@ -1127,7 +1127,7 @@ class Cruk:
 
 		return False
 
-	def sample_is_valid(self, sample):
+	def sample_is_valid(self, sample): #TODO
 		"""
 		Look for files which have to be present for a sample level pipeline to have completed \
 		correctly.
@@ -1173,19 +1173,24 @@ class Cruk:
 				return True
 		return False
 
-	def run_is_valid(self, cruk_worksheets):
+	def run_is_valid(self, sample_sheet_data):
 		"""
 		Check results are available for all samples (bam, bai and Excel file)
 		"""
 
 		results_path = Path(self.results_dir)
+		print(sample_sheet_data)
+		cruk_dna_samples = [d.get('Sample_Plate') for s, d in sample_sheet_data.items()]
+		cruk_worksheets = list(set([d.get('Sample_Plate') for s, d in sample_sheet_data.items()]))
 
 		if len(cruk_worksheets) > 1:
 			raise IndexError(f"More than one worksheet id for a CRUK run is not permitted. Look at sample sheet to "
 							 f"determine source of error.")
 
 		cruk_worksheet = cruk_worksheets[0]
-		print(os.path.join(results_path, cruk_worksheet))
+		res_path = Path(os.path.join(results_path, cruk_worksheet))
+		print(res_path)
+		samples_results_dir = os.listdir(res_path)
 
 		for sample in self.sample_names:
 
