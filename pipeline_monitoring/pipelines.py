@@ -1086,7 +1086,6 @@ class Cruk:
 				results_dir,
 				sample_names,
 				run_id,
-				worksheet_id,
 				ntc_patterns = ['NTC', 'ntc'],
 				sample_expected_files = [],
                 sample_not_expected_files = ['*_fastqc.zip', '*.fastq.gz_*'],
@@ -1101,7 +1100,6 @@ class Cruk:
 		self.results_dir = results_dir
 		self.sample_names = sample_names
 		self.run_id = run_id
-		self.worksheet_id = worksheet_id
 		self.ntc_patterns = ntc_patterns
 		self.sample_complete_marker = '1_SomaticAmplicon.sh.e*'
 		self.run_complete_marker = 'cruk_smp.out'  # File in which marker is contained
@@ -1175,20 +1173,19 @@ class Cruk:
 				return True
 		return False
 
-	def run_is_valid(self):
+	def run_is_valid(self, cruk_worksheets):
 		"""
 		Check results are available for all samples (bam, bai and Excel file)
 		"""
 
 		results_path = Path(self.results_dir)
-		#if len(self.worksheet_id) > 1:
-			#raise IndexError(f"More than one worksheet id for a CRUK run is not permitted. Look at sample sheet to "
-							 #f"determine source of error.")
 
-		print(self.worksheet_id)
-		worksheet_id = self.worksheet_id[0]
+		if len(cruk_worksheets) > 1:
+			raise IndexError(f"More than one worksheet id for a CRUK run is not permitted. Look at sample sheet to "
+							 f"determine source of error.")
 
-		print(os.path.join(results_path, worksheet_id))
+		cruk_worksheet = cruk_worksheets[0]
+		print(os.path.join(results_path, cruk_worksheet))
 
 		for sample in self.sample_names:
 
