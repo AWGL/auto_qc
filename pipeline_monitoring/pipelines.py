@@ -1,5 +1,6 @@
 from pathlib import Path
 import glob
+import re
 from qc_analysis.parsers import *
 
 
@@ -1120,15 +1121,43 @@ class Cruk:
 
 		marker = sample_path.glob(self.sample_complete_marker)
 
-		if len(list(marker)) < 1: #> 1:
+		if len(list(marker)) < 1: #>= 1: before this returned True and the end of the function returned False- needed to change so it would do both checks
 
-			return True
+			return False
 
 		with open(os.path.join(results_path, self.run_complete_marker)) as f:
-			lines = f.read().splitlines()
+
+			# Create regex searches
+			tst_complete_dna = re.compile(f" TST 170 appsession \S+ for samples {sample} and \S+ has finished with "
+										  f"status Complete")
+			tst_complete_rna = re.compile(f" TST 170 appsession \S+ for samples \S+ and {sample} has finished with "
+										  f"status Complete")
+			smp_complete_dna = re.compile(f" SMP2 v3 appsession \S+ for sample {sample} and \S+ has finished with "
+										  f"status Complete")
+			smp_complete_rna = re.compile(f" SMP2 v3 appsession \S+ for sample \S+ and {sample} has finished with "
+										  f"status Complete")
+			download_complete_dna = re.compile(f"All files successfully downloaded for sample {sample}, appresult \S+")
+			download_complete_rna = "" # Does not exist
+			lines = f.read() #.splitlines()
+			#print(lines)
+			if re.search(tst_complete_dna, lines) or re.search(tst_complete_rna, lines):
+				print("tst complete")
+			if re.search(smp_complete_dna, lines) or re.search(smp_complete_rna, lines):
+				print("smp complete")
+			if re.search(download_complete_dna, lines):
+				print("download complete")
+
+			'''
+				if line == f" TST 170 appsession 12808799 for samples 19M19023 and 19M82488 has finished with status Complete":
+					print("tst170 complete")
+				elif line == f" SMP2 v3 appsession 12846844 for sample 19M19605 and 19M82556 has finished with status Complete":
+					print("smp complete")
+				elif line == f"All files successfully downloaded for sample 19M19605, appresult 12394392":
+					print("file download complete")
+			'''
 
 
-		return False
+		return True
 
 	def sample_is_valid(self, sample, sample_sheet_data): #TODO Finish this
 		"""
@@ -1161,18 +1190,18 @@ class Cruk:
 
 		# Path to results
 		res_path = Path(os.path.join(results_path, cruk_worksheet))
-		print(res_path)
+		#print(res_path)
 		# Directories containing results
 		samples_results_dir = os.listdir(res_path)
-		print(samples_results_dir)
+		#print(samples_results_dir)
 
 		#TODO Check samples for all DNA samples
-		for sample in cruk_dna_samples:
-			print(sample)
+		#for sample in cruk_dna_samples:
+			#print(sample)
 
 		for d in samples_results_dir:
 			directory_list = os.listdir(os.path.join(res_path, d))
-			print(directory_list)
+			#print(directory_list) #TODO
 			if f"{cruk_worksheet}-{d}_realigned.bam" not in directory_list:
 				print('error')
 
