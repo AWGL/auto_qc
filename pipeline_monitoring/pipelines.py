@@ -1096,19 +1096,18 @@ class Cruk:
                 run_not_expected_files = []
 				):
 
-
 		self.results_dir = results_dir
 		self.sample_names = sample_names
 		self.run_id = run_id
 		self.ntc_patterns = ntc_patterns
-		self.sample_complete_marker = '1_SomaticAmplicon.sh.e*'
+		self.sample_complete_marker = '1_launch_SMP2v3.sh.e*'
 		self.run_complete_marker = 'cruk_smp.out'  # File in which marker is contained
 		self.sample_expected_files = sample_expected_files
 		self.sample_not_expected_files = sample_not_expected_files
 		self.run_expected_files = run_expected_files
 		self.run_not_expected_files = run_not_expected_files
 
-	def sample_is_complete(self, sample): # TODO
+	def sample_is_complete(self, sample):
 		"""
 		Look for presence of file indicating that a sample has completed the pipeline.
 
@@ -1121,13 +1120,17 @@ class Cruk:
 
 		marker = sample_path.glob(self.sample_complete_marker)
 
-		if len(list(marker)) >= 1:
+		if len(list(marker)) < 1: #> 1:
 
 			return True
 
+		with open(os.path.join(results_path, self.run_complete_marker)) as f:
+			lines = f.read().splitlines()
+
+
 		return False
 
-	def sample_is_valid(self, sample): #TODO
+	def sample_is_valid(self, sample, sample_sheet_data): #TODO Finish this
 		"""
 		Look for files which have to be present for a sample level pipeline to have completed \
 		correctly.
@@ -1135,9 +1138,49 @@ class Cruk:
 		Look for file which if present indicate the pipeline has not finished correctly e.g. intermediate files.
 		"""
 
-		results_path = Path(self.results_dir)
+		"""
+		Check results are available for all samples (bam, bai and Excel file)
+		"""
 
+		results_path = Path(self.results_dir)
 		sample_path = results_path.joinpath(sample)
+		#print(sample_sheet_data)
+
+		# Get samples that are DNA samples (not RNA)
+		cruk_dna_samples = []
+		for s, d in sample_sheet_data.items():
+			if "sampleType=DNA" in d.get('Description').split(';'):
+				cruk_dna_samples.append(s)
+
+		# Ger worksheet id from the sample sheet (needed for the file path to the results)
+		cruk_worksheets = list(set([d.get('Sample_Plate') for s, d in sample_sheet_data.items()]))
+		if len(cruk_worksheets) > 1:
+			raise IndexError(f"More than one worksheet id for a CRUK run is not permitted. Look at sample sheet to "
+							 f"determine source of error.")
+		cruk_worksheet = cruk_worksheets[0]
+
+		# Path to results
+		res_path = Path(os.path.join(results_path, cruk_worksheet))
+		print(res_path)
+		# Directories containing results
+		samples_results_dir = os.listdir(res_path)
+		print(samples_results_dir)
+
+		#TODO Check samples for all DNA samples
+		for sample in cruk_dna_samples:
+			print(sample)
+
+		for d in samples_results_dir:
+			directory_list = os.listdir(os.path.join(res_path, d))
+			print(directory_list)
+			if f"{cruk_worksheet}-{d}_realigned.bam" not in directory_list:
+				print('error')
+
+		"""
+		Note that it is untested what will occur if the connection is interrupted during file download (whether a file
+		will be partially downloaded or will not appear at all). It has been assumed that the file will not be present 
+		rather than incomplete
+		"""
 
 		# check files we want to be there are there
 		for file in self.sample_expected_files:
@@ -1174,27 +1217,10 @@ class Cruk:
 		return False
 
 	def run_is_valid(self, sample_sheet_data):
-		"""
-		Check results are available for all samples (bam, bai and Excel file)
-		"""
-
-		results_path = Path(self.results_dir)
-		print(sample_sheet_data)
-		cruk_dna_samples = [d.get('Sample_Plate') for s, d in sample_sheet_data.items()]
-		cruk_worksheets = list(set([d.get('Sample_Plate') for s, d in sample_sheet_data.items()]))
-
-		if len(cruk_worksheets) > 1:
-			raise IndexError(f"More than one worksheet id for a CRUK run is not permitted. Look at sample sheet to "
-							 f"determine source of error.")
-
-		cruk_worksheet = cruk_worksheets[0]
-		res_path = Path(os.path.join(results_path, cruk_worksheet))
-		print(res_path)
-		samples_results_dir = os.listdir(res_path)
 
 		for sample in self.sample_names:
 
-			if self.sample_is_valid(sample) == False:
+			if self.sample_is_valid(sample, sample_sheet_data) == False:
 
 				return False
 

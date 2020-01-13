@@ -1144,7 +1144,7 @@ class Command(BaseCommand):
 					for sample in sample_ids:
 
 						sample_complete = cruk.sample_is_complete(sample)
-						sample_valid = cruk.sample_is_valid(sample)
+						sample_valid = cruk.sample_is_valid(sample, sample_sheet_data)
 
 						sample_obj = Sample.objects.get(sample_id=sample)
 
