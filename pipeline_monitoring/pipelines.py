@@ -1087,6 +1087,7 @@ class Cruk:
 				results_dir,
 				sample_names,
 				run_id,
+				sample_sheet_data,
 				ntc_patterns = ['NTC', 'ntc'],
 				sample_expected_files = [],
                 sample_not_expected_files = ['*_fastqc.zip', '*.fastq.gz_*'],
@@ -1109,6 +1110,30 @@ class Cruk:
 		self.sample_run_expected_files = sample_run_expected_files
 		self.run_expected_files = run_expected_files
 		self.run_not_expected_files = run_not_expected_files
+		self.sample_sheet_data = sample_sheet_data
+		self.sample_pairs = {}
+
+	def pair_samples(self, sample):
+		"""
+		Pair sample with its pair from the same patient (Note: some samples may not have pairs)
+		Returns the sample id of the pair, None if no pair is found
+		"""
+		# Make a copy of the dictionary from which to remove current sample data
+		remaining_sample_sheet_data = self.sample_sheet_data.copy()
+		remaining_sample_sheet_data.pop(sample, None)
+
+		# Retrieve data for current sample
+		sample_data = self.sample_sheet_data.get(sample)
+		#print(sample_data.get('sampleType'))
+
+		sample_lpid = sample_data.get('pairs')
+
+		for s, d in remaining_sample_sheet_data.items():
+			lpid = d.get('pairs')
+			if lpid == sample_lpid:
+				return s
+
+		return None
 
 	def sample_is_complete(self, sample):
 		"""
@@ -1156,7 +1181,7 @@ class Cruk:
 
 		return True
 
-	def sample_is_valid(self, sample, sample_sheet_data):
+	def sample_is_valid(self, sample):
 		"""
 		Look for files which have to be present for a sample level pipeline to have completed \
 		correctly.
@@ -1174,15 +1199,16 @@ class Cruk:
 
 		# Get samples that are DNA samples (not RNA)
 		cruk_dna_samples = []
-		for s, d in sample_sheet_data.items():
-			if "sampleType=DNA" in d.get('Description').split(';'):
+		for s, d in self.sample_sheet_data.items():
+			if d.get('sampleType') == "DNA":
 				cruk_dna_samples.append(s)
 
-		# Pair RNA samples with their DNA sample (DNA sample as key)- Note: some DNA samples may not have RNA TODO
+		# Get DNA-RNA sample pair identifier
+		sample_pair = self.pair_samples(sample)
 
 
 		# Ger worksheet id from the sample sheet (needed for the file path to the results)
-		cruk_worksheets = list(set([d.get('Sample_Plate') for s, d in sample_sheet_data.items()]))
+		cruk_worksheets = list(set([d.get('Sample_Plate') for s, d in self.sample_sheet_data.items()]))
 		if len(cruk_worksheets) > 1:
 			raise IndexError(f"More than one worksheet id for a CRUK run is not permitted. Look at sample sheet to "
 							 f"determine source of error.")
@@ -1208,8 +1234,8 @@ class Cruk:
 		if sample in cruk_dna_samples: # TODO Working here
 			directory_list = os.listdir(os.path.join(res_path, sample))
 			#print(directory_list)
-			for f in self.sample_run_expected_files:
-				print(f)
+			#for f in self.sample_run_expected_files:
+				#print(f)
 			''' 
 			if f"{cruk_worksheet}-{d}_realigned.bam" not in directory_list:
 				print('error')
@@ -1249,11 +1275,11 @@ class Cruk:
 				return True
 		return False
 
-	def run_is_valid(self, sample_sheet_data):
+	def run_is_valid(self):
 
 		for sample in self.sample_names:
 
-			if self.sample_is_valid(sample, sample_sheet_data) == False:
+			if self.sample_is_valid(sample) == False:
 
 				return False
 

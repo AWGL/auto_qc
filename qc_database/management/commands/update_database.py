@@ -1121,8 +1121,8 @@ class Command(BaseCommand):
 
 						cruk = Cruk(results_dir=run_data_dir,
 														   sample_names=sample_ids,
-														   run_id=run_analysis.run.run_id
-														   )
+														   run_id=run_analysis.run.run_id,
+														   sample_sheet_data=sample_sheet_data)
 					else:
 
 						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
@@ -1136,6 +1136,7 @@ class Command(BaseCommand):
 						cruk = Cruk(results_dir=run_data_dir,
 														   sample_names=sample_ids,
 														   run_id=run_analysis.run.run_id,
+														   sample_sheet_data = sample_sheet_data,
 														   sample_expected_files=sample_expected_files,
 														   sample_not_expected_files=sample_not_expected_files,
 														   sample_run_expected_files=sample_run_expected_files,
@@ -1146,7 +1147,7 @@ class Command(BaseCommand):
 					for sample in sample_ids:
 
 						sample_complete = cruk.sample_is_complete(sample)
-						sample_valid = cruk.sample_is_valid(sample, sample_sheet_data)
+						sample_valid = cruk.sample_is_valid(sample)
 
 						sample_obj = Sample.objects.get(sample_id=sample)
 
@@ -1176,7 +1177,7 @@ class Command(BaseCommand):
 
 					# Extract worksheet id
 					run_complete = cruk.run_is_complete()
-					run_valid = cruk.run_is_valid(sample_sheet_data)
+					run_valid = cruk.run_is_valid()
 
 					if run_analysis.results_completed == False and run_complete == True:
 
