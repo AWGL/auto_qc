@@ -253,6 +253,11 @@ pipelines:
     sample_not_expected_files: ['*_fastqc.zip',
                                 '*.fastq.gz_*'
                   ]
+    sample_run_expected_files: ['_realigned.bam',
+                                '_realigned.bam.bai',
+                                '_report.xlsm', ".bam",
+                                ".bai"
+    ]
     run_expected_files: ['FASTQs.list',
                          'tst_170.json',
                          'smp.json'

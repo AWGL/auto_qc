@@ -1090,6 +1090,7 @@ class Cruk:
 				ntc_patterns = ['NTC', 'ntc'],
 				sample_expected_files = [],
                 sample_not_expected_files = ['*_fastqc.zip', '*.fastq.gz_*'],
+				sample_run_expected_files = ['_realigned.bam', '_realigned.bam.bai', '_report.xlsm', ".bam", ".bai"],
                 run_expected_files = ['FASTQs.list',
                          				'tst_170.json',
 										 'smp.json'
@@ -1105,6 +1106,7 @@ class Cruk:
 		self.run_complete_marker = 'cruk_smp.out'  # File in which marker is contained
 		self.sample_expected_files = sample_expected_files
 		self.sample_not_expected_files = sample_not_expected_files
+		self.sample_run_expected_files = sample_run_expected_files
 		self.run_expected_files = run_expected_files
 		self.run_not_expected_files = run_not_expected_files
 
@@ -1121,10 +1123,20 @@ class Cruk:
 
 		marker = sample_path.glob(self.sample_complete_marker)
 
-		if len(list(marker)) < 1: #changed so code would continue beyond this check
+		if len(list(marker)) < 1: # Changed so code would continue beyond this check
 
 			return False
 
+		# check file we do not want to be there are not there
+		for file in self.sample_not_expected_files:
+
+			found_file = sample_path.glob(file)
+
+			if len(list(found_file)) > 0:
+
+				return False
+
+		# Look within log file to see if apps have been launched in BaseSpace for each sample
 		with open(os.path.join(results_path, self.run_complete_marker)) as f:
 
 			# Create regex searches for pattern indicating app has completed in BaseSpace (success or not in is_valid)
@@ -1144,7 +1156,7 @@ class Cruk:
 
 		return True
 
-	def sample_is_valid(self, sample, sample_sheet_data): #TODO Finish this
+	def sample_is_valid(self, sample, sample_sheet_data):
 		"""
 		Look for files which have to be present for a sample level pipeline to have completed \
 		correctly.
@@ -1166,6 +1178,9 @@ class Cruk:
 			if "sampleType=DNA" in d.get('Description').split(';'):
 				cruk_dna_samples.append(s)
 
+		# Pair RNA samples with their DNA sample (DNA sample as key)- Note: some DNA samples may not have RNA TODO
+
+
 		# Ger worksheet id from the sample sheet (needed for the file path to the results)
 		cruk_worksheets = list(set([d.get('Sample_Plate') for s, d in sample_sheet_data.items()]))
 		if len(cruk_worksheets) > 1:
@@ -1175,26 +1190,30 @@ class Cruk:
 
 		# Path to results
 		res_path = Path(os.path.join(results_path, cruk_worksheet))
-		#print(res_path)
+
 		# Directories containing results
 		samples_results_dir = os.listdir(res_path)
-		#print(samples_results_dir)
 
-		# Check samples in directory match all DNA samples
-		#for sample in cruk_dna_samples:
-			#print(sample)
+		# Check samples in directory match all DNA samples- if absent directory for a DNA sample, sample is invalid
+		# This check cannot be done for RNA samples
+		if sample in cruk_dna_samples and sample not in samples_results_dir:
+			return False
 
-		for d in samples_results_dir:
-			directory_list = os.listdir(os.path.join(res_path, d))
-			#print(directory_list) #TODO
-			if f"{cruk_worksheet}-{d}_realigned.bam" not in directory_list:
-				print('error')
-
+		# Check for missing files per sample (DNA as key, RNA checked as part of check)
 		"""
 		Note that it is untested what will occur if the connection is interrupted during file download (whether a file
 		will be partially downloaded or will not appear at all). It has been assumed that the file will not be present 
 		rather than incomplete
 		"""
+		if sample in cruk_dna_samples: # TODO Working here
+			directory_list = os.listdir(os.path.join(res_path, sample))
+			#print(directory_list)
+			for f in self.sample_run_expected_files:
+				print(f)
+			''' 
+			if f"{cruk_worksheet}-{d}_realigned.bam" not in directory_list:
+				print('error')
+			'''
 
 		# check files we want to be there are there
 		for file in self.sample_expected_files:

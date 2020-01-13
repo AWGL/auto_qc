@@ -1128,6 +1128,7 @@ class Command(BaseCommand):
 						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
 						sample_not_expected_files = config_dict['pipelines'][run_config_key][
 							'sample_not_expected_files']
+						sample_run_expected_files = config_dict['pipelines'][run_config_key]['sample_run_expected_files']
 						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
 						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
 
@@ -1137,6 +1138,7 @@ class Command(BaseCommand):
 														   run_id=run_analysis.run.run_id,
 														   sample_expected_files=sample_expected_files,
 														   sample_not_expected_files=sample_not_expected_files,
+														   sample_run_expected_files=sample_run_expected_files,
 														   run_expected_files=run_expected_files,
 														   run_not_expected_files=run_not_expected_files
 														   )
