@@ -1128,7 +1128,10 @@ class Command(BaseCommand):
 						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
 						sample_not_expected_files = config_dict['pipelines'][run_config_key][
 							'sample_not_expected_files']
-						sample_run_expected_files = config_dict['pipelines'][run_config_key]['sample_run_expected_files']
+						sample_run_dna_expected_files = config_dict['pipelines'][run_config_key][
+							'sample_run_dna_expected_files']
+						sample_run_rna_expected_files = config_dict['pipelines'][run_config_key][
+							'sample_run_rna_expected_files']
 						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
 						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
 
@@ -1139,7 +1142,8 @@ class Command(BaseCommand):
 														   sample_sheet_data = sample_sheet_data,
 														   sample_expected_files=sample_expected_files,
 														   sample_not_expected_files=sample_not_expected_files,
-														   sample_run_expected_files=sample_run_expected_files,
+														   sample_run_dna_expected_files=sample_run_dna_expected_files,
+														   sample_run_rna_expected_files=sample_run_rna_expected_files,
 														   run_expected_files=run_expected_files,
 														   run_not_expected_files=run_not_expected_files
 														   )

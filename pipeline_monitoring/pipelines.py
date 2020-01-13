@@ -1091,11 +1091,10 @@ class Cruk:
 				ntc_patterns = ['NTC', 'ntc'],
 				sample_expected_files = [],
                 sample_not_expected_files = ['*_fastqc.zip', '*.fastq.gz_*'],
-				sample_run_expected_files = ['_realigned.bam', '_realigned.bam.bai', '_report.xlsm', ".bam", ".bai"],
-                run_expected_files = ['FASTQs.list',
-                         				'tst_170.json',
-										 'smp.json'
-                  					],
+				sample_run_dna_expected_files = ['_realigned.bam', '_realigned.bam.bai', '_report.xlsm'],
+				sample_run_rna_expected_files=[".bam", ".bam.bai"],
+                run_expected_files = ['FASTQs.list', 'tst_170.json', 'smp.json', 'combined_QC.txt', 'cruk_smp.dbg',
+                         'cruk_smp.err', 'cruk_smp.out'],
                 run_not_expected_files = []
 				):
 
@@ -1107,7 +1106,8 @@ class Cruk:
 		self.run_complete_marker = 'cruk_smp.out'  # File in which marker is contained
 		self.sample_expected_files = sample_expected_files
 		self.sample_not_expected_files = sample_not_expected_files
-		self.sample_run_expected_files = sample_run_expected_files
+		self.sample_run_dna_expected_files = sample_run_dna_expected_files
+		self.sample_run_rna_expected_files = sample_run_rna_expected_files
 		self.run_expected_files = run_expected_files
 		self.run_not_expected_files = run_not_expected_files
 		self.sample_sheet_data = sample_sheet_data
@@ -1231,15 +1231,16 @@ class Cruk:
 		will be partially downloaded or will not appear at all). It has been assumed that the file will not be present 
 		rather than incomplete
 		"""
-		if sample in cruk_dna_samples: # TODO Working here
+		if sample in cruk_dna_samples:
 			directory_list = os.listdir(os.path.join(res_path, sample))
-			#print(directory_list)
-			#for f in self.sample_run_expected_files:
-				#print(f)
-			''' 
-			if f"{cruk_worksheet}-{d}_realigned.bam" not in directory_list:
-				print('error')
-			'''
+			for f_dna in self.sample_run_dna_expected_files:
+				if f"{cruk_worksheet}-{sample}{f_dna}" not in directory_list:
+					return False
+			# If sample has an RNA sample pair, check those files are also present
+			if sample_pair:
+				for f_rna in self.sample_run_rna_expected_files:
+					if f"{cruk_worksheet}-{sample_pair}{f_rna}" not in directory_list:
+						return False
 
 		# check files we want to be there are there
 		for file in self.sample_expected_files:
@@ -1264,6 +1265,7 @@ class Cruk:
 	def run_is_complete(self):
 		"""
 		Check final entry text is present in log file as final line
+		Check all log files are present.
 		"""
 
 		results_path = Path(self.results_dir)
@@ -1271,9 +1273,18 @@ class Cruk:
 		with open(os.path.join(results_path, self.run_complete_marker)) as f:
 			lines = f.read().splitlines()
 			last_line = lines[-1]
-			if last_line == "CRUK workflow completed":
-				return True
-		return False
+			if last_line != "CRUK workflow completed":
+				return False
+
+		# check files we want to be there are there
+		for file in self.run_expected_files:
+
+			found_file = results_path.glob(file)
+
+			if len(list(found_file)) != 1:
+				return False
+
+		return True
 
 	def run_is_valid(self):
 
@@ -1282,6 +1293,8 @@ class Cruk:
 			if self.sample_is_valid(sample) == False:
 
 				return False
+
+		results_path = Path(self.results_dir)
 
 		return True
 
