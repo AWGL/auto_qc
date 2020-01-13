@@ -1274,14 +1274,15 @@ class Cruk:
 			lines = f.read().splitlines()
 			last_line = lines[-1]
 			if last_line != "CRUK workflow completed":
+				print('wkflow')
 				return False
 
 		# check files we want to be there are there
 		for file in self.run_expected_files:
-
 			found_file = results_path.glob(file)
 
 			if len(list(found_file)) != 1:
+				print('files')
 				return False
 
 		return True
