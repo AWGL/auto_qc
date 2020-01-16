@@ -1092,8 +1092,9 @@ class Cruk:
                 sample_not_expected_files = ['*_fastqc.zip', '*.fastq.gz_*'],
 				sample_run_dna_expected_files = ['_realigned.bam', '_realigned.bam.bai', '_report.xlsm'],
 				sample_run_rna_expected_files=[".bam", ".bam.bai"],
-                run_expected_files = ['FASTQs.list', 'tst_170.json', 'smp.json', 'combined_QC.txt', 'cruk_smp.dbg',
-                         'cruk_smp.err', 'cruk_smp.out'],
+                run_complete_expected_files = ['FASTQs.list', 'cruk_smp.dbg', 'cruk_smp.err', 'cruk_smp.out'],
+				run_valid_expected_files = ['FASTQs.list', 'tst_170.json', 'smp.json', 'cruk_smp.dbg','cruk_smp.err',
+                               				'cruk_smp.out','combined_QC.txt'],
                 run_not_expected_files = []
 				):
 
@@ -1107,7 +1108,8 @@ class Cruk:
 		self.sample_not_expected_files = sample_not_expected_files
 		self.sample_run_dna_expected_files = sample_run_dna_expected_files
 		self.sample_run_rna_expected_files = sample_run_rna_expected_files
-		self.run_expected_files = run_expected_files
+		self.run_complete_expected_files = run_complete_expected_files
+		self.run_valid_expected_files = run_valid_expected_files
 		self.run_not_expected_files = run_not_expected_files
 		self.sample_sheet_data = sample_sheet_data
 		self.sample_pairs = {}
@@ -1283,6 +1285,24 @@ class Cruk:
 
 	def run_is_complete(self):
 		"""
+		Check all log files are present.
+		"""
+
+		results_path = Path(self.results_dir)
+
+		# check files we want to be there are there
+		for file in self.run_complete_expected_files:
+
+			found_file = results_path.glob(file)
+
+			if len(list(found_file)) != 1:
+
+				return False
+
+		return True
+
+	def run_is_valid(self):
+		"""
 		Check final entry text is present in log file as final line
 		Check all log files are present.
 		"""
@@ -1290,10 +1310,6 @@ class Cruk:
 		results_path = Path(self.results_dir)
 
 		marker_path = results_path.joinpath(self.run_complete_marker)
-
-		if marker_path.exists() == False:
-
-			return False
 
 		with open(marker_path) as f:
 
@@ -1305,21 +1321,6 @@ class Cruk:
 
 				return False
 
-		# check files we want to be there are there
-		for file in self.run_expected_files:
-
-			found_file = results_path.glob(file)
-
-			if len(list(found_file)) != 1:
-
-				return False
-
-		return True
-
-	def run_is_valid(self):
-
-		results_path = Path(self.results_dir)
-
 		for sample in self.sample_names:
 
 			if self.sample_is_valid(sample) == False:
@@ -1327,7 +1328,7 @@ class Cruk:
 				return False
 
 		# check files we want to be there are there
-		for file in self.run_expected_files:
+		for file in self.run_valid_expected_files:
 
 			found_file = results_path.glob(file)
 

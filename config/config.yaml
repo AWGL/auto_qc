@@ -260,12 +260,18 @@ pipelines:
     sample_run_rna_expected_files: ['.bam',
                                 '.bam.bai'
     ]
-    run_expected_files: ['FASTQs.list',
-                         'tst_170.json',
-                         'smp.json',
+    run_complete_expected_files: ['FASTQs.list',
                          'cruk_smp.dbg',
                          'cruk_smp.err',
                          'cruk_smp.out'
+                  ]
+    run_valid_expected_files: ['FASTQs.list',
+                               'tst_170.json',
+                               'smp.json',
+                               'cruk_smp.dbg',
+                               'cruk_smp.err',
+                               'cruk_smp.out',
+                               'combined_QC.txt'
                   ]
     run_not_expected_files: []
    

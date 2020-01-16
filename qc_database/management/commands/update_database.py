@@ -1143,7 +1143,9 @@ class Command(BaseCommand):
 							'sample_run_dna_expected_files']
 						sample_run_rna_expected_files = config_dict['pipelines'][run_config_key][
 							'sample_run_rna_expected_files']
-						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
+						run_valid_expected_files = config_dict['pipelines'][run_config_key]['run_valid_expected_files']
+						run_complete_expected_files = config_dict['pipelines'][run_config_key][
+							'run_complete_expected_files']
 						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
 
 						cruk = Cruk(results_dir=run_data_dir,
@@ -1154,7 +1156,8 @@ class Command(BaseCommand):
 								   sample_not_expected_files=sample_not_expected_files,
 								   sample_run_dna_expected_files=sample_run_dna_expected_files,
 								   sample_run_rna_expected_files=sample_run_rna_expected_files,
-								   run_expected_files=run_expected_files,
+								   run_complete_expected_files=run_complete_expected_files,
+								   run_valid_expected_files=run_valid_expected_files,
 								   run_not_expected_files=run_not_expected_files
 								   )
 
