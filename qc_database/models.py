@@ -48,7 +48,7 @@ class Run(models.Model):
 	history = AuditlogHistoryField()
 
 	def __str__(self):
-		return self.run_id
+		return str(self.run_id)
 
 
 class InteropRunQuality(models.Model):

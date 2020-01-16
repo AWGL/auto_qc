@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
-
+from django.conf import settings
 
 @transaction.atomic
 @login_required
@@ -89,15 +89,17 @@ def view_run_analysis(request, pk):
 				run_analysis.save()
 
 				# message run status to slack
-				message_slack(
-					status_message +
-					f'```Run ID:          {run_analysis.run}\n' + 
-					f'Worksheet ID:    {run_analysis.get_worksheets()}\n' + 
-					f'Panel:           {run_analysis.analysis_type}\n' + 
-					f'Pipeline:        {run_analysis.pipeline}\n' + 
-					f'Signed off by:   {run_analysis.signoff_user}\n' +
-					f'Comments:        {run_analysis.comment}\n' +
-					f'QC link:         http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
+
+				if settings.MESSAGE_SLACK:
+					message_slack(
+						status_message +
+						f'```Run ID:          {run_analysis.run}\n' + 
+						f'Worksheet ID:    {run_analysis.get_worksheets()}\n' + 
+						f'Panel:           {run_analysis.analysis_type}\n' + 
+						f'Pipeline:        {run_analysis.pipeline}\n' + 
+						f'Signed off by:   {run_analysis.signoff_user}\n' +
+						f'Comments:        {run_analysis.comment}\n' +
+						f'QC link:         http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
 				)
 
 				return redirect('home')

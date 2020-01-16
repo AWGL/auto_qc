@@ -257,13 +257,12 @@ pipelines:
                                 '_realigned.bam.bai',
                                 '_report.xlsm'
     ]
-    sample_run_rna_expected_files: [".bam",
-                                ".bam.bai"
+    sample_run_rna_expected_files: ['.bam',
+                                '.bam.bai'
     ]
     run_expected_files: ['FASTQs.list',
                          'tst_170.json',
                          'smp.json',
-                         'combined_QC.txt',
                          'cruk_smp.dbg',
                          'cruk_smp.err',
                          'cruk_smp.out'

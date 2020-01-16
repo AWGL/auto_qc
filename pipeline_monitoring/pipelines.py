@@ -3,7 +3,6 @@ import glob
 import re
 from qc_analysis.parsers import *
 
-
 class GermlineEnrichment:
 
 
@@ -698,45 +697,45 @@ class SomaticEnrichment:
 
 	def get_fastqc_data(self):
 
-			fastqc_dict = {}
+		fastqc_dict = {}
 
-			results_path = Path(self.results_dir)
+		results_path = Path(self.results_dir)
 
-			for sample in self.sample_names:
+		for sample in self.sample_names:
 
-				fastqc_data_files = results_path.joinpath(sample, 'FASTQC').glob(f'*{sample}*_fastqc.txt')
+			fastqc_data_files = results_path.joinpath(sample, 'FASTQC').glob(f'*{sample}*_fastqc.txt')
 
-				sample_fastqc_list = []
+			sample_fastqc_list = []
 
-				for fastqc_data in fastqc_data_files:
+			for fastqc_data in fastqc_data_files:
 
-					file = fastqc_data.name
-					read_number = file.split('_')[-2]
-					lane = file.split('_')[-3]
+				file = fastqc_data.name
+				read_number = file.split('_')[-2]
+				lane = file.split('_')[-3]
 
-					parsed_fastqc_data = parse_fastqc_file(fastqc_data)
+				parsed_fastqc_data = parse_fastqc_file(fastqc_data)
 
-					file_fastqc_dict = {} 
-					file_fastqc_dict['lane'] = lane
-					file_fastqc_dict['read_number'] = read_number
-					file_fastqc_dict['basic_statistics'] = parsed_fastqc_data['Basic Statistics']
-					file_fastqc_dict['per_tile_sequence_quality'] = parsed_fastqc_data['Per tile sequence quality']
-					file_fastqc_dict['per_base_sequencing_quality'] = parsed_fastqc_data['Per base sequence quality']
-					file_fastqc_dict['per_sequence_quality_scores'] = parsed_fastqc_data['Per sequence quality scores']
-					file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
-					file_fastqc_dict['per_sequence_gc_content'] = parsed_fastqc_data['Per sequence GC content']
-					file_fastqc_dict['per_base_n_content'] = parsed_fastqc_data['Per base N content']
-					file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
-					file_fastqc_dict['sequence_length_distribution'] = parsed_fastqc_data['Sequence Length Distribution']
-					file_fastqc_dict['sequence_duplication_levels'] = parsed_fastqc_data['Sequence Duplication Levels']
-					file_fastqc_dict['overrepresented_sequences'] = parsed_fastqc_data['Overrepresented sequences']
-					file_fastqc_dict['adapter_content'] = parsed_fastqc_data['Adapter Content']
-					sample_fastqc_list.append(file_fastqc_dict)
+				file_fastqc_dict = {} 
+				file_fastqc_dict['lane'] = lane
+				file_fastqc_dict['read_number'] = read_number
+				file_fastqc_dict['basic_statistics'] = parsed_fastqc_data['Basic Statistics']
+				file_fastqc_dict['per_tile_sequence_quality'] = parsed_fastqc_data['Per tile sequence quality']
+				file_fastqc_dict['per_base_sequencing_quality'] = parsed_fastqc_data['Per base sequence quality']
+				file_fastqc_dict['per_sequence_quality_scores'] = parsed_fastqc_data['Per sequence quality scores']
+				file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
+				file_fastqc_dict['per_sequence_gc_content'] = parsed_fastqc_data['Per sequence GC content']
+				file_fastqc_dict['per_base_n_content'] = parsed_fastqc_data['Per base N content']
+				file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
+				file_fastqc_dict['sequence_length_distribution'] = parsed_fastqc_data['Sequence Length Distribution']
+				file_fastqc_dict['sequence_duplication_levels'] = parsed_fastqc_data['Sequence Duplication Levels']
+				file_fastqc_dict['overrepresented_sequences'] = parsed_fastqc_data['Overrepresented sequences']
+				file_fastqc_dict['adapter_content'] = parsed_fastqc_data['Adapter Content']
+				sample_fastqc_list.append(file_fastqc_dict)
 
-				fastqc_dict[sample] = sample_fastqc_list
+			fastqc_dict[sample] = sample_fastqc_list
 
 
-			return fastqc_dict
+		return fastqc_dict
 
 	def get_hs_metrics(self):
 
@@ -985,45 +984,45 @@ class SomaticAmplicon:
 
 	def get_fastqc_data(self):
 
-				fastqc_dict = {}
+		fastqc_dict = {}
 
-				results_path = Path(self.results_dir)
+		results_path = Path(self.results_dir)
 
-				for sample in self.sample_names:
+		for sample in self.sample_names:
 
-					fastqc_data_files = results_path.joinpath(sample).glob(f'*{sample}*fastqc/summary.txt')
+			fastqc_data_files = results_path.joinpath(sample).glob(f'*{sample}*fastqc/summary.txt')
 
-					sample_fastqc_list = []
+			sample_fastqc_list = []
 
-					for fastqc_data in fastqc_data_files:
+			for fastqc_data in fastqc_data_files:
 
-						file = fastqc_data.parent.name
-						read_number = file.split('_')[-2]
-						lane = file.split('_')[-3]
+				file = fastqc_data.parent.name
+				read_number = file.split('_')[-2]
+				lane = file.split('_')[-3]
 
-						parsed_fastqc_data = parse_fastqc_file(fastqc_data)
+				parsed_fastqc_data = parse_fastqc_file(fastqc_data)
 
-						file_fastqc_dict = {} 
-						file_fastqc_dict['lane'] = lane
-						file_fastqc_dict['read_number'] = read_number
-						file_fastqc_dict['basic_statistics'] = parsed_fastqc_data['Basic Statistics']
-						file_fastqc_dict['per_tile_sequence_quality'] = parsed_fastqc_data['Per tile sequence quality']
-						file_fastqc_dict['per_base_sequencing_quality'] = parsed_fastqc_data['Per base sequence quality']
-						file_fastqc_dict['per_sequence_quality_scores'] = parsed_fastqc_data['Per sequence quality scores']
-						file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
-						file_fastqc_dict['per_sequence_gc_content'] = parsed_fastqc_data['Per sequence GC content']
-						file_fastqc_dict['per_base_n_content'] = parsed_fastqc_data['Per base N content']
-						file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
-						file_fastqc_dict['sequence_length_distribution'] = parsed_fastqc_data['Sequence Length Distribution']
-						file_fastqc_dict['sequence_duplication_levels'] = parsed_fastqc_data['Sequence Duplication Levels']
-						file_fastqc_dict['overrepresented_sequences'] = parsed_fastqc_data['Overrepresented sequences']
-						file_fastqc_dict['adapter_content'] = parsed_fastqc_data['Adapter Content']
-						sample_fastqc_list.append(file_fastqc_dict)
+				file_fastqc_dict = {} 
+				file_fastqc_dict['lane'] = lane
+				file_fastqc_dict['read_number'] = read_number
+				file_fastqc_dict['basic_statistics'] = parsed_fastqc_data['Basic Statistics']
+				file_fastqc_dict['per_tile_sequence_quality'] = parsed_fastqc_data['Per tile sequence quality']
+				file_fastqc_dict['per_base_sequencing_quality'] = parsed_fastqc_data['Per base sequence quality']
+				file_fastqc_dict['per_sequence_quality_scores'] = parsed_fastqc_data['Per sequence quality scores']
+				file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
+				file_fastqc_dict['per_sequence_gc_content'] = parsed_fastqc_data['Per sequence GC content']
+				file_fastqc_dict['per_base_n_content'] = parsed_fastqc_data['Per base N content']
+				file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
+				file_fastqc_dict['sequence_length_distribution'] = parsed_fastqc_data['Sequence Length Distribution']
+				file_fastqc_dict['sequence_duplication_levels'] = parsed_fastqc_data['Sequence Duplication Levels']
+				file_fastqc_dict['overrepresented_sequences'] = parsed_fastqc_data['Overrepresented sequences']
+				file_fastqc_dict['adapter_content'] = parsed_fastqc_data['Adapter Content']
+				sample_fastqc_list.append(file_fastqc_dict)
 
-					fastqc_dict[sample] = sample_fastqc_list
+			fastqc_dict[sample] = sample_fastqc_list
 
 
-				return fastqc_dict
+		return fastqc_dict
 
 	def get_hs_metrics(self):
 
@@ -1118,19 +1117,22 @@ class Cruk:
 		Pair sample with its pair from the same patient (Note: some samples may not have pairs)
 		Returns the sample id of the pair, None if no pair is found
 		"""
+
 		# Make a copy of the dictionary from which to remove current sample data
 		remaining_sample_sheet_data = self.sample_sheet_data.copy()
 		remaining_sample_sheet_data.pop(sample, None)
 
 		# Retrieve data for current sample
 		sample_data = self.sample_sheet_data.get(sample)
-		#print(sample_data.get('sampleType'))
 
 		sample_lpid = sample_data.get('pairs')
 
 		for s, d in remaining_sample_sheet_data.items():
+
 			lpid = d.get('pairs')
+
 			if lpid == sample_lpid:
+
 				return s
 
 		return None
@@ -1162,7 +1164,7 @@ class Cruk:
 				return False
 
 		# Look within log file to see if apps have been launched in BaseSpace for each sample
-		with open(os.path.join(results_path, self.run_complete_marker)) as f:
+		with open(results_path.joinpath(self.run_complete_marker)) as f:
 
 			# Create regex searches for pattern indicating app has completed in BaseSpace (success or not in is_valid)
 			tst_complete_dna = re.compile(f" TST 170 appsession \S+ for samples {sample} and \S+ has finished with "
@@ -1174,9 +1176,13 @@ class Cruk:
 			smp_complete_rna = re.compile(f" SMP2 v3 appsession \S+ for sample \S+ and {sample} has finished with "
 											f"status \S+")
 			lines = f.read()
+
 			if not re.search(tst_complete_dna, lines) and not re.search(tst_complete_rna, lines):
+
 				return False
+
 			if not re.search(smp_complete_dna, lines) and not re.search(smp_complete_rna, lines):
+
 				return False
 
 		return True
@@ -1187,35 +1193,40 @@ class Cruk:
 		correctly.
 
 		Look for file which if present indicate the pipeline has not finished correctly e.g. intermediate files.
-		"""
 
-		"""
 		Check results are available for all samples (bam, bai and Excel file)
 		"""
 
 		results_path = Path(self.results_dir)
 		sample_path = results_path.joinpath(sample)
-		#print(sample_sheet_data)
 
 		# Get samples that are DNA samples (not RNA)
 		cruk_dna_samples = []
+
 		for s, d in self.sample_sheet_data.items():
-			if d.get('sampleType') == "DNA":
+
+			if d.get('sampleType') == 'DNA':
+
 				cruk_dna_samples.append(s)
 
 		# Get DNA-RNA sample pair identifier
 		sample_pair = self.pair_samples(sample)
 
-
-		# Ger worksheet id from the sample sheet (needed for the file path to the results)
+		# Get worksheet id from the sample sheet (needed for the file path to the results)
 		cruk_worksheets = list(set([d.get('Sample_Plate') for s, d in self.sample_sheet_data.items()]))
+
 		if len(cruk_worksheets) > 1:
-			raise IndexError(f"More than one worksheet id for a CRUK run is not permitted. Look at sample sheet to "
-							 f"determine source of error.")
+
+			raise IndexError(f'More than one worksheet id for a CRUK run is not permitted. Look at sample sheet to determine source of error.')
+
 		cruk_worksheet = cruk_worksheets[0]
 
 		# Path to results
-		res_path = Path(os.path.join(results_path, cruk_worksheet))
+		res_path = results_path.joinpath(cruk_worksheet)
+
+		if res_path.exists() == False:
+
+			return False
 
 		# Directories containing results
 		samples_results_dir = os.listdir(res_path)
@@ -1223,23 +1234,31 @@ class Cruk:
 		# Check samples in directory match all DNA samples- if absent directory for a DNA sample, sample is invalid
 		# This check cannot be done for RNA samples
 		if sample in cruk_dna_samples and sample not in samples_results_dir:
+
 			return False
 
 		# Check for missing files per sample (DNA as key, RNA checked as part of check)
-		"""
-		Note that it is untested what will occur if the connection is interrupted during file download (whether a file
-		will be partially downloaded or will not appear at all). It has been assumed that the file will not be present 
-		rather than incomplete
-		"""
+		# Note that it is untested what will occur if the connection is interrupted during file download (whether a file \
+		# will be partially downloaded or will not appear at all). It has been assumed that the file will not be present \
+		# rather than incomplete
+
 		if sample in cruk_dna_samples:
+
 			directory_list = os.listdir(os.path.join(res_path, sample))
+
 			for f_dna in self.sample_run_dna_expected_files:
-				if f"{cruk_worksheet}-{sample}{f_dna}" not in directory_list:
+
+				if f'{cruk_worksheet}-{sample}{f_dna}' not in directory_list:
+
 					return False
+
 			# If sample has an RNA sample pair, check those files are also present
 			if sample_pair:
+
 				for f_rna in self.sample_run_rna_expected_files:
-					if f"{cruk_worksheet}-{sample_pair}{f_rna}" not in directory_list:
+
+					if f'{cruk_worksheet}-{sample_pair}{f_rna}' not in directory_list:
+
 						return False
 
 		# check files we want to be there are there
@@ -1270,23 +1289,36 @@ class Cruk:
 
 		results_path = Path(self.results_dir)
 
-		with open(os.path.join(results_path, self.run_complete_marker)) as f:
+		marker_path = results_path.joinpath(self.run_complete_marker)
+
+		if marker_path.exists() == False:
+
+			return False
+
+		with open(marker_path) as f:
+
 			lines = f.read().splitlines()
+
 			last_line = lines[-1]
-			if last_line != "CRUK workflow completed":
+
+			if last_line != 'CRUK workflow completed':
+
 				return False
 
 		# check files we want to be there are there
 		for file in self.run_expected_files:
+
 			found_file = results_path.glob(file)
 
 			if len(list(found_file)) != 1:
-				print('files')
+
 				return False
 
 		return True
 
 	def run_is_valid(self):
+
+		results_path = Path(self.results_dir)
 
 		for sample in self.sample_names:
 
@@ -1294,105 +1326,59 @@ class Cruk:
 
 				return False
 
-		results_path = Path(self.results_dir)
+		# check files we want to be there are there
+		for file in self.run_expected_files:
+
+			found_file = results_path.glob(file)
+
+			if len(list(found_file)) != 1:
+
+				return False
+
 
 		return True
 
 	def get_fastqc_data(self):
 
-				fastqc_dict = {}
-
-				results_path = Path(self.results_dir)
-
-				for sample in self.sample_names:
-
-					fastqc_data_files = results_path.joinpath(sample).glob(f'*{sample}*fastqc/summary.txt')
-
-					sample_fastqc_list = []
-
-					for fastqc_data in fastqc_data_files:
-
-						file = fastqc_data.parent.name
-						read_number = file.split('_')[-2]
-						lane = file.split('_')[-3]
-
-						parsed_fastqc_data = parse_fastqc_file(fastqc_data)
-
-						file_fastqc_dict = {}
-						file_fastqc_dict['lane'] = lane
-						file_fastqc_dict['read_number'] = read_number
-						file_fastqc_dict['basic_statistics'] = parsed_fastqc_data['Basic Statistics']
-						file_fastqc_dict['per_tile_sequence_quality'] = parsed_fastqc_data['Per tile sequence quality']
-						file_fastqc_dict['per_base_sequencing_quality'] = parsed_fastqc_data['Per base sequence quality']
-						file_fastqc_dict['per_sequence_quality_scores'] = parsed_fastqc_data['Per sequence quality scores']
-						file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
-						file_fastqc_dict['per_sequence_gc_content'] = parsed_fastqc_data['Per sequence GC content']
-						file_fastqc_dict['per_base_n_content'] = parsed_fastqc_data['Per base N content']
-						file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
-						file_fastqc_dict['sequence_length_distribution'] = parsed_fastqc_data['Sequence Length Distribution']
-						file_fastqc_dict['sequence_duplication_levels'] = parsed_fastqc_data['Sequence Duplication Levels']
-						file_fastqc_dict['overrepresented_sequences'] = parsed_fastqc_data['Overrepresented sequences']
-						file_fastqc_dict['adapter_content'] = parsed_fastqc_data['Adapter Content']
-						sample_fastqc_list.append(file_fastqc_dict)
-
-					fastqc_dict[sample] = sample_fastqc_list
-
-
-				return fastqc_dict
-	"""
-	def get_hs_metrics(self):
+		fastqc_dict = {}
 
 		results_path = Path(self.results_dir)
 
-		run_hs_metrics_dict = {}
-
 		for sample in self.sample_names:
 
-			hs_metrics_file = results_path.joinpath(sample).glob(f'*{sample}*_hs_metrics.txt')
+			fastqc_data_files = results_path.joinpath(sample).glob(f'*{sample}*fastqc.txt')
 
-			hs_metrics_file = list(hs_metrics_file)[0]
+			sample_fastqc_list = []
 
-			parsed_hs_metrics_data  = parse_hs_metrics_file(hs_metrics_file)
+			for fastqc_data in fastqc_data_files:
 
-			run_hs_metrics_dict[sample] = parsed_hs_metrics_data
+				file = fastqc_data.name
 
-		return run_hs_metrics_dict
+				read_number = file.split('_')[-2]
+				lane = file.split('_')[-3]
 
-	def get_depth_metrics(self):
+				parsed_fastqc_data = parse_fastqc_file_cruk(fastqc_data, self.run_id)
 
-		results_path = Path(self.results_dir)
+				file_fastqc_dict = {}
+				file_fastqc_dict['lane'] = lane
+				file_fastqc_dict['read_number'] = read_number
+				file_fastqc_dict['basic_statistics'] = parsed_fastqc_data['Basic Statistics']
+				file_fastqc_dict['per_tile_sequence_quality'] = parsed_fastqc_data['Per tile sequence quality']
+				file_fastqc_dict['per_base_sequencing_quality'] = parsed_fastqc_data['Per base sequence quality']
+				file_fastqc_dict['per_sequence_quality_scores'] = parsed_fastqc_data['Per sequence quality scores']
+				file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
+				file_fastqc_dict['per_sequence_gc_content'] = parsed_fastqc_data['Per sequence GC content']
+				file_fastqc_dict['per_base_n_content'] = parsed_fastqc_data['Per base N content']
+				file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
+				file_fastqc_dict['sequence_length_distribution'] = parsed_fastqc_data['Sequence Length Distribution']
+				file_fastqc_dict['sequence_duplication_levels'] = parsed_fastqc_data['Sequence Duplication Levels']
+				file_fastqc_dict['overrepresented_sequences'] = parsed_fastqc_data['Overrepresented sequences']
+				file_fastqc_dict['adapter_content'] = parsed_fastqc_data['Adapter Content']
+				sample_fastqc_list.append(file_fastqc_dict)
 
-		run_depth_metrics_dict = {}
+			fastqc_dict[sample] = sample_fastqc_list
 
-		for sample in self.sample_names:
 
-			sample_depth_summary_file = results_path.joinpath(sample).glob(f'*{sample}*_DepthOfCoverage.sample_summary')
-
-			sample_depth_summary_file = list(sample_depth_summary_file)[0]
-
-			parsed_depth_metrics = parse_gatk_depth_summary_file(sample_depth_summary_file)
-
-			run_depth_metrics_dict[sample] = parsed_depth_metrics
-
-		return run_depth_metrics_dict
-
-	def get_variant_count(self):
-
-		results_path = Path(self.results_dir)
-
-		sample_variant_count_dict = {}
-
-		for sample in self.sample_names:
-
-			vcf_file = results_path.joinpath(sample).glob(f'*{sample}*_filtered_meta_annotated.vcf')
-
-			vcf_file = list(vcf_file)[0]
-
-			vcf_count_metrics = get_passing_variant_count(vcf_file, [sample])
-
-			sample_variant_count_dict[sample] = vcf_count_metrics
-
-		return sample_variant_count_dict
-	"""
+		return fastqc_dict
 
 

@@ -164,3 +164,4 @@ LOGIN_URL = '/login/'
 f = open(os.path.join('qc_database', 'utils', 'slack_url.txt'))
 SLACK_URL = f.read()
 f.close()
+MESSAGE_SLACK = False
