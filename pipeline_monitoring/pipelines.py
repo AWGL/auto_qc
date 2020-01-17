@@ -1089,12 +1089,11 @@ class Cruk:
 				sample_sheet_data,
 				ntc_patterns = ['NTC', 'ntc'],
 				sample_expected_files = [],
-                sample_not_expected_files = ['*_fastqc.zip', '*.fastq.gz_*'],
+                sample_not_expected_files = [],
 				sample_run_dna_expected_files = ['_realigned.bam', '_realigned.bam.bai', '_report.xlsm'],
 				sample_run_rna_expected_files=[".bam", ".bam.bai"],
                 run_complete_expected_files = ['FASTQs.list', 'cruk_smp.dbg', 'cruk_smp.err', 'cruk_smp.out'],
-				run_valid_expected_files = ['FASTQs.list', 'tst_170.json', 'smp.json', 'cruk_smp.dbg','cruk_smp.err',
-                               				'cruk_smp.out','combined_QC.txt'],
+				run_valid_expected_files = ['FASTQs.list', 'tst_170.json', 'smp.json', 'cruk_smp.dbg','cruk_smp.err','cruk_smp.out'],
                 run_not_expected_files = []
 				):
 
@@ -1310,6 +1309,11 @@ class Cruk:
 		results_path = Path(self.results_dir)
 
 		marker_path = results_path.joinpath(self.run_complete_marker)
+
+		if marker_path.exists() == False:
+
+			return False
+
 
 		with open(marker_path) as f:
 

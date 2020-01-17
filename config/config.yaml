@@ -249,10 +249,8 @@ pipelines:
   CRUK-2.0.0-SMP2v3:
     qc_checks: [pct_q30, fastqc]
     min_q30_score: 0.75
-    sample_expected_files: []
-    sample_not_expected_files: ['*_fastqc.zip',
-                                '*.fastq.gz_*'
-                  ]
+    sample_expected_files: ['*_QC.txt']
+    sample_not_expected_files: []
     sample_run_dna_expected_files: ['_realigned.bam',
                                 '_realigned.bam.bai',
                                 '_report.xlsm'
@@ -267,12 +265,12 @@ pipelines:
                   ]
     run_valid_expected_files: ['FASTQs.list',
                                'tst_170.json',
+                               'combined_QC.txt',
                                'smp.json',
                                'cruk_smp.dbg',
                                'cruk_smp.err',
-                               'cruk_smp.out',
-                               'combined_QC.txt'
-                  ]
+                               'cruk_smp.out'
+                                ]
     run_not_expected_files: []
    
 

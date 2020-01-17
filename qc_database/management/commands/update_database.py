@@ -1126,7 +1126,13 @@ class Command(BaseCommand):
 
 					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
 
-					sample_sheet_data = sample_sheet_dict[run_analysis.run.run_id]
+					if run_analysis.run.run_id in sample_sheet_dict:
+
+						sample_sheet_data = sample_sheet_dict[run_analysis.run.run_id]
+
+					else:
+
+						continue
 
 					if run_config_key not in config_dict['pipelines']:
 
@@ -1137,16 +1143,12 @@ class Command(BaseCommand):
 					else:
 
 						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
-						sample_not_expected_files = config_dict['pipelines'][run_config_key][
-							'sample_not_expected_files']
-						sample_run_dna_expected_files = config_dict['pipelines'][run_config_key][
-							'sample_run_dna_expected_files']
-						sample_run_rna_expected_files = config_dict['pipelines'][run_config_key][
-							'sample_run_rna_expected_files']
-						run_valid_expected_files = config_dict['pipelines'][run_config_key]['run_valid_expected_files']
-						run_complete_expected_files = config_dict['pipelines'][run_config_key][
-							'run_complete_expected_files']
+						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
+						sample_run_dna_expected_files = config_dict['pipelines'][run_config_key]['sample_run_dna_expected_files']
+						sample_run_rna_expected_files = config_dict['pipelines'][run_config_key]['sample_run_rna_expected_files']
+						run_complete_expected_files = config_dict['pipelines'][run_config_key]['run_complete_expected_files']
 						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
+						run_valid_expected_files = config_dict['pipelines'][run_config_key]['run_valid_expected_files']
 
 						cruk = Cruk(results_dir=run_data_dir,
 								   sample_names=sample_ids,
@@ -1156,8 +1158,8 @@ class Command(BaseCommand):
 								   sample_not_expected_files=sample_not_expected_files,
 								   sample_run_dna_expected_files=sample_run_dna_expected_files,
 								   sample_run_rna_expected_files=sample_run_rna_expected_files,
+								   run_valid_expected_files = run_valid_expected_files,
 								   run_complete_expected_files=run_complete_expected_files,
-								   run_valid_expected_files=run_valid_expected_files,
 								   run_not_expected_files=run_not_expected_files
 								   )
 
