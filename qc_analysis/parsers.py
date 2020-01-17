@@ -242,6 +242,30 @@ def parse_fastqc_file(fastqc_text_file):
 
 		return fqcdict
 
+def parse_fastqc_file_cruk(fastqc_text_file, run_id):
+
+	with open (fastqc_text_file) as file:
+
+		fqcfile = csv.reader(file, delimiter='\t')
+		fqcdict = {}
+
+		for column in fqcfile:
+
+				metrics = column[1]
+				result = column[0]
+				input_dir = column[2].split('_')
+				SampleID = input_dir[0]
+				Read_Group = input_dir[-1].strip('.fastq.gz')
+				Lane = input_dir[2]
+				fqcdict["general_readinfo"]= column[2]
+				fqcdict["SampleID"]= SampleID
+				fqcdict["RunID"] = run_id
+				fqcdict["Read_Group"] = Read_Group
+				fqcdict["Lane"] = Lane
+				fqcdict[metrics] = result
+
+		return fqcdict
+
 def parse_hs_metrics_file(hs_metrics_file):
 
 	hs_metrics_dict = {}

@@ -1,3 +1,4 @@
+.idea/
 data/
 __pycache__
 db.sqlite3
@@ -6,3 +7,5 @@ token.pickle
 qc_database/migrations
 .ipynb_checkpoints
 auto_cron_log.txt
+qc_database/utils/slack_url.txt
+test_functions.py

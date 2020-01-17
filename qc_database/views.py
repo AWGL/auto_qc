@@ -1,11 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import *
 from .forms import *
+from .utils.slack import message_slack
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
-
+from django.conf import settings
 
 @transaction.atomic
 @login_required
@@ -15,7 +16,7 @@ def home(request):
 
 	"""
 
-	run_analyses = RunAnalysis.objects.filter(watching=True).order_by('start_date')
+	run_analyses = RunAnalysis.objects.filter(watching=True).order_by('-run')
 
 
 	return render(request, 'auto_qc/home.html', {'run_analyses': run_analyses})
@@ -30,9 +31,11 @@ def view_run_analysis(request, pk):
 
 	run_analysis = get_object_or_404(RunAnalysis, pk=pk)
 
-	sample_analyses = SampleAnalysis.objects.filter(run = run_analysis.run,
-													pipeline = run_analysis.pipeline,
-													analysis_type = run_analysis.analysis_type )
+	sample_analyses = SampleAnalysis.objects.filter(
+		run = run_analysis.run,
+		pipeline = run_analysis.pipeline,
+		analysis_type = run_analysis.analysis_type
+	).order_by('worksheet', 'sample')
 
 	run_level_qualities = InteropRunQuality.objects.filter(run = run_analysis.run)
 
@@ -73,15 +76,31 @@ def view_run_analysis(request, pk):
 				if approval == 'Pass':
 
 					run_analysis.manual_approval = True
+					status_message = f':heavy_check_mark: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has passed QC*\n'
 
 				else:
 
 					run_analysis.manual_approval = False
+					status_message = f':x: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has failed QC*\n'
 
 				run_analysis.comment = comment
 				run_analysis.watching = False
 				run_analysis.signoff_user = request.user
 				run_analysis.save()
+
+				# message run status to slack
+
+				if settings.MESSAGE_SLACK:
+					message_slack(
+						status_message +
+						f'```Run ID:          {run_analysis.run}\n' + 
+						f'Worksheet ID:    {run_analysis.get_worksheets()}\n' + 
+						f'Panel:           {run_analysis.analysis_type}\n' + 
+						f'Pipeline:        {run_analysis.pipeline}\n' + 
+						f'Signed off by:   {run_analysis.signoff_user}\n' +
+						f'Comments:        {run_analysis.comment}\n' +
+						f'QC link:         http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
+				)
 
 				return redirect('home')
 
@@ -127,7 +146,7 @@ def view_archived_run_analysis(request):
 	View run analyses which are not being watched,
 
 	"""
-	run_analyses = RunAnalysis.objects.filter(watching=False).order_by('start_date')
+	run_analyses = RunAnalysis.objects.filter(watching=False).order_by('-run')
 
 	return render(request, 'auto_qc/archived_run_analysis.html', {'run_analyses': run_analyses})
 

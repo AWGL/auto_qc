@@ -226,7 +226,6 @@ pipelines:
     run_expected_files: []
     run_not_expected_files: []
 
-
   SomaticAmplicon-1.7.8-TruSightMyeloid:
     min_q30_score: 0.8
     contamination_cutoff: 0.025
@@ -245,6 +244,33 @@ pipelines:
                   ]
     sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
     run_expected_files: []
+    run_not_expected_files: []
+
+  CRUK-2.0.0-SMP2v3:
+    qc_checks: [pct_q30, fastqc]
+    min_q30_score: 0.75
+    sample_expected_files: ['*_QC.txt']
+    sample_not_expected_files: []
+    sample_run_dna_expected_files: ['_realigned.bam',
+                                '_realigned.bam.bai',
+                                '_report.xlsm'
+    ]
+    sample_run_rna_expected_files: ['.bam',
+                                '.bam.bai'
+    ]
+    run_complete_expected_files: ['FASTQs.list',
+                         'cruk_smp.dbg',
+                         'cruk_smp.err',
+                         'cruk_smp.out'
+                  ]
+    run_valid_expected_files: ['FASTQs.list',
+                               'tst_170.json',
+                               'combined_QC.txt',
+                               'smp.json',
+                               'cruk_smp.dbg',
+                               'cruk_smp.err',
+                               'cruk_smp.out'
+                                ]
     run_not_expected_files: []
    
 

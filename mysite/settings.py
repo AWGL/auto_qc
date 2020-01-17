@@ -15,7 +15,7 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-CONFIG_PATH='config/config.yaml'
+CONFIG_PATH = 'config/config.yaml'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'qc_database.apps.QcDatabaseConfig',
     'crispy_forms',
+    'auditlog',
 ]
 
 MIDDLEWARE = [
@@ -49,7 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
+    'auditlog.middleware.AuditlogMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -102,6 +103,7 @@ DATABASES = {
 	'PORT': '',
     }
 }
+"""
 
 """
 
@@ -145,3 +147,11 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = '/login/'
+
+
+# slack url
+#f = open('/home/webapps/auto_qc/qc_database/utils/slack_url.txt')
+f = open(os.path.join('qc_database', 'utils', 'slack_url.txt'))
+SLACK_URL = f.read()
+f.close()
+MESSAGE_SLACK = False
