@@ -11,16 +11,16 @@ class GermlineEnrichment:
 				 sample_names,
 				 run_id,
 				 sample_expected_files= ['*.bam',
-		 							'*.g.vcf',
-		  							'*_AlignmentSummaryMetrics.txt',
-		  							'*_Contamination.selfSM',
-		  							'*_DepthOfCoverage.gz',
-		  							'*_HsMetrics.txt',
-		  							'*_InsertMetrics.txt',
-		  							'*_MarkDuplicatesMetrics.txt',
-		  								'*_QC.txt'],
+									'*.g.vcf',
+									'*_AlignmentSummaryMetrics.txt',
+									'*_Contamination.selfSM',
+									'*_DepthOfCoverage.gz',
+									'*_HsMetrics.txt',
+									'*_InsertMetrics.txt',
+									'*_MarkDuplicatesMetrics.txt',
+										'*_QC.txt'],
 
-		  		sample_not_expected_files = ['*_rmdup.bam',
+				sample_not_expected_files = ['*_rmdup.bam',
 										 '*_DepthOfCoverage'],
 
 				run_expected_files = ['*_filtered_annotated_roi.vcf',
@@ -36,7 +36,7 @@ class GermlineEnrichment:
 				run_not_expected_files= ['*_variants_filtered.vcf',
 									'BAMs.list']
 
-		  		):
+				):
 
 
 		self.results_dir = results_dir
@@ -376,25 +376,23 @@ class GermlineEnrichment:
 class IlluminaQC:
 
 	def __init__(self,
-	 			fastq_dir,
-	  			results_dir,
+				fastq_dir,
 				sample_names,
 				n_lanes,
 				run_id,
+				analysis_type,
 				min_fastq_size=1000000,
 				ntc_patterns = ['NTC', 'ntc'],
-				run_complete_marker = '1_IlluminaQC.sh.e*',
-				copy_complete_marker = '*.variables'):
+				run_complete_marker = '1_IlluminaQC.sh.e*'):
 
 		self.fastq_dir = fastq_dir
-		self.results_dir = results_dir
 		self.sample_names = sample_names
 		self.n_lanes = n_lanes
 		self.run_id = run_id
+		self.analysis_type = analysis_type
 		self.run_complete_marker = run_complete_marker
 		self.min_fastq_size = min_fastq_size
 		self.ntc_patterns = ntc_patterns
-		self.copy_complete_marker = copy_complete_marker
 
 	def demultiplex_run_is_complete(self):
 
@@ -413,6 +411,8 @@ class IlluminaQC:
 		fastq_data_path = Path(self.fastq_dir)
 
 		fastq_data_path = fastq_data_path.joinpath('Data')
+
+		print (fastq_data_path)
 
 		for sample in self.sample_names:
 
@@ -460,34 +460,81 @@ class IlluminaQC:
 		return True
 
 
-	def pipeline_copy_complete(self):
 
-		results_data_path = Path(self.results_dir)
+
+class DragenQC(IlluminaQC):
+
+	def demultiplex_run_is_complete(self):
+
+		if self.demultiplex_run_is_valid() == True:
+
+			return True
+
+		else:
+
+			return False
+
+
+	def demultiplex_run_is_valid(self):
+
+		fastq_data_path = Path(self.fastq_dir)
+
+		fastq_data_path = fastq_data_path.joinpath('Data', self.analysis_type)
 
 		for sample in self.sample_names:
 
-			sample_results_path = results_data_path.joinpath(sample)
+			is_negative_control = False
 
-			variables_file = sample_results_path.joinpath(self.copy_complete_marker)
+			for pattern in self.ntc_patterns:
 
-			variables_file = glob.glob(str(variables_file))
+				if pattern in sample:
 
-			if len(variables_file) != 1:
+					is_negative_control = True
+					break
 
-				return False
+			sample_fastq_path = fastq_data_path.joinpath(sample)
+
+			# check fastqs created
+			for lane in range(1,self.n_lanes+1):
+
+				fastq_r1 = sample_fastq_path.glob(f'{sample}*L00{lane}_R1_001.fastq.gz')
+				fastq_r2 = sample_fastq_path.glob(f'{sample}*L00{lane}_R2_001.fastq.gz')
+				variables = sample_fastq_path.glob(f'{sample}.variables')
+
+				if len(list(fastq_r1)) != 1:
+
+					return False
+
+				elif len(list(fastq_r2)) != 1:
+					return False
+
+				elif len(list(variables)) != 1:
+					return False
+
+				fastq_r1 = sample_fastq_path.glob(f'{sample}*L00{lane}_R1_001.fastq.gz')
+				fastq_r2 = sample_fastq_path.glob(f'{sample}*L00{lane}_R2_001.fastq.gz')
+				
+				fastq_r1 = list(fastq_r1)[0]
+				fastq_r2 = list(fastq_r2)[0]
+
+				if fastq_r1.stat().st_size < self.min_fastq_size and is_negative_control == False:
+					return False
+
+				elif fastq_r2.stat().st_size < self.min_fastq_size  and is_negative_control == False:
+					return False
+
 
 		return True
-
 
 class SomaticEnrichment:
 
 
 	def __init__(self,
-	 			results_dir,
-	 			sample_names,
-	 			run_id,
-	 			ntc_patterns = ['NTC', 'ntc'],
-	 			sample_expected_files= ['*_VariantReport.txt',
+				results_dir,
+				sample_names,
+				run_id,
+				ntc_patterns = ['NTC', 'ntc'],
+				sample_expected_files= ['*_VariantReport.txt',
 									'*.bam',
 									'*_AlignmentSummaryMetrics.txt',
 									'*_DepthOfCoverage.sample_summary',
@@ -875,16 +922,16 @@ class SomaticAmplicon:
 				run_id,
 				ntc_patterns = ['NTC', 'ntc'],
 				sample_expected_files = ['*_VariantReport.txt',
-                  '*.bam',
-                  '*_DepthOfCoverage.sample_summary',
-                  '*_qc.txt',
-                  '*_filtered_meta_annotated.vcf',
-                  'hotspot_variants',
-                  'hotspot_coverage'
-                  ],
-                sample_not_expected_files = ['*_fastqc.zip', 'VariantCallingLogs'],
-                run_expected_files = [],
-                run_not_expected_files = []
+				  '*.bam',
+				  '*_DepthOfCoverage.sample_summary',
+				  '*_qc.txt',
+				  '*_filtered_meta_annotated.vcf',
+				  'hotspot_variants',
+				  'hotspot_coverage'
+				  ],
+				sample_not_expected_files = ['*_fastqc.zip', 'VariantCallingLogs'],
+				run_expected_files = [],
+				run_not_expected_files = []
 				):
 
 
@@ -1089,12 +1136,12 @@ class Cruk:
 				sample_sheet_data,
 				ntc_patterns = ['NTC', 'ntc'],
 				sample_expected_files = [],
-                sample_not_expected_files = [],
+				sample_not_expected_files = [],
 				sample_run_dna_expected_files = ['_realigned.bam', '_realigned.bam.bai', '_report.xlsm'],
 				sample_run_rna_expected_files=[".bam", ".bam.bai"],
-                run_complete_expected_files = ['FASTQs.list', 'cruk_smp.dbg', 'cruk_smp.err', 'cruk_smp.out'],
+				run_complete_expected_files = ['FASTQs.list', 'cruk_smp.dbg', 'cruk_smp.err', 'cruk_smp.out'],
 				run_valid_expected_files = ['FASTQs.list', 'tst_170.json', 'smp.json', 'cruk_smp.dbg','cruk_smp.err','cruk_smp.out'],
-                run_not_expected_files = []
+				run_not_expected_files = []
 				):
 
 		self.results_dir = results_dir
@@ -1387,3 +1434,314 @@ class Cruk:
 		return fastqc_dict
 
 
+
+class DragenGE:
+
+	def __init__(self,
+				 results_dir,
+				 sample_names,
+				 run_id,
+				 sample_expected_files= ['*.bam',
+									'*.mapping_metrics.csv',
+									'*.insert-stats.tab'],
+				run_expected_files = ['*.hard-filtered.vcf.gz',
+									'*.vc_metrics.csv',
+									 'results/relatedness/*.relatedness2',
+									 'results/sensitivity/*_sensitivity.txt',
+									 'results/database_vcf/*.roi.filtered.database.vcf',
+									 'results/annotated_vcf/*.roi.filtered.norm.anno.vcf.gz'],
+				sample_not_expected_files =[],
+				run_not_expected_files= [],
+				post_sample_files = ['results/contamination/*{sample}_contamination.selfSM',
+									'results/calculated_sex/*{sample}_calculated_sex.txt',
+									'results/coverage/*{sample}_depth_of_coverage.gz',
+									'results/coverage/*{sample}_gaps.bed'
+									],
+				run_complete_marker  = 'post_processing_finished.txt',
+				sample_complete_marker  = 'post_processing_finished.txt'
+				):
+
+		self.results_dir = results_dir
+		self.sample_names = sample_names
+		self.run_id = run_id
+		self.run_complete_marker = run_complete_marker
+		self.sample_complete_marker = sample_complete_marker
+		self.sample_expected_files = sample_expected_files
+		self.sample_not_expected_files = sample_not_expected_files
+		self.run_expected_files = run_expected_files
+		self.run_not_expected_files = run_not_expected_files
+		self.post_sample_files = post_sample_files
+		
+		
+	def sample_is_complete(self, sample):
+		"""
+		Look for presence of file indicating that a sample has completed the pipeline.
+
+		For example the output error log.
+		"""
+
+		results_path = Path(self.results_dir)
+		
+		results_path = results_path.joinpath('results')
+
+		marker = results_path.glob(self.sample_complete_marker)
+
+		if len(list(marker)) >= 1:
+
+			return True
+
+		return False
+	
+	def sample_is_valid(self, sample):
+		"""
+		Look for files which have to be present for a sample level pipeline to have completed \
+		correctly.
+
+		Look for file which if present indicate the pipeline has not finished correctly e.g. intermediate files.
+		"""
+
+		results_path = Path(self.results_dir)
+
+		sample_path = results_path.joinpath(sample)
+
+		# check files we want to be there are there
+		for file in self.sample_expected_files:
+
+			found_file = sample_path.glob(file)
+
+			if len(list(found_file)) != 1:
+
+				return False
+
+		# check file we do not want to be there are not there
+		for file in self.sample_not_expected_files:
+
+			found_file = sample_path.glob(file)
+
+			if len(list(found_file)) > 0:
+
+				return False
+			
+		for file in self.post_sample_files:
+			
+			split = file.split('{sample}')
+			
+			joined = f'{sample}'.join(split)
+						
+			found_file = results_path.glob(joined)
+			
+			if len(list(found_file)) < 1:
+
+				return False
+
+		return True
+	
+	def run_is_complete(self):
+		"""
+		Look for presence of file indicating that a sample has completed the pipeline.
+
+		For example the output error log.
+		"""
+
+		results_path = Path(self.results_dir)
+		
+		results_path = results_path.joinpath('results')
+
+		marker = results_path.glob(self.sample_complete_marker)
+
+		if len(list(marker)) >= 1:
+
+			return True
+
+		return False
+	
+
+	def run_is_valid(self):
+		"""
+		Look for files which have to be present for a run level pipeline to have completed \
+		correctly.
+
+		Look for files which if present indicate the pipeline has not finished correctly e.g. intermediate files.
+		"""
+
+		results_path = Path(self.results_dir)
+
+		# check files we want to be there are there
+		for file in self.run_expected_files:
+			
+			found_file = results_path.glob(file)
+						
+			found_file = results_path.glob(file)
+
+			if len(list(found_file)) != 1:
+								
+				return False
+
+		# check file we do not want to be there are not there
+		for file in self.run_not_expected_files:
+			
+
+			found_file = results_path.glob(file)
+
+			if len(list(found_file)) > 0:
+
+				return False
+			
+		return True
+
+	def run_and_samples_complete(self):
+			"""
+			Return True if all samples are complete and valid and the run
+			level is complete and valid. Otherwise return False.
+
+			"""
+
+			# sample level
+			for sample in self.sample_names:
+
+				if self.sample_is_complete(sample) == False:
+
+					return False
+
+			# run level
+			if self.run_is_complete() == False:
+
+				return False
+
+			return True
+
+
+	def run_and_samples_valid(self):
+
+		# sample level
+		for sample in self.sample_names:
+
+			if self.sample_is_valid(sample) == False:
+
+				return False
+
+		# run level
+		if self.run_is_valid() == False:
+
+			return False
+
+		return True	
+	
+	
+	def get_depth_metrics(self):
+
+		results_path = Path(self.results_dir)
+
+		run_depth_metrics_dict = {}
+
+		for sample in self.sample_names:
+
+			sample_depth_summary_file = results_path.joinpath('results', 'coverage').glob(f'*{sample}_depth_of_coverage.sample_summary')
+
+			sample_depth_summary_file = list(sample_depth_summary_file)[0]
+
+			parsed_depth_metrics = parse_gatk_depth_summary_file(sample_depth_summary_file)
+
+			run_depth_metrics_dict[sample] = parsed_depth_metrics
+
+		return run_depth_metrics_dict
+	
+	def get_contamination(self):
+
+		results_path = Path(self.results_dir)
+
+		run_contamination_metrics_dict = {}
+
+		for sample in self.sample_names:
+
+			sample_contamination_metrics_file = results_path.joinpath('results', 'contamination').glob(f'*{sample}_contamination.selfSM')
+
+			sample_contamination_metrics_file = list(sample_contamination_metrics_file)[0]	
+
+			parsed_contamination_metrics = parse_contamination_metrics(sample_contamination_metrics_file)
+
+			run_contamination_metrics_dict[sample] = parsed_contamination_metrics
+
+		return run_contamination_metrics_dict
+	
+	def get_sex_metrics(self):
+		
+		results_path = Path(self.results_dir)
+
+		run_sex_metrics_dict = {}
+
+		for sample in self.sample_names:
+
+			sample_sex_metrics_file = results_path.joinpath('results', 'calculated_sex').glob(f'*{sample}_calculated_sex.txt')
+
+			sample_sex_metrics_file = list(sample_sex_metrics_file)[0]
+			
+			parsed_sex_metrics = parse_dragen_sex_file(sample_sex_metrics_file)
+
+			run_sex_metrics_dict[sample] = parsed_sex_metrics
+
+		return run_sex_metrics_dict   
+	
+	
+	def get_variant_calling_metrics(self):
+		
+		results_path = Path(self.results_dir)
+
+		variant_metrics_file = results_path.glob(f'{self.run_id}.vc_metrics.csv')
+		
+		variant_metrics_file = list(variant_metrics_file)[0]
+		
+		parsed_variant_metrics_file = parse_dragen_vc_metrics_file(variant_metrics_file)
+
+		return parsed_variant_metrics_file  
+	
+	
+	def get_alignment_metrics(self):
+		
+		results_path = Path(self.results_dir)
+
+		run_alignment_metrics_dict = {}
+
+		for sample in self.sample_names:
+
+			alignment_metrics_file = results_path.joinpath(sample).glob(f'*{sample}.mapping_metrics.csv')
+
+			alignment_metrics_file = list(alignment_metrics_file)[0]
+			
+			parsed_alignment_metrics = parse_dragen_alignment_metrics_file(alignment_metrics_file)
+
+			run_alignment_metrics_dict[sample] = parsed_alignment_metrics
+
+		return run_alignment_metrics_dict
+	
+	
+	def get_sensitivity(self):
+		
+		results_path = Path(self.results_dir)
+
+		sensitivity_file = results_path.glob(f'results/sensitivity/{self.run_id}*_sensitivity.txt')
+		
+		sensitivity_file = list(sensitivity_file)[0]
+		
+		parsed_sensitivity_file = parse_sensitivity_file(sensitivity_file)
+
+		return parsed_sensitivity_file  
+	
+	
+	def get_variant_count_metrics(self):
+		
+		results_path = Path(self.results_dir)
+
+		sample_variant_count_dict = {}
+
+		for sample in self.sample_names:
+
+			vcf_file = results_path.glob(f'results/database_vcf/{self.run_id}.roi.filtered.database.vcf')
+
+			vcf_file = list(vcf_file)[0]
+
+			vcf_count_metrics = get_passing_variant_count(vcf_file, [sample])
+
+			sample_variant_count_dict[sample] = vcf_count_metrics
+
+		return sample_variant_count_dict

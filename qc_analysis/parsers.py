@@ -8,6 +8,7 @@ import yaml
 import math
 import pandas as pd
 from pysam import VariantFile
+import string
 
 
 def sample_sheet_parser(sample_sheet_path):
@@ -647,3 +648,106 @@ def get_passing_variant_count(vcf_path, samples):
 			count_dict[sample] = 0
 
 	return count_dict
+
+
+def parse_dragen_sex_file(dragen_sex_file):
+	"""
+	Parse the calculated sex file from the post processing pipeline.
+
+	"""
+	
+	sex_dict = {}
+	
+	
+	with open(dragen_sex_file) as csvfile:
+		reader = csv.DictReader(csvfile)
+		for row in reader:
+			sex = row['calculated_sex']
+			
+			sex_dict['sex'] = sex
+	
+	return sex_dict
+
+def parse_dragen_vc_metrics_file(dragen_vc_metrics_file):
+	"""
+	Parse the dragen variant calling metrics file.
+	
+	"""
+	
+	dragen_vc_metrics_file_dict = {}
+
+	with open (dragen_vc_metrics_file) as file:
+
+		dragen_vc_metrics_file = csv.reader(file, delimiter=',')
+		
+		for row in dragen_vc_metrics_file:
+						
+			prefix = row[0]
+			sample = row[1]
+			key = row[2]
+			value = row[3]
+	
+			new_key = key.translate(str.maketrans('', '', string.punctuation.replace('_' ,'')))
+			
+			new_key = new_key.lower().replace(' ', '_').replace('__', '_')
+			
+			if prefix == 'JOINT CALLER PREFILTER':
+								
+				if sample not in dragen_vc_metrics_file_dict:
+					
+					dragen_vc_metrics_file_dict[sample] = {}
+					
+				dragen_vc_metrics_file_dict[sample][new_key] = value
+				
+	return dragen_vc_metrics_file_dict
+
+
+def parse_dragen_alignment_metrics_file(dragen_alignment_metrics_file):
+	"""
+	Parse the dragen alignment metrics file.
+	
+	"""
+	
+	dragen_alignment_metrics_file_dict = {}
+
+	with open (dragen_alignment_metrics_file) as file:
+
+		dragen_alignment_metrics_file = csv.reader(file, delimiter=',')
+		
+		for row in dragen_alignment_metrics_file:
+						
+			prefix = row[0]
+			key = row[2]
+			value = row[3]
+	
+			new_key = key.translate(str.maketrans('', '', string.punctuation.replace('_' ,'')))
+			
+			new_key = new_key.lower().replace(' ', '_').replace('__', '_')
+			
+			if prefix == 'MAPPING/ALIGNING SUMMARY':
+								
+				dragen_alignment_metrics_file_dict[new_key] = value
+				
+	return dragen_alignment_metrics_file_dict
+
+def parse_sensitivity_file(sensitivity_file):
+	"""
+	Parse the sensitivity calculation file.
+	
+	"""
+	
+	sensitivity_dict = {}
+	
+	with open (sensitivity_file) as file:
+			
+		for line in file:
+				
+			split_line = line.strip().strip('"').split(' ')
+						
+			if split_line[0] == '[1]':
+				
+				sensitivity_dict['sensitivity'] = split_line[2]
+				sensitivity_dict['sensitivity_lower_ci'] = split_line[3].split('-')[0]
+				sensitivity_dict['sensitivity_higher_ci'] = split_line[3].split('-')[1]
+			
+	return sensitivity_dict

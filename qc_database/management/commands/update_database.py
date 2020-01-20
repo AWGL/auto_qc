@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from qc_database.models import *
 from qc_analysis.parsers import *
 from ...utils.slack import message_slack
-from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, SomaticEnrichment, SomaticAmplicon, Cruk
+from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, SomaticEnrichment, SomaticAmplicon, Cruk, DragenQC, DragenGE
 from django.db import transaction
 import csv
 from pathlib import Path
@@ -262,7 +262,7 @@ def add_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
 			new_contamination_obj = ContaminationMetrics(**sample_data)
 			new_contamination_obj.save()
 
-def add_sex_metrics(qc_metrics_dict, run_analysis_obj):
+def add_sex_metrics(qc_metrics_dict, run_analysis_obj, sex_key):
 	"""
 	Add data from sex calculation files to database.
 
@@ -285,7 +285,7 @@ def add_sex_metrics(qc_metrics_dict, run_analysis_obj):
 			sample_data = qc_metrics_dict[key]
 
 			new_depth_obj = CalculatedSexMetrics(sample_analysis = sample_analysis_obj,
-												calculated_sex = sample_data['gender'])
+												calculated_sex = sample_data[sex_key])
 			new_depth_obj.save()
 
 
@@ -325,6 +325,40 @@ def add_alignment_metrics(alignment_metrics_dict, run_analysis_obj):
 
 				new_alignment_obj = AlignmentMetrics(**sample_data)
 				new_alignment_obj.save()
+
+
+def add_dragen_alignment_metrics(alignment_metrics_dict, run_analysis_obj):
+	"""
+	Add data from dragen mapping metrics files to database.
+
+	"""
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in alignment_metrics_dict:
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+
+		existing_data = DragenAlignmentMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+
+		if len(existing_data) < 1:
+
+			sample_data = alignment_metrics_dict[key]
+			
+			sample_data['sample_analysis'] = sample_analysis_obj
+
+			for key in sample_data:
+
+				if sample_data[key] == 'NA' or sample_data[key] == '':
+
+					sample_data[key] = None
+
+			new_dragen_alignment_obj = DragenAlignmentMetrics(**sample_data)
+			new_dragen_alignment_obj.save()
 
 def add_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
 	"""
@@ -416,6 +450,52 @@ def add_variant_count_metrics(variant_count_metrics_dict, run_analysis_obj):
 			new_count_obj = VCFVariantCount(sample_analysis = sample_analysis_obj, variant_count= sample_data)
 			new_count_obj.save()
 
+def add_dragen_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
+	"""
+	Add data from the Dragen Variant Calling metrics files to database.
+
+	"""
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in variant_metrics_dict:
+		
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+		
+		existing_data = DragenVariantCallingMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+		
+		if len(existing_data) < 1:
+
+			sample_data = variant_metrics_dict[key]
+
+			sample_data['sample_analysis'] = sample_analysis_obj
+			
+			for key in sample_data:
+
+				if sample_data[key] == 'NA' or sample_data[key] == '':
+
+					sample_data[key] = None
+
+			new_dragen_vc_obj = DragenVariantCallingMetrics(**sample_data)
+			new_dragen_vc_obj.save()
+
+def add_sensitivity_metrics(sensitivity_metrics, run_analysis_obj):
+	"""
+	Add sensitivity data for a run
+
+	"""
+	print(sensitivity_metrics)
+
+	run_analysis_obj.sensitivity = float(sensitivity_metrics['sensitivity'])
+	run_analysis_obj.sensitivity_lower_ci = float(sensitivity_metrics['sensitivity_lower_ci'])
+	run_analysis_obj.sensitivity_higher_ci = float(sensitivity_metrics['sensitivity_higher_ci'])
+	run_analysis_obj.sensitivity_user = User.objects.get(pk=1)
+
+	run_analysis_obj.save()
 
 class Command(BaseCommand):
 
@@ -654,12 +734,24 @@ class Command(BaseCommand):
 
 					min_fastq_size = 100000
 
-				illumina_qc = IlluminaQC(fastq_dir= run_fastq_dir,
-										results_dir= results_dir,
+				if 'Dragen' in run_config_key:
+
+					illumina_qc = DragenQC(fastq_dir= run_fastq_dir,
 										sample_names = sample_ids,
 										n_lanes = lanes,
+										analysis_type = run_analysis.analysis_type.analysis_type_id,
 										min_fastq_size = min_fastq_size,
 										run_id = run_analysis.run.run_id)
+
+				else:
+
+					illumina_qc = IlluminaQC(fastq_dir= run_fastq_dir,
+											sample_names = sample_ids,
+											n_lanes = lanes,
+											analysis_type = run_analysis.analysis_type.analysis_type_id,
+											min_fastq_size = min_fastq_size,
+											run_id = run_analysis.run.run_id)
+
 
 				has_completed = illumina_qc.demultiplex_run_is_complete()
 
@@ -669,7 +761,7 @@ class Command(BaseCommand):
 
 					if is_valid == True:
 
-						print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now completed demultiplexing')
+						print (f'Run {run_analysis} {run_analysis.analysis_type.analysis_type_id} has now completed demultiplexing')
 						
 						# set slack status message
 						status_message = f':information_source: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has generated FASTQs successfully*\n'
@@ -793,7 +885,7 @@ class Command(BaseCommand):
 
 							print (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
 							sex_dict = germline_enrichment.get_calculated_sex()
-							add_sex_metrics(sex_dict, run_analysis)
+							add_sex_metrics(sex_dict, run_analysis, 'gender')
 
 							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
 							alignment_metrics_dict = germline_enrichment.get_alignment_metrics()
@@ -839,7 +931,7 @@ class Command(BaseCommand):
 
 							print (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
 							sex_dict = germline_enrichment.get_calculated_sex()
-							add_sex_metrics(sex_dict, run_analysis)
+							add_sex_metrics(sex_dict, run_analysis, 'gender')
 
 							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
 							alignment_metrics_dict = germline_enrichment.get_alignment_metrics()
@@ -945,7 +1037,7 @@ class Command(BaseCommand):
 
 							print (f'Putting sex metrics data into db for run {run_analysis.run.run_id}')
 							sex_dict = somatic_enrichment.get_calculated_sex()
-							add_sex_metrics(sex_dict, run_analysis)
+							add_sex_metrics(sex_dict, run_analysis, 'gender')
 
 							print (f'Putting alignment metrics data into db for run {run_analysis.run.run_id}')
 							alignment_metrics_dict = somatic_enrichment.get_alignment_metrics()
@@ -987,7 +1079,7 @@ class Command(BaseCommand):
 
 							print (f'Putting sex metrics data into db for run {run_analysis.run.run_id}')
 							sex_dict = somatic_enrichment.get_calculated_sex()
-							add_sex_metrics(sex_dict, run_analysis)
+							add_sex_metrics(sex_dict, run_analysis, 'gender')
 
 							print (f'Putting alignment metrics data into db for run {run_analysis.run.run_id}')
 							alignment_metrics_dict = somatic_enrichment.get_alignment_metrics()
@@ -1225,6 +1317,142 @@ class Command(BaseCommand):
 					run_analysis.results_valid = run_valid
 
 					run_analysis.save()
+
+
+				# for germline enrichment
+				elif 'DragenGE' in run_analysis.pipeline.pipeline_id:
+
+					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+
+					try:
+
+						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
+						post_sample_files = config_dict['pipelines'][run_config_key]['post_sample_files']
+						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
+						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
+						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
+
+						dragen_ge = DragenGE(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id,
+															sample_expected_files = sample_expected_files,
+															sample_not_expected_files = sample_not_expected_files,
+															run_expected_files = run_expected_files,
+															run_not_expected_files = run_not_expected_files,
+															post_sample_files = post_sample_files
+															)
+
+					except:
+
+						dragen_ge = DragenGE(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id
+															)
+
+					for sample in sample_ids:
+
+						sample_complete = dragen_ge.sample_is_complete(sample)
+						sample_valid = dragen_ge.sample_is_valid(sample)
+
+						sample_obj = Sample.objects.get(sample_id = sample)
+
+						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
+																		run = run_analysis.run,
+																		pipeline = run_analysis.pipeline)
+
+						if sample_analysis_obj.results_completed == False and sample_complete == True:
+
+							if sample_valid == True:
+
+								print (f'Sample {sample} on run {run_analysis.run.run_id} has finished DragenGE script one successfully.')
+
+							else:
+								print (f'Sample {sample} on run {run_analysis.run.run_id} has failed DragenGE script one.')
+
+						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
+
+							print (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
+
+
+						sample_analysis_obj.results_completed = sample_complete
+						sample_analysis_obj.results_valid = sample_valid
+						sample_analysis_obj.save()
+
+					run_complete = dragen_ge.run_and_samples_complete()
+					run_valid = dragen_ge.run_and_samples_valid()
+
+					if run_analysis.results_completed == False and run_complete == True:
+
+						if run_valid == True:
+
+							print (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							print (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
+							depth_metrics_dict = dragen_ge.get_depth_metrics()
+							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+
+							print (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
+							contamination_metrics_dict = dragen_ge.get_contamination()
+							add_contamination_metrics(contamination_metrics_dict, run_analysis)
+
+							print (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
+							sex_dict = dragen_ge.get_sex_metrics()
+							add_sex_metrics(sex_dict, run_analysis, 'sex')
+
+							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							alignment_metrics_dict = dragen_ge.get_alignment_metrics()
+							add_dragen_alignment_metrics(alignment_metrics_dict, run_analysis)
+
+							print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							variant_calling_metrics_dict = dragen_ge.get_variant_calling_metrics()
+							add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
+
+							print (f'Putting sensitivity metrics into db for run {run_analysis.run.run_id}')
+
+							sensitivity_metrics = dragen_ge.get_sensitivity()
+							add_sensitivity_metrics(sensitivity_metrics, run_analysis)
+
+
+							# variant count
+
+							send_to_slack = True
+
+						else:
+
+							print (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+
+					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
+
+							print (f'Run {run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							print (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
+							depth_metrics_dict = dragen_ge.get_depth_metrics()
+							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+
+							print (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
+							contamination_metrics_dict = dragen_ge.get_contamination()
+							add_contamination_metrics(contamination_metrics_dict, run_analysis)
+
+							print (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
+							sex_dict = dragen_ge.get_sex_metrics()
+							add_sex_metrics(sex_dict, run_analysis, 'sex')
+
+							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							alignment_metrics_dict = dragen_ge.get_alignment_metrics()
+							add_dragen_alignment_metrics(alignment_metrics_dict, run_analysis)
+
+							print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							variant_calling_metrics_dict = dragen_ge.get_variant_calling_metrics()
+							add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
+
+							send_to_slack = True
+
+					run_analysis.results_completed = run_complete
+					run_analysis.results_valid = run_valid
+
+					run_analysis.save()
+
+					
 
 				# message slack
 				if settings.MESSAGE_SLACK:
