@@ -1,14 +1,14 @@
 from django.core.management.base import BaseCommand, CommandError
-from qc_database.models import *
-from qc_analysis.parsers import *
-from ...utils.slack import message_slack
-from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, SomaticEnrichment, SomaticAmplicon, Cruk, DragenQC, DragenGE
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.db import transaction
 import csv
 from pathlib import Path
 import datetime
-from django.conf import settings
-
+from qc_database.models import *
+from qc_analysis.parsers import *
+from ...utils.slack import message_slack
+from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, SomaticEnrichment, SomaticAmplicon, Cruk, DragenQC, DragenGE
 
 def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 	"""
@@ -488,8 +488,6 @@ def add_sensitivity_metrics(sensitivity_metrics, run_analysis_obj):
 	Add sensitivity data for a run
 
 	"""
-	print(sensitivity_metrics)
-
 	run_analysis_obj.sensitivity = float(sensitivity_metrics['sensitivity'])
 	run_analysis_obj.sensitivity_lower_ci = float(sensitivity_metrics['sensitivity_lower_ci'])
 	run_analysis_obj.sensitivity_higher_ci = float(sensitivity_metrics['sensitivity_higher_ci'])
@@ -502,16 +500,16 @@ class Command(BaseCommand):
 	def add_arguments(self, parser):
 
 		parser.add_argument('--raw_data_dir', nargs =1, type = str, required=True)
-		parser.add_argument('--fastq_data_dir', nargs =1, type = str, required=True)
-		parser.add_argument('--results_dir', nargs =1, type = str, required=True)
+		#parser.add_argument('--fastq_data_dir', nargs =1, type = str, required=True)
+		#parser.add_argument('--results_dir', nargs =1, type = str, required=True)
 		parser.add_argument('--config', nargs =1, type = str, required=True)
 	
 	def handle(self, *args, **options):
 
 		# Make or get initial model instances
 		raw_data_dir = options['raw_data_dir'][0]
-		fastq_data_dir = options['fastq_data_dir'][0]
-		results_dir = options['results_dir'][0]
+		#fastq_data_dir = options['fastq_data_dir'][0]
+		#results_dir = options['results_dir'][0]
 		config = options['config'][0]
 
 		# Read config file and create dictionary
@@ -625,6 +623,8 @@ class Command(BaseCommand):
 						contamination_cutoff = 0.015
 						ntc_contamination_cutoff = 10
 
+
+
 					new_sample_analysis_obj, created = SampleAnalysis.objects.get_or_create(sample=sample_obj,
 																			run = run_obj,
 																			pipeline = pipeline_obj,
@@ -677,7 +677,15 @@ class Command(BaseCommand):
 					except:
 
 						min_variants =  25
-						max_variants =  1000			
+						max_variants =  1000	
+
+					try:
+
+						min_sensitivity = config_dict['pipelines'][run_config_key]['min_sensitivity']
+
+					except:
+
+						min_sensitivity = None		
 
 
 					new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
@@ -692,6 +700,7 @@ class Command(BaseCommand):
 						new_run_analysis_obj.max_variants = max_variants
 						new_run_analysis_obj.min_q30_score = min_q30_score
 						new_run_analysis_obj.start_date = datetime.datetime.now()
+						new_run_analysis_obj.min_sensitivity = min_sensitivity
 
 						# message slack
 
@@ -720,8 +729,10 @@ class Command(BaseCommand):
 
 				sample_ids = [sample.sample.sample_id for sample in samples]
 
-				run_fastq_dir = Path(fastq_data_dir).joinpath(run_analysis.run.run_id)
+				fastq_data_dir = config_dict['pipelines'][run_config_key]['fastq_dir']
+				results_dir = config_dict['pipelines'][run_config_key]['results_dir']
 
+				run_fastq_dir = Path(fastq_data_dir).joinpath(run_analysis.run.run_id)
 				run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id, run_analysis.analysis_type.analysis_type_id)
 
 				lanes = run_analysis.run.lanes
@@ -1364,10 +1375,10 @@ class Command(BaseCommand):
 
 							if sample_valid == True:
 
-								print (f'Sample {sample} on run {run_analysis.run.run_id} has finished DragenGE script one successfully.')
+								print (f'Sample {sample} on run {run_analysis.run.run_id} has finished DragenGE pipelines successfully.')
 
 							else:
-								print (f'Sample {sample} on run {run_analysis.run.run_id} has failed DragenGE script one.')
+								print (f'Sample {sample} on run {run_analysis.run.run_id} has failed DragenGE pipeline.')
 
 						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
 
@@ -1385,7 +1396,7 @@ class Command(BaseCommand):
 
 						if run_valid == True:
 
-							print (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							print (f'Run {run_analysis.run.run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
 							print (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
 							depth_metrics_dict = dragen_ge.get_depth_metrics()
@@ -1408,22 +1419,22 @@ class Command(BaseCommand):
 							add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
 
 							print (f'Putting sensitivity metrics into db for run {run_analysis.run.run_id}')
-
 							sensitivity_metrics = dragen_ge.get_sensitivity()
 							add_sensitivity_metrics(sensitivity_metrics, run_analysis)
 
-
-							# variant count
+							print (f'Adding variant count metrics into db for run {run_analysis.run.run_id}')
+							variant_count = dragen_ge.get_variant_count_metrics()
+							add_variant_count_metrics(variant_count, run_analysis)
 
 							send_to_slack = True
 
 						else:
 
-							print (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+							print (f'Run {run_analysis.run.run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
 
 					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
 
-							print (f'Run {run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							print (f'Run {run_analysis.run.run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
 							print (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
 							depth_metrics_dict = dragen_ge.get_depth_metrics()
@@ -1444,6 +1455,11 @@ class Command(BaseCommand):
 							print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
 							variant_calling_metrics_dict = dragen_ge.get_variant_calling_metrics()
 							add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
+
+							print (f'Adding variant count metrics into db for run {run_analysis.run.run_id}')
+							variant_count = dragen_ge.get_variant_count_metrics()
+							add_variant_count_metrics(variant_count, run_analysis)
+
 
 							send_to_slack = True
 

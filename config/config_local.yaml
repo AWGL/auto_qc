@@ -1,0 +1,330 @@
+pipelines:
+
+  GermlineEnrichment-2.5.3-IlluminaTruSightCancer:
+    fastq_dir: '/media/joseph/Storage/data/archive/fastq/'
+    results_dir: '/media/joseph/Storage/data/results/'
+    qc_checks: [pct_q30, fastqc, variant_check, contamination, ntc_contamination, sex_match]
+    min_q30_score: 0.75
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 10000
+    min_variants: 600
+    max_variants: 1100
+    sample_expected_files: ['*.bam',
+                '*.g.vcf',
+                  '*_AlignmentSummaryMetrics.txt',
+                  '*_Contamination.selfSM',
+                  '*_DepthOfCoverage.gz',
+                  '*_HsMetrics.txt',
+                  '*_InsertMetrics.txt',
+                  '*_MarkDuplicatesMetrics.txt',
+                  '*_QC.txt']
+    sample_not_expected_files: ['*_rmdup.bam',
+                   '*_DepthOfCoverage']
+    run_expected_files: ['*_filtered_annotated_roi.vcf',
+                '*_filtered_annotated_roi_noMT.vcf',
+                '*_pedigree.ped',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_detail_metrics',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_summary_metrics',
+                '*_ExomeDepth_Metrics.txt',
+                '*_relatedness.relatedness2',
+                'combined_QC.txt',
+                '*_cnvReport.csv']
+    run_not_expected_files: ['*_variants_filtered.vcf',
+                'BAMs.list']
+
+  GermlineEnrichment-2.5.3-IlluminaTruSightOne:
+    fastq_dir: '/media/joseph/Storage/data/archive/fastq/'
+    results_dir: '/media/joseph/Storage/data/results/'
+    qc_checks: [pct_q30, fastqc, variant_check, contamination, ntc_contamination, sex_match]
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 10000
+    min_variants: 20000
+    max_variants: 35000
+    sample_expected_files: ['*.bam',
+                '*.g.vcf',
+                  '*_AlignmentSummaryMetrics.txt',
+                  '*_Contamination.selfSM',
+                  '*_DepthOfCoverage.gz',
+                  '*_HsMetrics.txt',
+                  '*_InsertMetrics.txt',
+                  '*_MarkDuplicatesMetrics.txt',
+                  '*_QC.txt']
+    sample_not_expected_files: ['*_rmdup.bam',
+                   '*_DepthOfCoverage']
+    run_expected_files: ['*_filtered_annotated_roi.vcf',
+                '*_filtered_annotated_roi_noMT.vcf',
+                '*_pedigree.ped',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_detail_metrics',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_summary_metrics',
+                '*_ExomeDepth_Metrics.txt',
+                '*_relatedness.relatedness2',
+                'combined_QC.txt']
+    run_not_expected_files: ['*_variants_filtered.vcf',
+                'BAMs.list']
+
+  GermlineEnrichment-2.5.4-AgilentOGTFH:
+    fastq_dir: '/media/joseph/Storage/data/archive/fastq/'
+    results_dir: '/media/joseph/Storage/data/results/'
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 10000
+    min_variants: 10
+    max_variants: 500
+    sample_expected_files: ['*.bam',
+                '*.g.vcf',
+                  '*_AlignmentSummaryMetrics.txt',
+                  '*_Contamination.selfSM',
+                  '*_DepthOfCoverage.gz',
+                  '*_HsMetrics.txt',
+                  '*_InsertMetrics.txt',
+                  '*_MarkDuplicatesMetrics.txt',
+                  '*_QC.txt',
+                  '*_FH_VariantReport_filtered.csv']
+    sample_not_expected_files: ['*_rmdup.bam',
+                   '*_DepthOfCoverage']
+    run_expected_files: ['*_filtered_annotated_roi.vcf',
+                '*_filtered_annotated_roi_noMT.vcf',
+                '*_pedigree.ped',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_detail_metrics',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_summary_metrics',
+                '*_relatedness.relatedness2',
+                'sv_analysis/*_cnvReport.csv',
+                'combined_QC.txt',
+              ]
+    run_not_expected_files: ['*_variants_filtered.vcf',
+                'BAMs.list']
+
+  GermlineEnrichment-2.5.5-AgilentOGTFH:
+    fastq_dir: '/media/joseph/Storage/data/archive/fastq/'
+    results_dir: '/media/joseph/Storage/data/results/'
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 100000
+    min_variants: 10
+    max_variants: 500
+    sample_expected_files: ['*.bam',
+                '*.g.vcf',
+                  '*_AlignmentSummaryMetrics.txt',
+                  '*_Contamination.selfSM',
+                  '*_DepthOfCoverage.gz',
+                  '*_HsMetrics.txt',
+                  '*_InsertMetrics.txt',
+                  '*_MarkDuplicatesMetrics.txt',
+                  '*_QC.txt',
+                  '*_FH_VariantReport_filtered.csv']
+    sample_not_expected_files: ['*_rmdup.bam',
+                   '*_DepthOfCoverage']
+    run_expected_files: ['*_filtered_annotated_roi.vcf',
+                '*_filtered_annotated_roi_noMT.vcf',
+                '*_pedigree.ped',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_detail_metrics',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_summary_metrics',
+                '*_relatedness.relatedness2',
+                'sv_analysis/*_cnvReport.csv',
+                'combined_QC.txt',
+              ]
+    run_not_expected_files: ['*_variants_filtered.vcf',
+                'BAMs.list']
+
+  SomaticEnrichment-1.0.0-RochePanCancer:
+    fastq_dir: '/media/joseph/Storage/data/archive/fastq/'
+    results_dir: '/media/joseph/Storage/data/results/'
+    qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, sex_match]
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 100000
+    min_variants: 75
+    max_variants: 600
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_AlignmentSummaryMetrics.txt',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_QC.txt',
+                  '*_filteredStrLeftAligned_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage_135x'
+                  ]
+    sample_not_expected_files: []
+    run_sample_expected_files: ['CNVKit/*_common.vcf']
+    run_expected_files: ['combined_QC.txt', 'samplesCNVKit.txt']
+    run_not_expected_files: ['*.bed']
+
+  SomaticAmplicon-1.7.6-NGHS-102X:
+    fastq_dir: '/media/joseph/Storage/data/archive/fastq/'
+    results_dir: '/media/joseph/Storage/data/results/'
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
+    min_fastq_size: 100000
+    min_variants: 10
+    max_variants: 250
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_qc.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
+
+  SomaticAmplicon-1.7.6-NGHS-101X:
+    fastq_dir: '/media/joseph/Storage/data/archive/fastq/'
+    results_dir: '/media/joseph/Storage/data/results/'
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
+    min_fastq_size: 100000
+    min_variants: 10
+    max_variants: 250
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_qc.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage'
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
+
+  SomaticAmplicon-1.7.7-NGHS-101X:
+    fastq_dir: '/media/joseph/Storage/data/archive/fastq/'
+    results_dir: '/media/joseph/Storage/data/results/'
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
+    min_fastq_size: 100000
+    min_variants: 10
+    max_variants: 250
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_qc.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage'
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
+
+  SomaticAmplicon-1.7.7-NGHS-102X:
+    fastq_dir: '/media/joseph/Storage/data/archive/fastq/'
+    results_dir: '/media/joseph/Storage/data/results/'
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
+    min_fastq_size: 100000
+    min_variants: 10
+    max_variants: 250
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_qc.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage'
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
+
+  SomaticAmplicon-1.7.8-TruSightMyeloid:
+    fastq_dir: '/media/joseph/Storage/data/archive/fastq/'
+    results_dir: '/media/joseph/Storage/data/results/'
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
+    min_fastq_size: 10000000
+    min_variants: 100
+    max_variants: 700
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_qc.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage'
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
+
+  CRUK-2.0.0-SMP2v3:
+    fastq_dir: '/media/joseph/Storage/data/archive/fastq/'
+    results_dir: '/media/joseph/Storage/data/results/'
+    qc_checks: [pct_q30, fastqc]
+    min_q30_score: 0.75
+    sample_expected_files: ['*_QC.txt']
+    sample_not_expected_files: []
+    sample_run_dna_expected_files: ['_realigned.bam',
+                                '_realigned.bam.bai',
+                                '_report.xlsm'
+    ]
+    sample_run_rna_expected_files: ['.bam',
+                                '.bam.bai'
+    ]
+    run_complete_expected_files: ['FASTQs.list',
+                         'cruk_smp.dbg',
+                         'cruk_smp.err',
+                         'cruk_smp.out'
+                  ]
+    run_valid_expected_files: ['FASTQs.list',
+                               'tst_170.json',
+                               'combined_QC.txt',
+                               'smp.json',
+                               'cruk_smp.dbg',
+                               'cruk_smp.err',
+                               'cruk_smp.out'
+                                ]
+    run_not_expected_files: []
+
+
+  DragenGE-1.0.0-IlluminaTruSightOne:
+    fastq_dir: '/media/joseph/Storage/data/archive/dragen_fastq/'
+    results_dir: '/media/joseph/Storage/data/dragen_results/'
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity]
+    min_q30_score: 0.75
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_sensitivity: 0.95
+    min_fastq_size: 1000000
+    min_variants: 8000
+    max_variants: 15000
+    sample_expected_files: ['*.bam',
+                  '*.mapping_metrics.csv',
+                  '*.insert-stats.tab']
+    sample_not_expected_files: []
+    run_expected_files: ['*.hard-filtered.vcf.gz',
+                  '*.vc_metrics.csv',
+                   'results/relatedness/*.relatedness2',
+                   'results/sensitivity/*_sensitivity.txt',
+                   'results/database_vcf/*.roi.filtered.database.vcf',
+                   'results/annotated_vcf/*.roi.filtered.norm.anno.vcf.gz']
+    run_not_expected_files: []
+    post_sample_files: ['results/contamination/*{sample}_contamination.selfSM',
+                  'results/calculated_sex/*{sample}_calculated_sex.txt',
+                  'results/coverage/*{sample}_depth_of_coverage.gz',
+                  'results/coverage/*{sample}_gaps.bed']
+   
+
+
+
+
+

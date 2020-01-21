@@ -75,6 +75,16 @@
 
 	{% endif %}
 
+	{% if 'sensitivity' in checks_to_do %}
+
+	<tr>
+		<td> Min Sensitivity</td>
+		<td> {{run_analysis.min_sensitivity}}</td>
+
+	</tr>
+
+	{% endif %}
+
 	{% if run_analysis.watching == False %}
 
 	<tr>
@@ -95,25 +105,8 @@
 
 	</tr>
 
-
 	{% endif %}
 
-	{% if run_analysis.analysis_type.analysis_type_id == 'IlluminaTruSightOne' and  run_analysis.sensitivity != None %}
-
-	<tr>
-		<td> Sensitivity</td>
-		<td> {{run_analysis.sensitivity}} ({{run_analysis.sensitivity_lower_ci}}-{{run_analysis.sensitivity_higher_ci}})</td>
-
-	</tr>
-
-	<tr>
-		<td> Sensitivity User </td>
-		<td> {{run_analysis.sensitivity_user}}</td>
-
-	</tr>
-
-
-	{% endif %}
 
   </tbody>
 
@@ -161,6 +154,9 @@
 
 <h2> Run Level QC </h2>
 
+<br>
+<h5> Raw Data Quality </h5>
+
 <table id="run_analysis" class="table table-hover table-bordered table-sm">
 
   <thead>
@@ -201,6 +197,43 @@
 </table>
 
 
+{% if run_analysis.analysis_type.analysis_type_id == 'IlluminaTruSightOne' and  run_analysis.sensitivity != None %}
+
+<h5> Sensitivity </h5>
+
+<table id="run_analysis" class="table table-hover table-bordered table-sm">
+
+  <thead>
+	<tr>
+	  <th>Sensitivity</th>
+	  <th>Sensitivity User</th>
+	 </tr>
+
+	</thead>
+
+	<tbody>
+
+		{% if 'sensitivity' in checks_to_do %}
+
+		{% if run_analysis.passes_sensitivity == True %}
+
+		<td class="table-success"> {{run_analysis.sensitivity}} ({{run_analysis.sensitivity_lower_ci}}-{{run_analysis.sensitivity_higher_ci}}) </td>
+		<td class="table-success"> {{run_analysis.sensitivity_user}} </td>
+
+		{% else %}
+
+		<td class="table-danger"> {{run_analysis.sensitivity}} ({{run_analysis.sensitivity_lower_ci}}-{{run_analysis.sensitivity_higher_ci}}) </td>
+		<td class="table-danger"> {{run_analysis.sensitivity_user}} </td>
+
+		{% endif %}
+		{% endif %}
+
+
+	</tbody>
+</table>
+
+{% endif %}
+
 <h2> Sample Level QC </h2>
 
 <table id="run_analysis" class="table table-hover table-bordered table-sm">
@@ -209,7 +242,12 @@
 	<tr>
 	  <th>Sample</th>
 	  <th>Worksheet</th>
-	  <th>FASTQC</th>
+
+	  {% if 'fastqc' in checks_to_do %}
+	  	<th>FASTQC</th>
+	  {% endif %}
+
+
 	  <th>Total Reads</th>
 	  <th>Total Variants</th>
 	  <th>Contamination</th>
@@ -227,7 +265,11 @@
 
 			<td class="table-dark"> {{sample_analysis.sample.sample_id}} </td>
 			<td class="table-dark"> {{sample_analysis.worksheet}} </td>
+
+			{% if 'fastqc' in checks_to_do %}
 			<td class="table-dark"> {{sample_analysis.passes_fastqc}} </td>
+			{% endif %}
+
 			<td class="table-dark"> {{sample_analysis.get_total_reads}} </td>
 			<td class="table-dark"> {{sample_analysis.get_variant_count}} </td>
 			<td class="table-dark"> {{sample_analysis.get_contamination}} </td>
@@ -241,10 +283,13 @@
 		<td> {{sample_analysis.sample.sample_id}} </td>
 		<td> {{sample_analysis.worksheet}} </td>
 
+
+		{% if 'fastqc' in checks_to_do %}
 		{% if sample_analysis.passes_fastqc == True %}
 			<td class="table-success"> {{sample_analysis.passes_fastqc}} </td>
 		{% else %}
 			<td class="table-danger"> {{sample_analysis.passes_fastqc}} </td>
+		{% endif %}
 		{% endif %}
 
 		<td> {{sample_analysis.get_total_reads}} </td>
@@ -360,7 +405,7 @@
 
 
 
-	{% if run_analysis.watching == True and run_analysis.analysis_type.analysis_type_id == 'IlluminaTruSightOne' %}
+	{% if run_analysis.watching == True and run_analysis.analysis_type.analysis_type_id == 'IlluminaTruSightOne' and run_analysis.pipeline.pipeline_id == 'GermlineEnrichment-2.5.3' %}
 	<center>
   		<div>
 

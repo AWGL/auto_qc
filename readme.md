@@ -53,9 +53,7 @@ results_dir = directory with pipeline output
 config = YAML config file specifiying pipeline specific variables
 ```
 python manage.py update_database --raw_data_dir /media/joseph/Storage/data/archive/nextseq \
-								--fastq_data_dir /media/joseph/Storage/data/archive/fastq/ \
-								--results_dir /media/joseph/Storage/data/results/ \
-								--config config/config.yaml
+								--config config/config_local.yaml
 
 ```
 

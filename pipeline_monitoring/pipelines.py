@@ -412,8 +412,6 @@ class IlluminaQC:
 
 		fastq_data_path = fastq_data_path.joinpath('Data')
 
-		print (fastq_data_path)
-
 		for sample in self.sample_names:
 
 			is_negative_control = False

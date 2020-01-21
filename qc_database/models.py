@@ -169,6 +169,8 @@ class RunAnalysis(models.Model):
 	auto_qc_checks = models.TextField(null=True, blank=True)
 	min_variants = models.IntegerField(null=True, blank=True)
 	max_variants = models.IntegerField(null=True, blank=True)
+	min_sensitivity = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+
 
 	history = AuditlogHistoryField()
 
@@ -253,6 +255,37 @@ class RunAnalysis(models.Model):
 			worksheets.append(sample.worksheet.worksheet_id)
 
 		return '|'.join(list(set(worksheets)))
+
+
+	def passes_sensitivity(self):
+
+		if self.min_sensitivity == None:
+
+			return None
+
+		elif self.sensitivity == None:
+
+			return None
+
+		elif self.sensitivity_lower_ci == None:
+
+			return None
+
+		elif self.sensitivity_higher_ci == None:
+
+			return None
+
+		else:
+
+			if self.sensitivity_lower_ci > self.min_sensitivity:
+
+				return True
+
+			else:
+
+				return False
+
+
 
 	def passes_auto_qc(self):
 		"""
@@ -354,7 +387,13 @@ class RunAnalysis(models.Model):
 
 				if sample.passes_variant_count_check() == False:
 
-					return False, 'Variant Count Fail'		
+					return False, 'Variant Count Fail'
+
+		if 'sensitivity' in checks_to_do:
+
+			if self.passes_sensitivity() == False:
+
+				return False, 'Low Sensitivity'
 
 
 		return True, 'All Pass'
@@ -428,12 +467,20 @@ class SampleAnalysis(models.Model):
 		try:
 
 			hs_metrics_obj = SampleHsMetrics.objects.get(sample_analysis= self)
+			return hs_metrics_obj.total_reads
 
 		except:
 
-			return None
+			try:
 
-		return hs_metrics_obj.total_reads
+				dragen_alignment_metrics = DragenAlignmentMetrics.objects.get(sample_analysis= self)
+				return dragen_alignment_metrics.total_input_reads
+
+			except:
+
+				pass
+
+		return None
 
 	def get_contamination(self):
 
@@ -956,13 +1003,13 @@ class DragenVariantCallingMetrics(models.Model):
 	indels_het = models.IntegerField(null=True, blank=True)
 	chr_x_number_of_snps_over_genome = models.IntegerField(null=True, blank=True)
 	chr_y_number_of_snps_over_genome = models.IntegerField(null=True, blank=True)
-	chr_x_snps_chr_y_snps_ratio_over_genome = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+	chr_x_snpschr_y_snps_ratio_over_genome = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 	snp_transitions = models.IntegerField(null=True, blank=True)
 	snp_transversions = models.IntegerField(null=True, blank=True)
-	ti_tv_ratio = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	titv_ratio = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	heterozygous = models.IntegerField(null=True, blank=True)
 	homozygous = models.IntegerField(null=True, blank=True)
-	het_hom_ratio  = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	hethom_ratio  = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	in_dbsnp = models.IntegerField(null=True, blank=True)
 	not_in_dbsnp = models.IntegerField(null=True, blank=True)
 

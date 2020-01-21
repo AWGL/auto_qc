@@ -7,12 +7,15 @@ cd /export/home/webapps/auto_qc
 
 
 echo doing the hiseq 
-python manage.py update_database --raw_data_dir /data/archive/hiseq --fastq_data_dir /data/archive/fastq/ --results_dir /data/results/ --config /export/home/webapps/auto_qc/config/config.yaml 
+python manage.py update_database --raw_data_dir /data/archive/hiseq  --config /export/home/webapps/auto_qc/config/config_gen01.yaml 
 
 echo doing the miseq 
-python manage.py update_database --raw_data_dir /data/archive/miseq --fastq_data_dir /data/archive/fastq/ --results_dir /data/results/ --config /export/home/webapps/auto_qc/config/config.yaml
+python manage.py update_database --raw_data_dir /data/archive/miseq  --config /export/home/webapps/auto_qc/config/config_gen01.yaml 
 
 echo doing the nextseq
-python manage.py update_database --raw_data_dir /data/archive/nextseq --fastq_data_dir /data/archive/fastq/ --results_dir /data/results/ --config /export/home/webapps/auto_qc/config/config.yaml 
+python manage.py update_database --raw_data_dir /data/archive/nextseq --config /export/home/webapps/auto_qc/config/config_gen01.yaml 
+
+echo doing the novaseq/dragen
+python manage.py update_database --raw_data_dir /data/archive/novaseq/BCL --config /export/home/webapps/auto_qc/config/config_gen01.yaml 
 
 source /home/webapps/miniconda3/bin/deactivate
