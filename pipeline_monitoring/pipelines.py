@@ -1135,6 +1135,7 @@ class Cruk:
 				ntc_patterns = ['NTC', 'ntc'],
 				sample_expected_files = [],
 				sample_not_expected_files = [],
+				run_valid_extra_marker = 'cruk_smp.out',
 				sample_run_dna_expected_files = ['_realigned.bam', '_realigned.bam.bai', '_report.xlsm'],
 				sample_run_rna_expected_files=[".bam", ".bam.bai"],
 				run_complete_expected_files = ['FASTQs.list', 'cruk_smp.dbg', 'cruk_smp.err', 'cruk_smp.out'],
@@ -1147,7 +1148,6 @@ class Cruk:
 		self.run_id = run_id
 		self.ntc_patterns = ntc_patterns
 		self.sample_complete_marker = '1_launch_SMP2v3.sh.e*'
-		self.run_complete_marker = 'cruk_smp.out'  # File in which marker is contained
 		self.sample_expected_files = sample_expected_files
 		self.sample_not_expected_files = sample_not_expected_files
 		self.sample_run_dna_expected_files = sample_run_dna_expected_files
@@ -1155,6 +1155,7 @@ class Cruk:
 		self.run_complete_expected_files = run_complete_expected_files
 		self.run_valid_expected_files = run_valid_expected_files
 		self.run_not_expected_files = run_not_expected_files
+		self.run_valid_extra_marker = run_valid_extra_marker
 		self.sample_sheet_data = sample_sheet_data
 		self.sample_pairs = {}
 
@@ -1196,40 +1197,9 @@ class Cruk:
 
 		marker = sample_path.glob(self.sample_complete_marker)
 
-		if len(list(marker)) < 1: # Changed so code would continue beyond this check
+		if len(list(marker)) < 1: 
 
 			return False
-
-		# check file we do not want to be there are not there
-		for file in self.sample_not_expected_files:
-
-			found_file = sample_path.glob(file)
-
-			if len(list(found_file)) > 0:
-
-				return False
-
-		# Look within log file to see if apps have been launched in BaseSpace for each sample
-		with open(results_path.joinpath(self.run_complete_marker)) as f:
-
-			# Create regex searches for pattern indicating app has completed in BaseSpace (success or not in is_valid)
-			tst_complete_dna = re.compile(f" TST 170 appsession \S+ for samples {sample} and \S+ has finished with "
-											f"status \S+")
-			tst_complete_rna = re.compile(f" TST 170 appsession \S+ for samples \S+ and {sample} has finished with "
-											f"status \S+")
-			smp_complete_dna = re.compile(f" SMP2 v3 appsession \S+ for sample {sample} and \S+ has finished with "
-											f"status \S+")
-			smp_complete_rna = re.compile(f" SMP2 v3 appsession \S+ for sample \S+ and {sample} has finished with "
-											f"status \S+")
-			lines = f.read()
-
-			if not re.search(tst_complete_dna, lines) and not re.search(tst_complete_rna, lines):
-
-				return False
-
-			if not re.search(smp_complete_dna, lines) and not re.search(smp_complete_rna, lines):
-
-				return False
 
 		return True
 
@@ -1334,6 +1304,12 @@ class Cruk:
 
 		results_path = Path(self.results_dir)
 
+		for sample in self.sample_names:
+
+			if self.sample_is_complete(sample) == False:
+
+				return False
+
 		# check files we want to be there are there
 		for file in self.run_complete_expected_files:
 
@@ -1353,12 +1329,11 @@ class Cruk:
 
 		results_path = Path(self.results_dir)
 
-		marker_path = results_path.joinpath(self.run_complete_marker)
+		marker_path = results_path.joinpath(self.run_valid_extra_marker)
 
 		if marker_path.exists() == False:
 
 			return False
-
 
 		with open(marker_path) as f:
 
@@ -1387,6 +1362,33 @@ class Cruk:
 
 
 		return True
+
+	def ok_to_upload_fastqc_data(self):
+		"""
+		Check whether a run has all the fastqcs for import
+		"""
+		results_path = Path(self.results_dir)
+
+		for sample in self.sample_names:
+
+			if self.sample_is_complete(sample) == True:
+
+				# check we have fastqcs
+
+				sample_path = results_path.joinpath(sample)
+
+				fastqcs = sample_path.glob('*_fastqc.txt')
+
+				if len(list(fastqcs)) == 0:
+
+					return False
+
+			else:
+
+				return False
+
+		return True
+
 
 	def get_fastqc_data(self):
 

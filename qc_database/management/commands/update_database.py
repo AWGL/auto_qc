@@ -1298,15 +1298,19 @@ class Command(BaseCommand):
 					run_complete = cruk.run_is_complete()
 					run_valid = cruk.run_is_valid()
 
+					ok_to_upload = cruk.ok_to_upload_fastqc_data()
+
+					if ok_to_upload == True:
+
+						print(f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+						fastqc_dict = cruk.get_fastqc_data()
+						add_fastqc_data(fastqc_dict, run_analysis)	
+
 					if run_analysis.results_completed == False and run_complete == True:
 
 						if run_valid == True:
 
 							print(f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-
-							print(f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-							fastqc_dict = cruk.get_fastqc_data()
-							add_fastqc_data(fastqc_dict, run_analysis)
 
 							send_to_slack = True
 
@@ -1317,10 +1321,6 @@ class Command(BaseCommand):
 					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
 
 						print(f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-
-						print(f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-						fastqc_dict = cruk.get_fastqc_data()
-						add_fastqc_data(fastqc_dict, run_analysis)
 
 						send_to_slack = True
 
