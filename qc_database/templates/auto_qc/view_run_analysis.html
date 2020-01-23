@@ -197,7 +197,7 @@
 </table>
 
 
-{% if run_analysis.analysis_type.analysis_type_id == 'IlluminaTruSightOne' and  run_analysis.sensitivity != None %}
+{% if run_analysis.analysis_type.analysis_type_id == 'IlluminaTruSightOne' %}
 
 <h5> Sensitivity </h5>
 
@@ -226,6 +226,13 @@
 		<td class="table-danger"> {{run_analysis.sensitivity_user}} </td>
 
 		{% endif %}
+
+		{% else %}
+
+		<td> {{run_analysis.sensitivity}} ({{run_analysis.sensitivity_lower_ci}}-{{run_analysis.sensitivity_higher_ci}}) </td>
+		<td> {{run_analysis.sensitivity_user}} </td>
+
+
 		{% endif %}
 
 
