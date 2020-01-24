@@ -58,6 +58,40 @@ def sample_sheet_parser(sample_sheet_path):
 
 	return sample_sheet_dict
 
+
+def sample_sheet_parser_nipt(sample_sheet_path):
+
+	sample_sheet_dict = {}
+
+	start = False
+
+	with open(sample_sheet_path, 'r') as csvfile:
+
+		spamreader = csv.reader(csvfile, delimiter=',')
+
+		for row in spamreader:
+
+			sample_id = row[1]
+
+			if sample_id == 'Sample_ID':
+
+				start = True
+				desc = row
+
+			if sample_id == '':
+
+				continue
+
+			if start == True and sample_id != 'Sample_ID':
+
+				sample_sheet_dict[sample_id] = {}
+
+				for i, col in enumerate(row):
+
+					sample_sheet_dict[sample_id][desc[i]] = col
+
+	return sample_sheet_dict
+
 def get_run_parameters_dict(run_parameters_path):
 
 	# turn XML file into a dictionary

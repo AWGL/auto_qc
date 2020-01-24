@@ -38,7 +38,7 @@ def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 
 	num_reads = processed_run_info_dict['num_reads']
 	length_read1 = processed_run_info_dict['length_read1']
-	length_read2 = processed_run_info_dict['length_read2']
+	length_read2 = processed_run_info_dict.get('length_read2', None)
 	num_indexes= processed_run_info_dict['num_indexes']
 	length_index1 = processed_run_info_dict['length_index1']
 	length_index2 = processed_run_info_dict.get('length_index2', None)

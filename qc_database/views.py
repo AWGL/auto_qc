@@ -91,6 +91,7 @@ def view_run_analysis(request, pk):
 				# message run status to slack
 
 				if settings.MESSAGE_SLACK:
+
 					message_slack(
 						status_message +
 						f'```Run ID:          {run_analysis.run}\n' + 

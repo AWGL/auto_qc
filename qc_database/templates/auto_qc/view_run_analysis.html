@@ -241,7 +241,11 @@
 
 {% endif %}
 
+{% if run_analysis.analysis_type.analysis_type_id != "NIPT" %}
+
+
 <h2> Sample Level QC </h2>
+
 
 <table id="run_analysis" class="table table-hover table-bordered table-sm">
 
@@ -428,7 +432,7 @@
 
 
 
-
+{% endif %}
 
 
 

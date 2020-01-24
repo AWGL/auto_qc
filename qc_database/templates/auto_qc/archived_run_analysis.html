@@ -36,6 +36,17 @@
 		<td> {{run_analysis.pipeline.pipeline_id}} </td>
 		<td> {{run_analysis.start_date|date:'Y-m-d'}} </td>
 
+
+		{% if run_analysis.analysis_type.analysis_type_id == "NIPT" %}
+			<td class="table-success"> NA</td>
+			<td class="table-success"> NA</td>
+			<td class="table-success"> NA</td>
+			<td class="table-success"> NA</td>
+			<td class="table-success"> NA</td>
+			<td class="table-success"> NA</td>
+
+		{% else %}
+
 		{% if run_analysis.demultiplexing_completed == True %}
 		<td  class="table-success" > {{run_analysis.demultiplexing_completed}} </td>
 		{% else %}
@@ -67,6 +78,8 @@
 		<td class="table-success"> {{run_analysis.results_valid}} </td>
 		{% else %}
 		<td  class="table-danger" > {{run_analysis.results_valid}} </td>
+		{% endif %}
+
 		{% endif %}
 
 		{% if run_analysis.manual_approval == True %}
