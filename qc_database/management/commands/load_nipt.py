@@ -56,8 +56,15 @@ def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 	run_obj.num_indexes = num_indexes
 	run_obj.length_index1 = length_index1
 	run_obj.length_index2 = length_index2
+
+	try:
 	
-	interop_dict = parse_interop_data(str(raw_data_dir), int(num_reads) + int(num_indexes), int(lane_count))
+		interop_dict = parse_interop_data(str(raw_data_dir), int(num_reads) + int(num_indexes), int(lane_count))
+
+	except:
+
+		print (f'Could not process interop data for run {run_obj.run_id}')
+		return None
 
 	for read in interop_dict['read_summaries']:
 
