@@ -856,15 +856,15 @@ class VariantCallingMetrics(models.Model):
 	"""
 
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
-	het_homvar_ratio = models.DecimalField(max_digits=7, decimal_places=3)
-	pct_gq0_variants = models.DecimalField(max_digits=6, decimal_places=3)
+	het_homvar_ratio = models.DecimalField(max_digits=7, decimal_places=3, null=True, blank=True)
+	pct_gq0_variants = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	total_gq0_variants  = models.IntegerField()
 	total_het_depth = models.BigIntegerField()
 	total_snps = models.IntegerField()
 	num_in_db_snp = models.IntegerField()
 	novel_snps = models.IntegerField()
 	filtered_snps = models.IntegerField()
-	pct_dbsnp = models.DecimalField(max_digits=6, decimal_places=3)
+	pct_dbsnp = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	dbsnp_titv = models.DecimalField(max_digits=7, decimal_places=3)
 	novel_titv = models.DecimalField(max_digits=7, decimal_places=3)
 	total_indels = models.IntegerField()

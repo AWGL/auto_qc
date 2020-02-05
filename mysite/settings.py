@@ -154,4 +154,7 @@ f = open('/home/webapps/auto_qc/qc_database/utils/slack_url.txt')
 #f = open(os.path.join('qc_database', 'utils', 'slack_url.txt'))
 SLACK_URL = f.read()
 f.close()
-MESSAGE_SLACK = False
+MESSAGE_SLACK = True
+
+
+
