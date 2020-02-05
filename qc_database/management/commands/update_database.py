@@ -294,7 +294,6 @@ def add_alignment_metrics(alignment_metrics_dict, run_analysis_obj):
 	Add data from picard alignment metrics files to database.
 
 	"""
-	print(alignment_metrics_dict)
 
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
@@ -373,7 +372,7 @@ def add_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
 
 
 	for key in variant_metrics_dict:
-		print(key)
+
 		sample_obj = Sample.objects.get(sample_id=key)
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
@@ -385,7 +384,7 @@ def add_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
 		if len(existing_data) < 1:
 
 			sample_data = variant_metrics_dict[key]
-			print(sample_data)
+
 			sample_data['sample_analysis'] = sample_analysis_obj
 
 			for key in sample_data:
