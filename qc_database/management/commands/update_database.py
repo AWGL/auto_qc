@@ -731,8 +731,16 @@ class Command(BaseCommand):
 
 				sample_ids = [sample.sample.sample_id for sample in samples]
 
-				fastq_data_dir = config_dict['pipelines'][run_config_key]['fastq_dir']
-				results_dir = config_dict['pipelines'][run_config_key]['results_dir']
+
+				try:
+					fastq_data_dir = config_dict['pipelines'][run_config_key]['fastq_dir']
+					results_dir = config_dict['pipelines'][run_config_key]['results_dir']
+
+				except:
+
+					print(f'No config for this pipeline {run_config_key}')
+					fastq_data_dir = '/data/archive/fastq'
+					results_dir = '/data/results/'
 
 				run_fastq_dir = Path(fastq_data_dir).joinpath(run_analysis.run.run_id)
 				run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id, run_analysis.analysis_type.analysis_type_id)
