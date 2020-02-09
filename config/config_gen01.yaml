@@ -133,6 +133,58 @@ pipelines:
     run_not_expected_files: ['*_variants_filtered.vcf',
                 'BAMs.list']
 
+
+  GermlineEnrichment-2.5.6-AgilentOGTFH:
+    fastq_dir: '/data/archive/fastq/'
+    results_dir: '/data/results/'
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 100000
+    min_variants: 10
+    max_variants: 500
+    sample_expected_files: ['*.bam',
+                '*.g.vcf',
+                  '*_AlignmentSummaryMetrics.txt',
+                  '*_Contamination.selfSM',
+                  '*_DepthOfCoverage.gz',
+                  '*_HsMetrics.txt',
+                  '*_InsertMetrics.txt',
+                  '*_MarkDuplicatesMetrics.txt',
+                  '*_QC.txt',
+                  '*_FH_VariantReport_filtered.csv']
+    sample_not_expected_files: ['*_rmdup.bam',
+                   '*_DepthOfCoverage']
+    run_expected_files: ['*_filtered_annotated_roi.vcf',
+                '*_filtered_annotated_roi_noMT.vcf',
+                '*_pedigree.ped',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_detail_metrics',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_summary_metrics',
+                '*_relatedness.relatedness2',
+                'sv_analysis/*_cnvReport.csv',
+                'combined_QC.txt',
+              ]
+    run_not_expected_files: ['*_variants_filtered.vcf',
+                'BAMs.list']
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   SomaticEnrichment-1.0.0-RochePanCancer:
     fastq_dir: '/data/archive/fastq/'
     results_dir: '/data/results/'
