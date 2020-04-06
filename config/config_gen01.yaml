@@ -516,6 +516,25 @@ pipelines:
                   'results/coverage/*{sample}_gaps.bed']
    
 
+  DragenWGS-0.0.1-NexteraDNAFlex:
+    fastq_dir: '/data/archive/novaseq/FASTQ/'
+    results_dir: '/data/results/dragen_results/'
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity]
+    min_q30_score: 0.75
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 1000000
+    min_variants: 8000
+    max_variants: 15000
+    sample_expected_files: ['*.bam',
+                  '*.mapping_metrics.csv',
+                  '*.insert-stats.tab']
+    sample_not_expected_files: []
+    run_expected_files: ['*.hard-filtered.vcf.gz',
+                  '*.vc_metrics.csv',
+                   'results/relatedness/*.relatedness2']
+    run_not_expected_files: []
+    post_sample_files: []
 
 
 

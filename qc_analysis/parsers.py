@@ -123,6 +123,10 @@ def get_instrument_type(instrument_id):
 
 		instrument_type = 'NextSeq'
 
+	elif instrument_id.startswith('A'):
+
+		instrument_type = 'Novaseq'
+
 	else:
 
 		instrument_type = ''
@@ -143,7 +147,17 @@ def extract_data_from_run_info_dict(run_info_dict):
 	year = '20' + instrument_date[0:2]
 	month = instrument_date[2:4]
 	day = instrument_date[4:6]
-	runinfo_sorted_dict['instrument_date'] = date(int(year), int(month), int(day)).isoformat()
+		
+	try:
+		runinfo_sorted_dict['instrument_date'] = date(int(year), int(month), int(day)).isoformat()
+	except:
+		
+		year = instrument_date.split(' ')[0].split('/')[2]
+		month = instrument_date.split(' ')[0].split('/')[0]
+		day = instrument_date.split(' ')[0].split('/')[1]
+		
+		runinfo_sorted_dict['instrument_date'] = date(int(year), int(month), int(day)).isoformat()		
+
 
 	# parse reads from xml dict and sort data
 	reads = run_info_dict['RunInfo']['Run']['Reads']['Read']

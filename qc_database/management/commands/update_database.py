@@ -31,10 +31,15 @@ def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 		experiment = run_params_dict['RunParameters']['Setup']['ExperimentName']
 		chemistry = None
 
-	else:
+	elif instrument_type == 'Novaseq':
 
+		experiment = None
+		chemistry = None
+
+	else:
 		experiment = run_params_dict['RunParameters']['ExperimentName']
 		chemistry = run_params_dict['RunParameters']['Chemistry']
+		
 
 	num_reads = processed_run_info_dict['num_reads']
 	length_read1 = processed_run_info_dict['length_read1']
