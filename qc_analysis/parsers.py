@@ -799,3 +799,34 @@ def parse_sensitivity_file(sensitivity_file):
 				sensitivity_dict['sensitivity_higher_ci'] = split_line[3].split('-')[1]
 			
 	return sensitivity_dict
+
+
+def parse_dragen_wgs_coverage_metrics_file(dragen_wgs_coverage_metrics_file):
+	"""
+	Parse the dragen alignment metrics file.
+	
+	"""
+	
+	dragen_wgs_coverage_metrics_file_dict = {}
+
+	with open (dragen_wgs_coverage_metrics_file) as file:
+
+		dragen_wgs_file = csv.reader(file, delimiter=',')
+		
+		for row in dragen_wgs_file:
+						
+			prefix = row[0]
+			key = row[2]
+			value = row[3]
+	
+			new_key = key.translate(str.maketrans('', '', string.punctuation.replace('_' ,'')))
+			
+			new_key = new_key.lower().replace(' ', '_').replace('__', '_')
+
+			new_key = new_key.replace('__', '_')
+			
+			if prefix == 'COVERAGE SUMMARY':
+								
+				dragen_wgs_coverage_metrics_file_dict[new_key] = value
+				
+	return dragen_wgs_coverage_metrics_file_dict

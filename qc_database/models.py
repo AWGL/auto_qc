@@ -169,6 +169,9 @@ class RunAnalysis(models.Model):
 	auto_qc_checks = models.TextField(null=True, blank=True)
 	min_variants = models.IntegerField(null=True, blank=True)
 	max_variants = models.IntegerField(null=True, blank=True)
+	min_titv = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	max_titv = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	min_coverage = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_sensitivity = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 
 
@@ -286,7 +289,6 @@ class RunAnalysis(models.Model):
 				return False
 
 
-
 	def passes_auto_qc(self):
 		"""
 		Check whether the run analysis passes all QC checks.
@@ -310,6 +312,8 @@ class RunAnalysis(models.Model):
 		# check is complete and valid
 
 		new_samples_list = []
+
+		reasons_to_fail = []
 
 		if self.demultiplexing_completed == False:
 
@@ -347,14 +351,6 @@ class RunAnalysis(models.Model):
 			if self.passes_run_level_qc() == False:
 
 				return False, 'Q30 Fail'
-
-		if 'fastqc' in checks_to_do:
-
-			for sample in new_samples_list:
-
-				if sample.passes_fastqc() == False:
-
-					return False, 'FASTQC Fail'
 
 		if 'contamination' in checks_to_do:
 
@@ -394,6 +390,26 @@ class RunAnalysis(models.Model):
 			if self.passes_sensitivity() == False:
 
 				return False, 'Low Sensitivity'
+
+		if 'coverage' in checks_to_do:
+
+			if self.passes_region_coverage_over_20 == False:
+
+				return False, 'Low Coverage >20x'
+
+		if 'titv' in checks_to_do:
+
+			if self.passes_titv() == False:
+
+				return False, 'Titv Ratio out of range for at least one sample'	
+
+		if 'fastqc' in checks_to_do:
+
+			for sample in new_samples_list:
+
+				if sample.passes_fastqc() == False:
+
+					return False, 'FASTQC Fail'
 
 
 		return True, 'All Pass'
@@ -484,13 +500,22 @@ class SampleAnalysis(models.Model):
 
 	def get_contamination(self):
 
-		try:
 
-			contamination_obj = ContaminationMetrics.objects.get(sample_analysis=self)
+		if 'DragenWGS' in self.pipeline.pipeline_id:
 
-		except:
+			contamination_obj = DragenAlignmentMetrics.objects.get(sample_analysis=self)
 
-			return 'NA'
+			return contamination_obj.estimated_sample_contamination
+
+		else:
+
+			try:
+
+				contamination_obj = ContaminationMetrics.objects.get(sample_analysis=self)
+
+			except:
+
+				return 'NA'
 
 
 		return contamination_obj.freemix
@@ -498,11 +523,11 @@ class SampleAnalysis(models.Model):
 	def passes_contamination(self):
 
 		try:
-			contamination_obj = ContaminationMetrics.objects.get(sample_analysis=self)
+			contamination = self.get_contamination()
 		except:
 			return None
 
-		if contamination_obj.freemix > self.contamination_cutoff:
+		if contamination > self.contamination_cutoff:
 
 				return False
 
@@ -569,14 +594,36 @@ class SampleAnalysis(models.Model):
 
 	def get_calculated_sex(self):
 
-		try:
-			sex_obj = CalculatedSexMetrics.objects.get(sample_analysis=self)
-		except:
-			return 'NA'
+		if 'DragenWGS' in self.pipeline.pipeline_id:
 
-		return sex_obj.calculated_sex.lower()
+			wgs_obj = DragenWGSCoverageMetrics.objects.get(sample_analysis=self)
+
+			if wgs_obj.predicted_sex_chromosome_ploidy == 'XX':
+
+				return 'female'
+
+			elif wgs_obj.predicted_sex_chromosome_ploidy == 'XY':
+
+				return 'male'
+
+			else:
+
+				return 'unknown'
+
+		else:
+
+			try:
+				sex_obj = CalculatedSexMetrics.objects.get(sample_analysis=self)
+			except:
+				return 'NA'
+
+			return sex_obj.calculated_sex.lower()
 
 	def passes_sex_check(self):
+
+		if self.get_calculated_sex() == 'unknown':
+
+			return False
 
 		if self.get_calculated_sex() == self.get_sex():
 
@@ -602,26 +649,33 @@ class SampleAnalysis(models.Model):
 
 	def get_variant_count(self):
 
+		if 'DragenWGS' in self.pipeline.pipeline_id:
 
-		try:
+			variant_calling_metrics = DragenVariantCallingMetrics.objects.get(sample_analysis=self)
 
-			variant_calling_metrics = VariantCallingMetrics.objects.get(sample_analysis=self)
+			return variant_calling_metrics.total
 
-			return variant_calling_metrics.total_snps + variant_calling_metrics.total_indels + variant_calling_metrics.total_complex_indels
-
-		except:
+		else:
 
 			try:
 
-				variant_count_metrics = VCFVariantCount.objects.get(sample_analysis=self)
+				variant_calling_metrics = VariantCallingMetrics.objects.get(sample_analysis=self)
 
-				return variant_count_metrics.variant_count
+				return variant_calling_metrics.total_snps + variant_calling_metrics.total_indels + variant_calling_metrics.total_complex_indels
 
 			except:
 
-				pass
+				try:
 
-		return 'NA'
+					variant_count_metrics = VCFVariantCount.objects.get(sample_analysis=self)
+
+					return variant_count_metrics.variant_count
+
+				except:
+
+					pass
+
+			return 'NA'
 
 	def passes_variant_count_check(self):
 
@@ -648,6 +702,83 @@ class SampleAnalysis(models.Model):
 
 		return False
 
+	def get_region_coverage_over_20(self):
+
+		try:
+			coverage = DragenRegionCoverageMetrics.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(coverage) != 1:
+
+			return None
+
+		else:
+
+			return coverage[0].pct_of_qc_coverage_region_with_coverage_20x_inf
+
+	def passes_region_coverage_over_20(self):
+
+		run_analysis = self.get_run_analysis()
+
+		if run_analysis == None:
+
+			return False
+
+		min_cov = run_analysis.min_coverage
+
+		cov_gtr_20 = self.get_region_coverage_over_20()
+
+		if cov_gtr_20 == None:
+
+			return False
+
+		else:
+
+			if cov_gtr_20 >= min_cov:
+
+				return True
+
+		return False
+
+	def get_titv(self):
+
+		try:
+			titv = DragenVariantCallingMetrics.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(coverage) != 1:
+
+			return None
+
+		else:
+
+			return titv[0].titv_ratio
+
+
+	def passes_titv(self):
+
+		titv = self.get_titv()
+
+		run_analysis = self.get_run_analysis()
+
+		if run_analysis == None:
+
+			return False
+
+		min_titv = run_analysis.min_titv
+		max_titv = run_analysis.max_titv
+
+		if titv < min_titv:
+
+			return False
+
+		if titv > max_titv:
+
+			return False
+
+		return True
 
 
 class SampleFastqcData(models.Model):
@@ -988,6 +1119,8 @@ class DragenAlignmentMetrics(models.Model):
 	insert_length_standard_deviation = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	provided_sex_chromosome_ploidy = models.IntegerField(null=True, blank=True)
 	dragen_mapping_rate_mil_readssecond = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	average_sequenced_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	estimated_sample_contamination = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 
 class DragenVariantCallingMetrics(models.Model):
 
@@ -1012,6 +1145,92 @@ class DragenVariantCallingMetrics(models.Model):
 	hethom_ratio  = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	in_dbsnp = models.IntegerField(null=True, blank=True)
 	not_in_dbsnp = models.IntegerField(null=True, blank=True)
+
+
+class DragenWGSCoverageMetrics(models.Model):
+
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	aligned_bases = models.BigIntegerField(null=True, blank=True)
+	aligned_bases_in_genome = models.BigIntegerField(null=True, blank=True)
+	average_alignment_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	uniformity_of_coverage_pct_02mean_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_100x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_50x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_20x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_15x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_10x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_3x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_1x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_0x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_50x100x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_20x_50x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_15x_20x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_10x_15x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_3x_10x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_1x_3x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_genome_with_coverage_0x_1x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	average_chr_x_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	average_chr_y_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	average_mitochondrial_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	average_autosomal_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	median_autosomal_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	meanmedian_autosomal_coverage_ratio_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	xavgcovyavgcov_ratio_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	xavgcovautosomalavgcov_ratio_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	yavgcovautosomalavgcov_ratio_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	predicted_sex_chromosome_ploidy = models.CharField(max_length=10, blank=True, null=True)
+	aligned_reads = models.BigIntegerField(null=True, blank=True)
+	aligned_reads_in_genome = models.BigIntegerField(null=True, blank=True)
+
+
+class DragenRegionCoverageMetrics(models.Model):
+
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	aligned_bases  = models.BigIntegerField(null=True, blank=True)
+	aligned_bases_in_qc_coverage_region  = models.BigIntegerField(null=True, blank=True)
+	average_alignment_coverage_over_qc_coverage_region = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	uniformity_of_coverage_pct_02mean_over_qc_coverage_region = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_100x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_50x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_20x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_15x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_10x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_3x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_1x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_0x_inf = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_50x100x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_20x_50x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_15x_20x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_10x_15x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_3x_10x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_1x_3x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	pct_of_qc_coverage_region_with_coverage_0x_1x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	average_chr_x_coverage_over_qc_coverage_region = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	average_chr_y_coverage_over_qc_coverage_region = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	average_mitochondrial_coverage_over_qc_coverage_region = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	average_autosomal_coverage_over_qc_coverage_region = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	median_autosomal_coverage_over_qc_coverage_region = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	meanmedian_autosomal_coverage_ratio_over_qc_coverage_region = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	xavgcovyavgcov_ratio_over_qc_coverage_region = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	xavgcovautosomalavgcov_ratio_over_qc_coverage_region = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	yavgcovautosomalavgcov_ratio_over_qc_coverage_region = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	predicted_sex_chromosome_ploidy = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	aligned_reads = models.BigIntegerField(null=True, blank=True)
+	aligned_reads_in_qc_coverage_region = models.BigIntegerField(null=True, blank=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 auditlog.register(RunAnalysis)
 auditlog.register(SampleAnalysis)

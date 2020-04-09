@@ -85,6 +85,27 @@
 
 	{% endif %}
 
+	{% if 'titv' in checks_to_do %}
+
+	<tr>
+		<td> TiTv Ratio Range</td>
+		<td> {{run_analysis.min_titv}} - {{run_analysis.max_titv}}</td>
+
+	</tr>
+
+	{% endif %}
+
+	{% if 'coverage' in checks_to_do %}
+
+	<tr>
+		<td> Min Exonic Coverage > 20x</td>
+		<td> {{run_analysis.min_coverage}} </td>
+
+	</tr>
+
+	{% endif %}
+
+
 	{% if run_analysis.watching == False %}
 
 	<tr>
@@ -259,6 +280,9 @@
 	  	<th>FASTQC</th>
 	  {% endif %}
 
+	  {% if 'coverage' in checks_to_do %}
+	  	<th> Pct > 20x</th>
+	  {% endif %}
 
 	  <th>Total Reads</th>
 	  <th>Total Variants</th>
@@ -282,6 +306,10 @@
 			<td class="table-dark"> {{sample_analysis.passes_fastqc}} </td>
 			{% endif %}
 
+			{% if 'coverage' in checks_to_do %}
+			<td class="table-dark"> {{sample_analysis.get_region_coverage_over_20}} </td>
+			{% endif %}
+
 			<td class="table-dark"> {{sample_analysis.get_total_reads}} </td>
 			<td class="table-dark"> {{sample_analysis.get_variant_count}} </td>
 			<td class="table-dark"> {{sample_analysis.get_contamination}} </td>
@@ -302,6 +330,17 @@
 		{% else %}
 			<td class="table-danger"> {{sample_analysis.passes_fastqc}} </td>
 		{% endif %}
+		{% endif %}
+
+
+		{% if 'coverage' in checks_to_do %}
+
+			{% if sample_analysis.passes_region_coverage_over_20 == True %}
+			<td class="table-success"> {{sample_analysis.get_region_coverage_over_20}} </td>
+			{% else %}
+			<td class="table-danger"> {{sample_analysis.get_region_coverage_over_20}} </td>
+			{% endif %}
+			
 		{% endif %}
 
 		<td> {{sample_analysis.get_total_reads}} </td>

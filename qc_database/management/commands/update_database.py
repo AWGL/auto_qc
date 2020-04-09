@@ -8,7 +8,7 @@ import datetime
 from qc_database.models import *
 from qc_analysis.parsers import *
 from ...utils.slack import message_slack
-from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, SomaticEnrichment, SomaticAmplicon, Cruk, DragenQC, DragenGE
+from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, SomaticEnrichment, SomaticAmplicon, Cruk, DragenQC, DragenGE, DragenWGS
 
 def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 	"""
@@ -502,6 +502,74 @@ def add_sensitivity_metrics(sensitivity_metrics, run_analysis_obj):
 
 	run_analysis_obj.save()
 
+def add_dragen_wgs_coverage_metrics(dragen_wgs_coverage_metrics, run_analysis_obj):
+
+	"""
+	Add data from the Dragen Variant Calling WGS coverage files to database.
+
+	"""
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in dragen_wgs_coverage_metrics:
+		
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+		
+		existing_data = DragenWGSCoverageMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+		
+		if len(existing_data) < 1:
+
+			sample_data = dragen_wgs_coverage_metrics[key]
+
+			sample_data['sample_analysis'] = sample_analysis_obj
+			
+			for key in sample_data:
+
+				if sample_data[key] == 'NA' or sample_data[key] == ''  or sample_data[key] == 'inf':
+
+					sample_data[key] = None
+
+			new_dragen_wgs_cov_obj = DragenWGSCoverageMetrics(**sample_data)
+			new_dragen_wgs_cov_obj.save()
+
+def add_dragen_exonic_coverage_metrics(dragen_exonic_coverage_metrics, run_analysis_obj):
+
+	"""
+	Add data from the Dragen Variant Calling WGS coverage files to database.
+
+	"""
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in dragen_exonic_coverage_metrics:
+		
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+		
+		existing_data = DragenRegionCoverageMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+		
+		if len(existing_data) < 1:
+
+			sample_data = dragen_exonic_coverage_metrics[key]
+
+			sample_data['sample_analysis'] = sample_analysis_obj
+			
+			for key in sample_data:
+
+				if sample_data[key] == 'NA' or sample_data[key] == ''  or sample_data[key] == 'inf':
+
+					sample_data[key] = None
+
+			new_dragen_region_cov_obj = DragenRegionCoverageMetrics(**sample_data)
+			new_dragen_region_cov_obj.save()
+
 class Command(BaseCommand):
 
 	def add_arguments(self, parser):
@@ -692,8 +760,26 @@ class Command(BaseCommand):
 
 					except:
 
-						min_sensitivity = None		
+						min_sensitivity = None
 
+
+					try:
+
+						min_titv =  config_dict['pipelines'][run_config_key]['min_titv']
+						max_titv =  config_dict['pipelines'][run_config_key]['max_titv']
+
+					except:
+
+						min_titv = 2.0		
+						max_titv = 2.1
+
+					try:
+
+						min_coverage = config_dict['pipelines'][run_config_key]['min_coverage']
+
+					except:
+
+						min_coverage = 90.0
 
 					new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
 																			pipeline = pipeline_obj,
@@ -708,6 +794,9 @@ class Command(BaseCommand):
 						new_run_analysis_obj.min_q30_score = min_q30_score
 						new_run_analysis_obj.start_date = datetime.datetime.now()
 						new_run_analysis_obj.min_sensitivity = min_sensitivity
+						new_run_analysis_obj.min_titv = min_titv
+						new_run_analysis_obj.max_titv = max_titv
+						new_run_analysis_obj.min_coverage = min_coverage
 
 						# message slack
 
@@ -1483,7 +1572,123 @@ class Command(BaseCommand):
 
 					run_analysis.save()
 
-					
+				# for germline enrichment
+				elif 'DragenWGS' in run_analysis.pipeline.pipeline_id:
+
+					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+
+					try:
+
+						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
+						post_sample_files = config_dict['pipelines'][run_config_key]['post_sample_files']
+						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
+						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
+						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
+
+						dragen_wgs = DragenWGS(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id,
+															sample_expected_files = sample_expected_files,
+															sample_not_expected_files = sample_not_expected_files,
+															run_expected_files = run_expected_files,
+															run_not_expected_files = run_not_expected_files,
+															post_sample_files = post_sample_files
+															)
+
+					except:
+
+						dragen_wgs = DragenWGS(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id
+															)
+
+					for sample in sample_ids:
+
+						sample_complete = dragen_wgs.sample_is_complete(sample)
+						sample_valid = dragen_wgs.sample_is_valid(sample)
+
+						sample_obj = Sample.objects.get(sample_id = sample)
+
+						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
+																		run = run_analysis.run,
+																		pipeline = run_analysis.pipeline)
+
+						if sample_analysis_obj.results_completed == False and sample_complete == True:
+
+							if sample_valid == True:
+
+								print (f'Sample {sample} on run {run_analysis.run.run_id} has finished DragenWGS pipelines successfully.')
+
+							else:
+								print (f'Sample {sample} on run {run_analysis.run.run_id} has failed DragenWGS pipeline.')
+
+						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
+
+							print (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
+
+
+						sample_analysis_obj.results_completed = sample_complete
+						sample_analysis_obj.results_valid = sample_valid
+						sample_analysis_obj.save()
+
+					run_complete = dragen_wgs.run_and_samples_complete()
+					run_valid = dragen_wgs.run_and_samples_valid()
+
+					if run_analysis.results_completed == False and run_complete == True:
+
+						if run_valid == True:
+
+							print (f'Run {run_analysis.run.run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							alignment_metrics_dict = dragen_wgs.get_alignment_metrics()
+							add_dragen_alignment_metrics(alignment_metrics_dict, run_analysis)
+
+							print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							variant_calling_metrics_dict = dragen_wgs.get_variant_calling_metrics()
+							add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
+
+							print (f'Putting WGS metrics into db for run {run_analysis.run.run_id}')
+							wgs_coverage_metrics_dict = dragen_wgs.get_wgs_mapping_metrics()
+							add_dragen_wgs_coverage_metrics(wgs_coverage_metrics_dict, run_analysis)
+
+							print (f'Putting exonic coverage metrics into db for run {run_analysis.run.run_id}')
+							exonic_coverage_metrics_dict = dragen_wgs.get_exonic_mapping_metrics()
+							add_dragen_exonic_coverage_metrics(exonic_coverage_metrics_dict, run_analysis)
+
+
+
+							send_to_slack = True
+
+						else:
+
+							print (f'Run {run_analysis.run.run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+
+					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
+
+							print (f'Run {run_analysis.run.run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							alignment_metrics_dict = dragen_wgs.get_alignment_metrics()
+							add_dragen_alignment_metrics(alignment_metrics_dict, run_analysis)
+
+							print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							variant_calling_metrics_dict = dragen_wgs.get_variant_calling_metrics()
+							add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
+
+							print (f'Putting WGS metrics into db for run {run_analysis.run.run_id}')
+							wgs_coverage_metrics_dict = dragen_wgs.get_wgs_mapping_metrics()
+							add_dragen_wgs_coverage_metrics(wgs_coverage_metrics_dict, run_analysis)
+
+							print (f'Putting exonic coverage metrics into db for run {run_analysis.run.run_id}')
+							exonic_coverage_metrics_dict = dragen_wgs.get_exonic_mapping_metrics()
+							add_dragen_exonic_coverage_metrics(exonic_coverage_metrics_dict, run_analysis)
+							send_to_slack = True
+
+					run_analysis.results_completed = run_complete
+					run_analysis.results_valid = run_valid
+
+					run_analysis.save()			
 
 				# message slack
 				if settings.MESSAGE_SLACK:
