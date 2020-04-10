@@ -517,8 +517,8 @@ pipelines:
    
 
   DragenWGS-0.0.1-NexteraDNAFlex:
-    fastq_dir: '/media/joseph/Storage/data/archive/dragen_fastq/'
-    results_dir: '/media/joseph/Storage/data/dragen_results/'
+    fastq_dir: '/data/archive/novaseq/FASTQ/'
+    results_dir: '/data/results/dragen_results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage]
     min_q30_score: 0.75
     contamination_cutoff: 0.025

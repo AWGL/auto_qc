@@ -392,16 +392,18 @@ class RunAnalysis(models.Model):
 				return False, 'Low Sensitivity'
 
 		if 'coverage' in checks_to_do:
+			
 
-			if self.passes_region_coverage_over_20 == False:
+			for sample in new_samples_list:
+				if sample.passes_region_coverage_over_20() == False:
 
-				return False, 'Low Coverage >20x'
+					return False, 'Low Coverage >20x'
 
 		if 'titv' in checks_to_do:
+			for sample in new_samples_list:
+				if sample.passes_titv() == False:
 
-			if self.passes_titv() == False:
-
-				return False, 'Titv Ratio out of range for at least one sample'	
+					return False, 'Titv Ratio out of range for at least one sample'	
 
 		if 'fastqc' in checks_to_do:
 
@@ -748,7 +750,7 @@ class SampleAnalysis(models.Model):
 		except:
 			return None
 
-		if len(coverage) != 1:
+		if len(titv) != 1:
 
 			return None
 

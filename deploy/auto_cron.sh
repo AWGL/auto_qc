@@ -18,5 +18,11 @@ python manage.py update_database --raw_data_dir /data/archive/nextseq --config /
 echo doing the nipt
 python manage.py load_nipt --raw_data_dir /data/archive/nipt/runs
 
+echo doing the novaseq
+python manage.py update_database --raw_data_dir /data/archive/novaseq/BCL --config /export/home/webapps/auto_qc/config/config_gen01.yaml
+
+
+
+
 
 source /home/webapps/miniconda3/bin/deactivate
