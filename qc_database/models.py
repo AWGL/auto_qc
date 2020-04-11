@@ -365,7 +365,7 @@ class RunAnalysis(models.Model):
 
 			for sample in new_samples_list:
 
-				if sample.passes_ntc_contamination() == False:
+				if sample.passes_ntc_contamination() != True:
 
 					return False, 'NTC Contamination Fail'
 
@@ -546,13 +546,13 @@ class SampleAnalysis(models.Model):
 
 		if total_reads == None:
 
-			return None
+			return False
 
 		ntc_objs = run_analysis.get_ntc_sample(self.worksheet)
 
 		if len(ntc_objs) == 0:
 
-			return None
+			return False
 
 		for ntc in ntc_objs:
 
