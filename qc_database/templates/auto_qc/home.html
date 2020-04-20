@@ -1,0 +1,127 @@
+{% extends 'auto_qc/base.html' %}
+{% load static %}
+{% block content %}
+
+
+<br>
+
+
+<table id="run_analysis" class="table table-hover table-bordered table-responsive">
+
+  <thead>
+	<tr>
+	  <th>ID</th>
+	  <th>Run</th>
+	  <th>Worksheets</th>
+	  <th>Analysis</th>
+	  <th>Pipeline</th>
+	  <th>Start Date</th>
+	  <th>Demultiplex Complete</th>
+	  <th>Demultiplex Valid</th>
+	  <th>Samples Complete</th>
+	  <th>Samples Valid</th>
+	  <th>Run Complete</th>
+	  <th>Run Valid</th>
+	</tr>
+  </thead>
+
+  <tbody>
+	{% for run_analysis in run_analyses %}
+	<tr>
+
+		<td>
+		 <a href="{% url 'view_run_analysis' pk=run_analysis.pk %}"> 
+				{{run_analysis.pk}}
+		 </a> 
+		</td>
+
+		<td> {{run_analysis.run.run_id}} </td>
+		<td> {{run_analysis.get_worksheets}} </td>
+		<td> {{run_analysis.analysis_type.analysis_type_id}} </td>
+		<td> {{run_analysis.pipeline.pipeline_id}} </td>
+		<td> {{run_analysis.start_date|date:'Y-m-d'}} </td>
+
+		{% if run_analysis.analysis_type.analysis_type_id == "NIPT" %}
+			<td class="table-success"> NA</td>
+			<td class="table-success"> NA</td>
+			<td class="table-success"> NA</td>
+			<td class="table-success"> NA</td>
+			<td class="table-success"> NA</td>
+			<td class="table-success"> NA</td>
+
+		{% else %}
+
+		{% if run_analysis.demultiplexing_completed == True %}
+		<td  class="table-success" > {{run_analysis.demultiplexing_completed}} </td>
+		{% else %}
+		<td  class="table-danger" > {{run_analysis.demultiplexing_completed}} </td>
+		{% endif %}
+
+		{% if run_analysis.demultiplexing_valid == True %}
+		<td class="table-success"> {{run_analysis.demultiplexing_valid}} </td>
+		{% else %}
+		<td  class="table-danger" > {{run_analysis.demultiplexing_valid}} </td>
+		{% endif %}
+
+		{% if  run_analysis.get_n_samples_completed.0 == run_analysis.get_n_samples_valid.0 %}
+		<td class="table-success"> {{run_analysis.get_n_samples_completed|join:" / "}} </td>
+		<td class="table-success"> {{run_analysis.get_n_samples_valid|join:" / "}} </td>
+		{% else %}
+		<td class="table-danger"> {{run_analysis.get_n_samples_completed|join:" / "}} </td>
+		<td class="table-danger"> {{run_analysis.get_n_samples_valid|join:" / "}} </td>
+		{% endif %}
+
+		{% if run_analysis.results_completed == True %}
+		<td class="table-success"> {{run_analysis.results_completed}} </td>
+		{% else %}
+		<td  class="table-danger" > {{run_analysis.results_completed}} </td>
+		{% endif %}
+
+		{% if run_analysis.results_valid == True %}
+		<td class="table-success"> {{run_analysis.results_valid}} </td>
+		{% else %}
+		<td  class="table-danger" > {{run_analysis.results_valid}} </td>
+		{% endif %}
+
+
+
+		{% endif %}
+		
+
+
+
+
+
+	</tr>
+
+
+
+
+	{% endfor %}
+  </tbody>
+
+
+</table>
+<br>
+<br>
+
+
+<!-- JAVASCRIPT -->
+<script>
+$(document).ready(function(){
+
+	// Inititialise DataTable
+	var table = $('#run_analysis').DataTable({
+		"paging":   true,
+		"ordering": true,
+		"info":     false,
+		"pageLength": 25,
+		"searching": true,
+		"aaSorting": [],
+	});
+
+
+});
+</script>
+
+{% endblock %}
