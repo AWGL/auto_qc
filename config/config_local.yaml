@@ -323,10 +323,60 @@ pipelines:
                   'results/coverage/*{sample}_depth_of_coverage.gz',
                   'results/coverage/*{sample}_gaps.bed']
    
-
+  DragenGE-1.1.0-IlluminaTruSightOne:
+    fastq_dir: '/data/archive/novaseq/FASTQ/'
+    results_dir: '/data/results/dragen_results/'
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity]
+    min_q30_score: 0.75
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_sensitivity: 0.95
+    min_fastq_size: 1000000
+    min_variants: 8000
+    max_variants: 15000
+    sample_expected_files: ['*.bam',
+                  '*.mapping_metrics.csv',
+                  '*.insert-stats.tab']
+    sample_not_expected_files: []
+    run_expected_files: ['*.hard-filtered.vcf.gz',
+                  '*.vc_metrics.csv',
+                   'results/relatedness/*.relatedness2',
+                   'results/sensitivity/*_sensitivity.txt',
+                   'results/database_vcf/*.roi.filtered.database.vcf',
+                   'results/annotated_vcf/*.roi.filtered.norm.anno.vcf.gz']
+    run_not_expected_files: []
+    post_sample_files: ['results/contamination/*{sample}_contamination.selfSM',
+                  'results/calculated_sex/*{sample}_calculated_sex.txt',
+                  'results/coverage/*{sample}_depth_of_coverage.gz',
+                  'results/coverage/*{sample}_gaps.bed']
   DragenWGS-0.0.1-NexteraDNAFlex:
     fastq_dir: '/media/joseph/Storage/data/archive/dragen_fastq/'
     results_dir: '/media/joseph/Storage/data/dragen_results/'
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage]
+    min_q30_score: 0.75
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 1000000
+    min_variants: 4775905
+    max_variants: 5003809
+    min_titv: 2.0
+    max_titv: 2.1
+    min_coverage: 90
+    sample_expected_files: ['*.bam',
+                  '*.mapping_metrics.csv',
+                  '*.insert-stats.tab']
+    sample_not_expected_files: []
+    run_expected_files: ['*.hard-filtered.vcf.gz',
+                  '*.vc_metrics.csv',
+                 'results/relatedness/*.relatedness2',
+                 'results/annotated_vcf/*.norm.anno.vcf.gz'
+               ]
+    run_not_expected_files: []
+    post_sample_files: []
+
+  DragenWGS-1.0.0-NexteraDNAFlex:
+    fastq_dir: '/data/archive/novaseq/FASTQ/'
+    results_dir: '/data/results/dragen_results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
