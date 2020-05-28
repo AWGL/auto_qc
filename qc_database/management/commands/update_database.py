@@ -1376,10 +1376,9 @@ class Command(BaseCommand):
 						sample_valid = cruk.sample_is_valid(sample)
 
 						sample_obj = Sample.objects.get(sample_id=sample)
-
 						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
-																		 run=run_analysis.run,
-																		 pipeline=run_analysis.pipeline)
+												run=run_analysis.run,
+												pipeline=run_analysis.pipeline)
 
 						if sample_analysis_obj.results_completed == False and sample_complete == True:
 

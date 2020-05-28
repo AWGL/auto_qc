@@ -158,7 +158,6 @@ def extract_data_from_run_info_dict(run_info_dict):
 		
 		runinfo_sorted_dict['instrument_date'] = date(int(year), int(month), int(day)).isoformat()		
 
-
 	# parse reads from xml dict and sort data
 	reads = run_info_dict['RunInfo']['Run']['Reads']['Read']
 	num_reads = 0
