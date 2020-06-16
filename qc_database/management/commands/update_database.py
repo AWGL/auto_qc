@@ -657,6 +657,8 @@ class Command(BaseCommand):
 					interop_data = None
 
 
+
+				
 				try:
 					# parse sample sheet
 					sample_sheet_data = sample_sheet_parser(sample_sheet)
@@ -668,7 +670,7 @@ class Command(BaseCommand):
 					print(e)
 					print(f'Could not parse sample sheet for run {run_id}')
 					continue
-
+				
 				# set to hold different pipeline combinations
 				run_analyses_to_create = set()
 
