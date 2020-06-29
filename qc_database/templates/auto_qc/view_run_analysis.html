@@ -200,17 +200,17 @@
 	{% for run_level_quality in run_level_qualities %}
 
 	{% if run_level_quality.percent_q30 > min_q30_score %}
-	<tr class="table-success">
-		<td> {{run_level_quality.read_number}} </td>
-		<td> {{run_level_quality.lane_number}} </td>
-		<td> {{run_level_quality.percent_q30}} </td>
+	<tr>
+		<td > {{run_level_quality.read_number}} </td>
+		<td > {{run_level_quality.lane_number}} </td>
+		<td class="table-success"> {{run_level_quality.percent_q30}} </td>
 		<td> {{run_level_quality.display_cluster_density}} </td>
 	</tr>
 	{% else %}
-	<tr class="table-danger">
-		<td> {{run_level_quality.read_number}} </td>
+	<tr>
+		<td > {{run_level_quality.read_number}} </td>
 		<td> {{run_level_quality.lane_number}} </td>
-		<td> {{run_level_quality.percent_q30}} </td>
+		<td class="table-danger"> {{run_level_quality.percent_q30}} </td>
 		<td> {{run_level_quality.display_cluster_density}} </td>
 	</tr>
 
