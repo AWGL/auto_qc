@@ -349,8 +349,8 @@ pipelines:
                   'results/calculated_sex/*{sample}_calculated_sex.txt',
                   'results/coverage/*{sample}_depth_of_coverage.gz',
                   'results/coverage/*{sample}_gaps.bed']
+
   DragenWGS-0.0.1-NexteraDNAFlex:
-    fastq_dir: '/media/joseph/Storage/data/archive/dragen_fastq/'
     results_dir: '/media/joseph/Storage/data/dragen_results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage]
     min_q30_score: 0.75
@@ -375,7 +375,6 @@ pipelines:
     post_sample_files: []
 
   DragenWGS-1.0.0-NexteraDNAFlex:
-    fastq_dir: '/data/archive/novaseq/FASTQ/'
     results_dir: '/data/results/dragen_results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage]
     min_q30_score: 0.75

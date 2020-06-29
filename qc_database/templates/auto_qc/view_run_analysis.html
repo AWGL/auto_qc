@@ -114,6 +114,13 @@
 
 	</tr>
 
+
+	<tr>
+		<td> Sign Off Date </td>
+		<td> {{run_analysis.signoff_date}}</td>
+
+	</tr>
+
 	<tr>
 		<td> Manual QC </td>
 		<td> {{run_analysis.manual_approval}}</td>
@@ -156,7 +163,7 @@
 <div class="alert alert-danger">
 
   <a class="btn btn-danger" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
-    Fail ({{ auto_qc.1 }})
+    Fail: {{ auto_qc.1|join:' | ' }}
   </a>
 
 <div class="collapse" id="collapseExample">

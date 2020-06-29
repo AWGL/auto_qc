@@ -828,13 +828,17 @@ class Command(BaseCommand):
 				sample_ids = [sample.sample.sample_id for sample in samples]
 
 
+				# have we configured a fastq folder
+				has_fastqs = config_dict['pipelines'][run_config_key].get('fastq_dir')
+
+
 				try:
 					fastq_data_dir = config_dict['pipelines'][run_config_key]['fastq_dir']
 					results_dir = config_dict['pipelines'][run_config_key]['results_dir']
 
 				except:
 
-					print(f'No config for this pipeline {run_config_key}')
+					print(f'No fastq or results directory configured for this pipeline {run_config_key}')
 					fastq_data_dir = '/data/archive/fastq'
 					results_dir = '/data/results/'
 
@@ -870,9 +874,17 @@ class Command(BaseCommand):
 											run_id = run_analysis.run.run_id)
 
 
-				has_completed = illumina_qc.demultiplex_run_is_complete()
+				# if we have not given a directory for fastqs then pretend everything is ok
+				if has_fastqs == None:
 
-				is_valid = illumina_qc.demultiplex_run_is_valid()
+					has_completed = True
+					is_valid = True
+
+				else:
+
+					has_completed = illumina_qc.demultiplex_run_is_complete()
+
+					is_valid = illumina_qc.demultiplex_run_is_valid()
 
 				if run_analysis.demultiplexing_completed == False and has_completed == True:
 
@@ -893,8 +905,6 @@ class Command(BaseCommand):
 						# set slack status message
 						status_message = f':heavy_exclamation_mark: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has failed FASTQ generation*\n'
 						
-						# remove continue if we want downstream checks
-						#continue
 
 					# send slack message
 					if settings.MESSAGE_SLACK:
@@ -908,8 +918,6 @@ class Command(BaseCommand):
 				run_analysis.demultiplexing_completed = has_completed
 				run_analysis.demultiplexing_valid = is_valid
 				run_analysis.save()
-
-				# now check pipeline results -do we bother if demultiplexing fails?
 				
 				# set to false, will be overwritten if pipeline is comleted
 				send_to_slack = False
