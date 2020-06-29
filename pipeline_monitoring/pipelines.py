@@ -1876,8 +1876,6 @@ class DragenWGS:
 			found_file = results_path.glob(file)
 
 			if len(list(found_file)) != 1:
-
-				print(file)
 								
 				return False
 

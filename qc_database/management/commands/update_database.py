@@ -8,6 +8,7 @@ import datetime
 from qc_database.models import *
 from qc_analysis.parsers import *
 from ...utils.slack import message_slack
+import logging
 from pipeline_monitoring.pipelines import IlluminaQC, GermlineEnrichment, SomaticEnrichment, SomaticAmplicon, Cruk, DragenQC, DragenGE, DragenWGS
 
 def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
@@ -575,16 +576,17 @@ class Command(BaseCommand):
 	def add_arguments(self, parser):
 
 		parser.add_argument('--raw_data_dir', nargs =1, type = str, required=True)
-		#parser.add_argument('--fastq_data_dir', nargs =1, type = str, required=True)
-		#parser.add_argument('--results_dir', nargs =1, type = str, required=True)
+
 		parser.add_argument('--config', nargs =1, type = str, required=True)
 	
 	def handle(self, *args, **options):
 
+
+		logging.basicConfig(level=logging.DEBUG)
+		logger = logging.getLogger(__name__)
+
 		# Make or get initial model instances
 		raw_data_dir = options['raw_data_dir'][0]
-		#fastq_data_dir = options['fastq_data_dir'][0]
-		#results_dir = options['results_dir'][0]
 		config = options['config'][0]
 
 		# Read config file and create dictionary
@@ -614,7 +616,7 @@ class Command(BaseCommand):
 				# skip if no sample sheet
 				if sample_sheet.exists() == False:
 
-					print(f'Could not find sample sheet for {raw_data}')
+					logger.info(f'Could not find sample sheet for {raw_data}')
 					continue
 
 				copy_complete = raw_data.joinpath('run_copy_complete.txt')
@@ -628,7 +630,7 @@ class Command(BaseCommand):
 			
 				if run_id not in existing_runs:
 
-					print (f'A new run has been detected: {run_id}')
+					logger.info (f'A new run has been detected: {run_id}')
 
 					# parse runlog data 
 					run_info = raw_data.joinpath('RunInfo.xml')
@@ -640,12 +642,12 @@ class Command(BaseCommand):
 
 						if run_parameters.exists() == False:
 
-							print (f'Can\'t find run parameters file for {run_id}')
+							logger.warn (f'Can\'t find run parameters file for {run_id}')
 							continue
 
 					if run_info.exists() == False or run_parameters.exists() == False:
 
-						print (f'Can\'t find required XML files for {run_id}')
+						logger.warn (f'Can\'t find required XML files for {run_id}')
 						continue
 
 
@@ -655,9 +657,6 @@ class Command(BaseCommand):
 				else:
 
 					interop_data = None
-
-
-
 				
 				try:
 					# parse sample sheet
@@ -667,8 +666,10 @@ class Command(BaseCommand):
 
 
 				except Exception as e:
-					print(e)
-					print(f'Could not parse sample sheet for run {run_id}')
+
+					logger.exception(e)
+
+					logger.warn(f'Could not parse sample sheet for run {run_id}')
 					continue
 				
 				# set to hold different pipeline combinations
@@ -764,7 +765,6 @@ class Command(BaseCommand):
 
 						min_sensitivity = None
 
-
 					try:
 
 						min_titv =  config_dict['pipelines'][run_config_key]['min_titv']
@@ -833,16 +833,22 @@ class Command(BaseCommand):
 
 
 				try:
-					fastq_data_dir = config_dict['pipelines'][run_config_key]['fastq_dir']
 					results_dir = config_dict['pipelines'][run_config_key]['results_dir']
 
 				except:
 
-					print(f'No fastq or results directory configured for this pipeline {run_config_key}')
-					fastq_data_dir = '/data/archive/fastq'
+					logger.warn(f'No results directory configured for this pipeline {run_config_key}')
 					results_dir = '/data/results/'
 
-				run_fastq_dir = Path(fastq_data_dir).joinpath(run_analysis.run.run_id)
+				if has_fastqs != None:
+					
+					fastq_data_dir = config_dict['pipelines'][run_config_key]['fastq_dir']
+					run_fastq_dir = Path(fastq_data_dir).joinpath(run_analysis.run.run_id)
+
+				else:
+
+					run_fastq_dir = '/data/'
+
 				run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id, run_analysis.analysis_type.analysis_type_id)
 
 				lanes = run_analysis.run.lanes
@@ -890,14 +896,14 @@ class Command(BaseCommand):
 
 					if is_valid == True:
 
-						print (f'Run {run_analysis} {run_analysis.analysis_type.analysis_type_id} has now completed demultiplexing')
+						logger.info(f'Run {run_analysis} {run_analysis.analysis_type.analysis_type_id} has now completed demultiplexing')
 						
 						# set slack status message
 						status_message = f':information_source: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has generated FASTQs successfully*\n'
 
 					else:
 
-						print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now failed demultiplexing')
+						logger.info(f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now failed demultiplexing')
 						run_analysis.demultiplexing_completed = has_completed
 						run_analysis.demultiplexing_valid = is_valid
 						run_analysis.save()
@@ -964,14 +970,14 @@ class Command(BaseCommand):
 
 							if sample_valid == True:
 
-								print (f'Sample {sample} on run {run_analysis.run.run_id} has finished GermlineEnrichment script one successfully.')
+								logger.info(f'Sample {sample} on run {run_analysis.run.run_id} has finished GermlineEnrichment script one successfully.')
 
 							else:
-								print (f'Sample {sample} on run {run_analysis.run.run_id} has failed GermlineEnrichment script one.')
+								logger.info(f'Sample {sample} on run {run_analysis.run.run_id} has failed GermlineEnrichment script one.')
 
 						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
 
-							print (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
+							logger.info(f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
 
 
 						sample_analysis_obj.results_completed = sample_complete
@@ -985,42 +991,42 @@ class Command(BaseCommand):
 
 						if run_valid == True:
 
-							print (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-							print ('putting fastqc into db')
+							logger.info(f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info('putting fastqc into db')
 
-							print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							logger.info(f'Putting fastqc data into db for run {run_analysis.run.run_id}')
 							fastqc_dict = germline_enrichment.get_fastqc_data()
 							add_fastqc_data(fastqc_dict, run_analysis)
 
-							print (f'Putting hs metrics into db for run {run_analysis.run.run_id}')
+							logger.info(f'Putting hs metrics into db for run {run_analysis.run.run_id}')
 							hs_metrics_dict = germline_enrichment.get_hs_metrics()
 							add_hs_metrics(hs_metrics_dict, run_analysis)
 
-							print (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
 							depth_metrics_dict = germline_enrichment.get_depth_metrics()
 							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
 
-							print (f'Putting duplication into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting duplication into db for run {run_analysis.run.run_id}')
 							duplication_metrics_dict = germline_enrichment.get_duplication_metrics()
 							add_duplication_metrics(duplication_metrics_dict, run_analysis)
 
-							print (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
 							contamination_metrics_dict = germline_enrichment.get_contamination()
 							add_contamination_metrics(contamination_metrics_dict, run_analysis)
 
-							print (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
 							sex_dict = germline_enrichment.get_calculated_sex()
 							add_sex_metrics(sex_dict, run_analysis, 'gender')
 
-							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
 							alignment_metrics_dict = germline_enrichment.get_alignment_metrics()
 							add_alignment_metrics(alignment_metrics_dict, run_analysis)
 
-							print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
 							variant_calling_metrics_dict = germline_enrichment.get_variant_calling_metrics()
 							add_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
 
-							print (f'Putting insert metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting insert metrics into db for run {run_analysis.run.run_id}')
 							insert_metrics_dict = germline_enrichment.get_insert_metrics()
 							add_insert_metrics(insert_metrics_dict, run_analysis)
 
@@ -1028,45 +1034,45 @@ class Command(BaseCommand):
 
 						else:
 
-							print (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
 
 					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
 
-							print (f'Run {run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
 							fastqc_dict = germline_enrichment.get_fastqc_data()
 							add_fastqc_data(fastqc_dict, run_analysis)
 
-							print (f'Putting hs metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting hs metrics into db for run {run_analysis.run.run_id}')
 							hs_metrics_dict = germline_enrichment.get_hs_metrics()
 							add_hs_metrics(hs_metrics_dict, run_analysis)
 
-							print (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
 							depth_metrics_dict = germline_enrichment.get_depth_metrics()
 							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
 
-							print (f'Putting duplication into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting duplication into db for run {run_analysis.run.run_id}')
 							duplication_metrics_dict = germline_enrichment.get_duplication_metrics()
 							add_duplication_metrics(duplication_metrics_dict, run_analysis)
 
-							print (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
 							contamination_metrics_dict = germline_enrichment.get_contamination()
 							add_contamination_metrics(contamination_metrics_dict, run_analysis)
 
-							print (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
 							sex_dict = germline_enrichment.get_calculated_sex()
 							add_sex_metrics(sex_dict, run_analysis, 'gender')
 
-							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
 							alignment_metrics_dict = germline_enrichment.get_alignment_metrics()
 							add_alignment_metrics(alignment_metrics_dict, run_analysis)
 
-							print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
 							variant_calling_metrics_dict = germline_enrichment.get_variant_calling_metrics()
 							add_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
 
-							print (f'Putting insert metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting insert metrics into db for run {run_analysis.run.run_id}')
 							insert_metrics_dict = germline_enrichment.get_insert_metrics()
 							add_insert_metrics(insert_metrics_dict, run_analysis)
 
@@ -1121,14 +1127,14 @@ class Command(BaseCommand):
 
 							if sample_valid == True:
 
-								print (f'Sample {sample} on run {run_analysis.run.run_id} has finished sample level SomaticEnrichment successfully.')
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has finished sample level SomaticEnrichment successfully.')
 
 							else:
-								print (f'Sample {sample} on run {run_analysis.run.run_id} has failed sample level SomaticEnrichment.')
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has failed sample level SomaticEnrichment.')
 
 						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
 
-							print (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
+							logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
 
 			
 						sample_analysis_obj.results_completed = sample_complete
@@ -1142,37 +1148,37 @@ class Command(BaseCommand):
 
 						if run_valid == True:
 
-							print (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
 							fastqc_dict = somatic_enrichment.get_fastqc_data()
 							add_fastqc_data(fastqc_dict, run_analysis)
 							
-							print (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
 							hs_metrics_dict = somatic_enrichment.get_hs_metrics()
 							add_hs_metrics(hs_metrics_dict, run_analysis)
 
-							print (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
 							depth_metrics_dict = somatic_enrichment.get_depth_metrics()
 							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
 
-							print (f'Putting duplication metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting duplication metrics data into db for run {run_analysis.run.run_id}')
 							duplication_metrics_dict = somatic_enrichment.get_duplication_metrics()
 							add_duplication_metrics(duplication_metrics_dict, run_analysis)
 
-							print (f'Putting sex metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting sex metrics data into db for run {run_analysis.run.run_id}')
 							sex_dict = somatic_enrichment.get_calculated_sex()
 							add_sex_metrics(sex_dict, run_analysis, 'gender')
 
-							print (f'Putting alignment metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting alignment metrics data into db for run {run_analysis.run.run_id}')
 							alignment_metrics_dict = somatic_enrichment.get_alignment_metrics()
 							add_alignment_metrics(alignment_metrics_dict, run_analysis)
 
-							print (f'Putting insert metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting insert metrics data into db for run {run_analysis.run.run_id}')
 							insert_metrics_dict = somatic_enrichment.get_insert_metrics()
 							add_insert_metrics(insert_metrics_dict, run_analysis)
 
-							print (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
 							variant_count_metrics_dict = somatic_enrichment.get_variant_count()
 							add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
 
@@ -1180,41 +1186,41 @@ class Command(BaseCommand):
 
 						else:
 
-							print (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
 
 					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
 
-							print (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
 							fastqc_dict = somatic_enrichment.get_fastqc_data()
 							add_fastqc_data(fastqc_dict, run_analysis)
 							
-							print (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
 							hs_metrics_dict = somatic_enrichment.get_hs_metrics()
 							add_hs_metrics(hs_metrics_dict, run_analysis)
 
-							print (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
 							depth_metrics_dict = somatic_enrichment.get_depth_metrics()
 							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
 
-							print (f'Putting duplication metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting duplication metrics data into db for run {run_analysis.run.run_id}')
 							duplication_metrics_dict = somatic_enrichment.get_duplication_metrics()
 							add_duplication_metrics(duplication_metrics_dict, run_analysis)
 
-							print (f'Putting sex metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting sex metrics data into db for run {run_analysis.run.run_id}')
 							sex_dict = somatic_enrichment.get_calculated_sex()
 							add_sex_metrics(sex_dict, run_analysis, 'gender')
 
-							print (f'Putting alignment metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting alignment metrics data into db for run {run_analysis.run.run_id}')
 							alignment_metrics_dict = somatic_enrichment.get_alignment_metrics()
 							add_alignment_metrics(alignment_metrics_dict, run_analysis)
 
-							print (f'Putting insert metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting insert metrics data into db for run {run_analysis.run.run_id}')
 							insert_metrics_dict = somatic_enrichment.get_insert_metrics()
 							add_insert_metrics(insert_metrics_dict, run_analysis)
 
-							print (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
 							variant_count_metrics_dict = somatic_enrichment.get_variant_count()
 							add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
 
@@ -1266,14 +1272,14 @@ class Command(BaseCommand):
 
 							if sample_valid == True:
 
-								print (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level SomaticAmplicon successfully.')
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level SomaticAmplicon successfully.')
 
 							else:
-								print (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level SomaticAmplicon.')
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level SomaticAmplicon.')
 
 						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
 
-							print (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now completed successfully.')
+							logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now completed successfully.')
 
 			
 						sample_analysis_obj.results_completed = sample_complete
@@ -1287,22 +1293,22 @@ class Command(BaseCommand):
 
 						if run_valid == True:
 
-							print (f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
 							fastqc_dict = somatic_amplicon.get_fastqc_data()
 							add_fastqc_data(fastqc_dict, run_analysis)
 							
-							print (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
 							hs_metrics_dict = somatic_amplicon.get_hs_metrics()
 							add_hs_metrics(hs_metrics_dict, run_analysis)
 
-							print (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
 							depth_metrics_dict = somatic_amplicon.get_depth_metrics()
 							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
 
 
-							print (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
 							variant_count_metrics_dict = somatic_amplicon.get_variant_count()
 							add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
 
@@ -1310,25 +1316,25 @@ class Command(BaseCommand):
 
 						else:
 
-							print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
 
 					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
 
-							print (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							print (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
 							fastqc_dict = somatic_amplicon.get_fastqc_data()
 							add_fastqc_data(fastqc_dict, run_analysis)
 							
-							print (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
 							hs_metrics_dict = somatic_amplicon.get_hs_metrics()
 							add_hs_metrics(hs_metrics_dict, run_analysis)
 
-							print (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
 							depth_metrics_dict = somatic_amplicon.get_depth_metrics()
 							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
 
-							print (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
 							variant_count_metrics_dict = somatic_amplicon.get_variant_count()
 							add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
 
@@ -1394,14 +1400,14 @@ class Command(BaseCommand):
 
 							if sample_valid == True:
 
-								print(f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level Cruk successfully.')
+								logger.info(f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level Cruk successfully.')
 
 							else:
-								print(f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level Cruk.')
+								logger.info(f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level Cruk.')
 
 						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
 
-							print(f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now completed successfully.')
+							logger.info(f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now completed successfully.')
 
 						sample_analysis_obj.results_completed = sample_complete
 						sample_analysis_obj.results_valid = sample_valid
@@ -1415,7 +1421,7 @@ class Command(BaseCommand):
 
 					if ok_to_upload == True:
 
-						print(f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+						logger.info(f'Putting fastqc data into db for run {run_analysis.run.run_id}')
 						fastqc_dict = cruk.get_fastqc_data()
 						add_fastqc_data(fastqc_dict, run_analysis)	
 
@@ -1423,17 +1429,17 @@ class Command(BaseCommand):
 
 						if run_valid == True:
 
-							print(f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info(f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
 							send_to_slack = True
 
 						else:
 
-							print(f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info(f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
 
 					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
 
-						print(f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+						logger.info(f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
 						send_to_slack = True
 
@@ -1488,14 +1494,14 @@ class Command(BaseCommand):
 
 							if sample_valid == True:
 
-								print (f'Sample {sample} on run {run_analysis.run.run_id} has finished DragenGE pipelines successfully.')
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has finished DragenGE pipelines successfully.')
 
 							else:
-								print (f'Sample {sample} on run {run_analysis.run.run_id} has failed DragenGE pipeline.')
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has failed DragenGE pipeline.')
 
 						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
 
-							print (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
+							logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
 
 
 						sample_analysis_obj.results_completed = sample_complete
@@ -1509,33 +1515,33 @@ class Command(BaseCommand):
 
 						if run_valid == True:
 
-							print (f'Run {run_analysis.run.run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_analysis.run.run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							print (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
 							depth_metrics_dict = dragen_ge.get_depth_metrics()
 							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
 
-							print (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
 							contamination_metrics_dict = dragen_ge.get_contamination()
 							add_contamination_metrics(contamination_metrics_dict, run_analysis)
 
-							print (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
 							sex_dict = dragen_ge.get_sex_metrics()
 							add_sex_metrics(sex_dict, run_analysis, 'sex')
 
-							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
 							alignment_metrics_dict = dragen_ge.get_alignment_metrics()
 							add_dragen_alignment_metrics(alignment_metrics_dict, run_analysis)
 
-							print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
 							variant_calling_metrics_dict = dragen_ge.get_variant_calling_metrics()
 							add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
 
-							print (f'Putting sensitivity metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting sensitivity metrics into db for run {run_analysis.run.run_id}')
 							sensitivity_metrics = dragen_ge.get_sensitivity()
 							add_sensitivity_metrics(sensitivity_metrics, run_analysis)
 
-							print (f'Adding variant count metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Adding variant count metrics into db for run {run_analysis.run.run_id}')
 							variant_count = dragen_ge.get_variant_count_metrics()
 							add_variant_count_metrics(variant_count, run_analysis)
 
@@ -1543,33 +1549,33 @@ class Command(BaseCommand):
 
 						else:
 
-							print (f'Run {run_analysis.run.run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_analysis.run.run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
 
 					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
 
-							print (f'Run {run_analysis.run.run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_analysis.run.run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							print (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
 							depth_metrics_dict = dragen_ge.get_depth_metrics()
 							add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
 
-							print (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
 							contamination_metrics_dict = dragen_ge.get_contamination()
 							add_contamination_metrics(contamination_metrics_dict, run_analysis)
 
-							print (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
 							sex_dict = dragen_ge.get_sex_metrics()
 							add_sex_metrics(sex_dict, run_analysis, 'sex')
 
-							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
 							alignment_metrics_dict = dragen_ge.get_alignment_metrics()
 							add_dragen_alignment_metrics(alignment_metrics_dict, run_analysis)
 
-							print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
 							variant_calling_metrics_dict = dragen_ge.get_variant_calling_metrics()
 							add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
 
-							print (f'Adding variant count metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Adding variant count metrics into db for run {run_analysis.run.run_id}')
 							variant_count = dragen_ge.get_variant_count_metrics()
 							add_variant_count_metrics(variant_count, run_analysis)
 
@@ -1626,14 +1632,14 @@ class Command(BaseCommand):
 
 							if sample_valid == True:
 
-								print (f'Sample {sample} on run {run_analysis.run.run_id} has finished DragenWGS pipelines successfully.')
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has finished DragenWGS pipelines successfully.')
 
 							else:
-								print (f'Sample {sample} on run {run_analysis.run.run_id} has failed DragenWGS pipeline.')
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has failed DragenWGS pipeline.')
 
 						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
 
-							print (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
+							logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
 
 
 						sample_analysis_obj.results_completed = sample_complete
@@ -1647,21 +1653,21 @@ class Command(BaseCommand):
 
 						if run_valid == True:
 
-							print (f'Run {run_analysis.run.run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_analysis.run.run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
 							alignment_metrics_dict = dragen_wgs.get_alignment_metrics()
 							add_dragen_alignment_metrics(alignment_metrics_dict, run_analysis)
 
-							print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
 							variant_calling_metrics_dict = dragen_wgs.get_variant_calling_metrics()
 							add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
 
-							print (f'Putting WGS metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting WGS metrics into db for run {run_analysis.run.run_id}')
 							wgs_coverage_metrics_dict = dragen_wgs.get_wgs_mapping_metrics()
 							add_dragen_wgs_coverage_metrics(wgs_coverage_metrics_dict, run_analysis)
 
-							print (f'Putting exonic coverage metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting exonic coverage metrics into db for run {run_analysis.run.run_id}')
 							exonic_coverage_metrics_dict = dragen_wgs.get_exonic_mapping_metrics()
 							add_dragen_exonic_coverage_metrics(exonic_coverage_metrics_dict, run_analysis)
 
@@ -1671,25 +1677,25 @@ class Command(BaseCommand):
 
 						else:
 
-							print (f'Run {run_analysis.run.run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_analysis.run.run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
 
 					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
 
-							print (f'Run {run_analysis.run.run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info (f'Run {run_analysis.run.run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							print (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
 							alignment_metrics_dict = dragen_wgs.get_alignment_metrics()
 							add_dragen_alignment_metrics(alignment_metrics_dict, run_analysis)
 
-							print (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
 							variant_calling_metrics_dict = dragen_wgs.get_variant_calling_metrics()
 							add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
 
-							print (f'Putting WGS metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting WGS metrics into db for run {run_analysis.run.run_id}')
 							wgs_coverage_metrics_dict = dragen_wgs.get_wgs_mapping_metrics()
 							add_dragen_wgs_coverage_metrics(wgs_coverage_metrics_dict, run_analysis)
 
-							print (f'Putting exonic coverage metrics into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting exonic coverage metrics into db for run {run_analysis.run.run_id}')
 							exonic_coverage_metrics_dict = dragen_wgs.get_exonic_mapping_metrics()
 							add_dragen_exonic_coverage_metrics(exonic_coverage_metrics_dict, run_analysis)
 							send_to_slack = True

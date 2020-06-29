@@ -421,7 +421,7 @@ class RunAnalysis(models.Model):
 
 		else:
 
-			return False, reasons_to_fail
+			return False, list(set(reasons_to_fail))
 
 
 
