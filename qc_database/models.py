@@ -1180,7 +1180,7 @@ class DragenWGSCoverageMetrics(models.Model):
 	pct_of_genome_with_coverage_0x_1x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	average_chr_x_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	average_chr_y_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
-	average_mitochondrial_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	average_mitochondrial_coverage_over_genome = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 	average_autosomal_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	median_autosomal_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	meanmedian_autosomal_coverage_ratio_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
