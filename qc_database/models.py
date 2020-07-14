@@ -162,6 +162,7 @@ class RunAnalysis(models.Model):
 	manual_approval = models.BooleanField(default=False)
 	comment = models.TextField(null=True, blank=True)
 	signoff_user = models.ForeignKey('auth.User', on_delete=models.CASCADE, null=True, blank=True, related_name='signoff_user')
+	signoff_date = models.DateField(blank=True, null=True)
 	sensitivity = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	sensitivity_lower_ci = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	sensitivity_higher_ci = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
@@ -309,6 +310,7 @@ class RunAnalysis(models.Model):
 												pipeline = self.pipeline,
 												analysis_type = self.analysis_type)
 
+
 		# check is complete and valid
 
 		new_samples_list = []
@@ -317,29 +319,29 @@ class RunAnalysis(models.Model):
 
 		if self.demultiplexing_completed == False:
 
-			return False, 'Demultiplexing not complete for some samples'
+			reasons_to_fail.append('Demultiplexing not complete for some samples')
 
 		if self.demultiplexing_valid == False:
 
-			return False, 'Demultiplexing not valid for some samples'
+			reasons_to_fail.append( 'Demultiplexing not valid for some samples')
 
 		if self.results_completed == False:
 
-			return False, 'Run results not completed'
+			return False,['Run results not completed']
 
 		if self.results_valid == False:
 
-			return False, 'Run results not valid'
+			return False,['Run results not valid']
 
 		for sample in samples:
 
 			if sample.results_completed == False:
 
-				return False, 'Results not complete for some samples'
+				reasons_to_fail.append('Results not complete for some samples')
 
 			if sample.results_valid == False:
 
-				return False, 'Results not valid for some samples'
+				reasons_to_fail.append('Results not valid for some samples')
 
 
 			if sample.sample.is_ntc() == False:
@@ -350,7 +352,7 @@ class RunAnalysis(models.Model):
 
 			if self.passes_run_level_qc() == False:
 
-				return False, 'Q30 Fail'
+				reasons_to_fail.append('Q30 Fail')
 
 		if 'contamination' in checks_to_do:
 
@@ -358,7 +360,7 @@ class RunAnalysis(models.Model):
 
 				if sample.passes_contamination() == False:
 
-					return False, 'Contamination Fail'
+					reasons_to_fail.append('Contamination Fail')
 
 
 		if 'ntc_contamination' in checks_to_do:
@@ -367,7 +369,7 @@ class RunAnalysis(models.Model):
 
 				if sample.passes_ntc_contamination() != True:
 
-					return False, 'NTC Contamination Fail'
+					reasons_to_fail.append('NTC Contamination Fail')
 
 		if 'sex_match' in checks_to_do:
 
@@ -375,7 +377,7 @@ class RunAnalysis(models.Model):
 
 				if sample.passes_sex_check() == False:
 
-					return False, 'Sex Match Fail'
+					reasons_to_fail.append('Sex Match Fail')
 
 		if 'variant_check' in checks_to_do:
 
@@ -383,13 +385,13 @@ class RunAnalysis(models.Model):
 
 				if sample.passes_variant_count_check() == False:
 
-					return False, 'Variant Count Fail'
+					reasons_to_fail.append('Variant Count Fail')
 
 		if 'sensitivity' in checks_to_do:
 
 			if self.passes_sensitivity() == False:
 
-				return False, 'Low Sensitivity'
+				reasons_to_fail.append('Low Sensitivity')
 
 		if 'coverage' in checks_to_do:
 			
@@ -397,13 +399,13 @@ class RunAnalysis(models.Model):
 			for sample in new_samples_list:
 				if sample.passes_region_coverage_over_20() == False:
 
-					return False, 'Low Coverage >20x'
+					reasons_to_fail.append('Low Coverage >20x')
 
 		if 'titv' in checks_to_do:
 			for sample in new_samples_list:
 				if sample.passes_titv() == False:
 
-					return False, 'Titv Ratio out of range for at least one sample'	
+					reasons_to_fail.append('Titv Ratio out of range for at least one sample')
 
 		if 'fastqc' in checks_to_do:
 
@@ -411,10 +413,15 @@ class RunAnalysis(models.Model):
 
 				if sample.passes_fastqc() == False:
 
-					return False, 'FASTQC Fail'
+					reasons_to_fail.append('FASTQC Fail')
 
+		if len(reasons_to_fail) ==0:
 
-		return True, 'All Pass'
+			return True, ['All Pass']
+
+		else:
+
+			return False, list(set(reasons_to_fail))
 
 
 
@@ -1173,7 +1180,7 @@ class DragenWGSCoverageMetrics(models.Model):
 	pct_of_genome_with_coverage_0x_1x = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	average_chr_x_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	average_chr_y_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
-	average_mitochondrial_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	average_mitochondrial_coverage_over_genome = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 	average_autosomal_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	median_autosomal_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	meanmedian_autosomal_coverage_ratio_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)

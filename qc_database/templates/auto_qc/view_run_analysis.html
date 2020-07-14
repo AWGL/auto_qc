@@ -114,6 +114,13 @@
 
 	</tr>
 
+
+	<tr>
+		<td> Sign Off Date </td>
+		<td> {{run_analysis.signoff_date}}</td>
+
+	</tr>
+
 	<tr>
 		<td> Manual QC </td>
 		<td> {{run_analysis.manual_approval}}</td>
@@ -156,7 +163,7 @@
 <div class="alert alert-danger">
 
   <a class="btn btn-danger" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
-    Fail ({{ auto_qc.1 }})
+    Fail: {{ auto_qc.1|join:' | ' }}
   </a>
 
 <div class="collapse" id="collapseExample">
@@ -193,17 +200,17 @@
 	{% for run_level_quality in run_level_qualities %}
 
 	{% if run_level_quality.percent_q30 > min_q30_score %}
-	<tr class="table-success">
-		<td> {{run_level_quality.read_number}} </td>
-		<td> {{run_level_quality.lane_number}} </td>
-		<td> {{run_level_quality.percent_q30}} </td>
+	<tr>
+		<td > {{run_level_quality.read_number}} </td>
+		<td > {{run_level_quality.lane_number}} </td>
+		<td class="table-success"> {{run_level_quality.percent_q30}} </td>
 		<td> {{run_level_quality.display_cluster_density}} </td>
 	</tr>
 	{% else %}
-	<tr class="table-danger">
-		<td> {{run_level_quality.read_number}} </td>
+	<tr>
+		<td > {{run_level_quality.read_number}} </td>
 		<td> {{run_level_quality.lane_number}} </td>
-		<td> {{run_level_quality.percent_q30}} </td>
+		<td class="table-danger"> {{run_level_quality.percent_q30}} </td>
 		<td> {{run_level_quality.display_cluster_density}} </td>
 	</tr>
 

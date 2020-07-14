@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
 from django.conf import settings
+from datetime import datetime
 
 @transaction.atomic
 @login_required
@@ -59,8 +60,6 @@ def view_run_analysis(request, pk):
 	reset_form = ResetRunForm(run_analysis_id= run_analysis.pk)
 	sensitivity_form = SensitivityForm(instance = run_analysis)
 
-
-
 	if request.method == 'POST':
 
 		# if the user submitted the signoff form
@@ -86,6 +85,7 @@ def view_run_analysis(request, pk):
 				run_analysis.comment = comment
 				run_analysis.watching = False
 				run_analysis.signoff_user = request.user
+				run_analysis.signoff_date = datetime.now()
 				run_analysis.save()
 
 				# message run status to slack
@@ -113,6 +113,7 @@ def view_run_analysis(request, pk):
 			run_analysis.manual_approval = False
 			run_analysis.watching = True
 			run_analysis.signoff_user = None
+			run_analysis.signoff_date = None
 			run_analysis.save()
 
 			return redirect('home')

@@ -558,7 +558,6 @@ pipelines:
 
 
   DragenGE-1.0.0-IlluminaTruSightOne:
-    fastq_dir: '/data/archive/novaseq/FASTQ/'
     results_dir: '/data/results/dragen_results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity]
     min_q30_score: 0.75
@@ -585,7 +584,6 @@ pipelines:
                   'results/coverage/*{sample}_gaps.bed']
 
   DragenGE-1.1.0-IlluminaTruSightOne:
-    fastq_dir: '/data/archive/novaseq/FASTQ/'
     results_dir: '/data/results/dragen_results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity]
     min_q30_score: 0.75
@@ -612,7 +610,6 @@ pipelines:
                   'results/coverage/*{sample}_gaps.bed']
 
   DragenWGS-0.0.1-NexteraDNAFlex:
-    fastq_dir: '/data/archive/novaseq/FASTQ/'
     results_dir: '/data/results/dragen_results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage]
     min_q30_score: 0.75
@@ -637,7 +634,6 @@ pipelines:
     post_sample_files: []
 
   DragenWGS-1.0.0-NexteraDNAFlex:
-    fastq_dir: '/data/archive/novaseq/FASTQ/'
     results_dir: '/data/results/dragen_results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage]
     min_q30_score: 0.75
