@@ -204,6 +204,9 @@ pipelines:
                 'BAMs.list']
 
 
+
+
+
   GermlineEnrichment_TSC-1.0.0-IlluminaTruSightCancer:
     fastq_dir: '/data/archive/fastq/'
     results_dir: '/data/results/'
@@ -236,6 +239,9 @@ pipelines:
                 '*_cnvReport.csv']
     run_not_expected_files: ['*_variants_filtered.vcf',
                 'BAMs.list']
+
+
+
 
 
   SomaticEnrichment-1.0.0-RochePanCancer:
@@ -288,16 +294,29 @@ pipelines:
     run_not_expected_files: ['*.bed']
 
 
-
-
-
-
-
-
-
-
-
-
+  SomaticEnrichment-1.3.0-RochePanCancer:
+    fastq_dir: '/data/archive/fastq/'
+    results_dir: '/data/results/'
+    qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check]
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 100000
+    min_variants: 75
+    max_variants: 600
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_AlignmentSummaryMetrics.txt',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_QC.txt',
+                  '*_filteredStrLeftAligned_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage_135x'
+                  ]
+    sample_not_expected_files: []
+    run_sample_expected_files: ['CNVKit/*_common.vcf']
+    run_expected_files: ['combined_QC.txt', 'samplesCNVKit.txt']
+    run_not_expected_files: ['*.bed']
 
 
 
@@ -477,15 +496,70 @@ pipelines:
     run_not_expected_files: []
 
 
+  SomaticAmplicon-1.8.1-NGHS-102X:
+    fastq_dir: '/data/archive/fastq/'
+    results_dir: '/data/results/'
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
+    min_fastq_size: 10000000
+    min_variants: 10
+    max_variants: 250
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_QC.txt',
+                  '*_filtered_meta_annotated.vcf'
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
+
+  SomaticAmplicon-1.8.1-NGHS-101X:
+    fastq_dir: '/data/archive/fastq/'
+    results_dir: '/data/results/'
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
+    min_fastq_size: 10000000
+    min_variants: 100
+    max_variants: 700
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_QC.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage'
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
 
 
-
-
-
-
-
-
-
+  SomaticAmplicon-1.8.1-TruSightMyeloid:
+    fastq_dir: '/data/archive/fastq/'
+    results_dir: '/data/results/'
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
+    min_fastq_size: 10000000
+    min_variants: 100
+    max_variants: 700
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_QC.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage'
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
 
 
 
