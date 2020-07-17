@@ -2,11 +2,13 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import *
 from .forms import *
 from .utils.slack import message_slack
+from .utils.kpi import make_kpi_excel
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
 from django.conf import settings
+from django.http import HttpResponse
 from datetime import datetime
 
 @transaction.atomic
@@ -185,3 +187,36 @@ def signup(request):
 
 		form = UserCreationForm()
 		return render(request, 'auto_qc/signup.html', {'form': form, 'warning': []})
+
+
+@transaction.atomic
+def ngs_kpis(request):
+	'''
+	Query NGS runs between 2 dates and output excel sheet for tech team
+	'''
+	form = KpiDateForm()
+
+	if request.POST:
+
+		form = KpiDateForm(request.POST)
+
+		if form.is_valid():
+			# get data from form
+			cleaned_data = form.cleaned_data
+			start_date = cleaned_data['start_date']
+			end_date = cleaned_data['end_date']
+
+			# query all runs between input dates
+			runs = Run.objects.filter(instrument_date__range=(start_date, end_date)).order_by('instrument_date', 'experiment')
+			
+			# setup download button for openpyxl file
+			response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheet.sheet')
+			output_name = f'attachment; filename="KPI_{start_date}_{end_date}.xlsx"'
+			response['Content-Disposition'] = output_name
+
+			# loops through runs and make list of required data
+			wb = make_kpi_excel(runs)
+			wb.save(response)
+			return response
+
+	return render(request, 'auto_qc/ngs_kpis.html', {'form': form})
