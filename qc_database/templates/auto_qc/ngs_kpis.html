@@ -1,0 +1,20 @@
+{% extends 'auto_qc/base.html' %}
+{% load static %}
+{% block content %}
+
+<br>
+
+<h2>NGS KPIs</h2>
+<br>
+
+<h5>Enter date range:</h5>
+<br>
+
+<form method="POST">{% csrf_token %}
+    <table>{{ form.as_table }}</table>
+    <br>
+    <button type="submit" class="save btn btn-sm btn-primary" name="ngs_kpis">Download</button>
+</form>
+
+
+{% endblock %}
