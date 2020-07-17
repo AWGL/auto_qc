@@ -56,7 +56,11 @@
             <a class="nav-link" href={% url 'view_archived_run_analysis'  %}>Archive<span class="sr-only">(current)</span></a>
          </li>
 
-
+         <li class="nav-item">
+            <a class="nav-link" href={% url 'ngs_kpis'  %}>KPIs<span class="sr-only">(current)</span></a>
+         </li>
+         
+      </ul>
 
       
       <ul class="navbar-nav">
@@ -65,8 +69,6 @@
           <a class="nav-link" href="/logout">Logout<span class="sr-only">(current)</span></a>
           {% endif %}
         </li>
-      </ul>
-        
       </ul>
     
     </div>
