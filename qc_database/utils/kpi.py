@@ -63,16 +63,16 @@ def make_kpi_excel(runs):
 
     # dictionary of panels, key is panel ID in database, value is title for the panel's tab
     panels = {
+        'NGHS-102X': 'BRCA',
         'NGHS-101X': 'CRM',
-        'NGHS-102X': 'BRCA', 
-        'SMP2v3': 'CRUK', 
-        'NIPT': 'NIPT', 
-        'TruSightMyeloid': 'Myeloid', 
-        'RochePanCancer': 'PanCan', 
-        'IlluminaTruSightOne': 'TSO', 
-        'IlluminaTruSightCancer': 'TSC', 
-        'NexteraDNAFlex': 'WGS', 
-        'AgilentOGTFH': 'FH'
+        'SMP2v3': 'CRUK',
+        'AgilentOGTFH': 'FH',
+        'TruSightMyeloid': 'Myeloid',
+        'NIPT': 'NIPT',
+        'RochePanCancer': 'PanCan',
+        'IlluminaTruSightOne': 'TSO',
+        'IlluminaTruSightCancer': 'TSC',
+        'NexteraDNAFlex': 'WGS'
     }
     
     # create sheet for each panel in panel dictionary
