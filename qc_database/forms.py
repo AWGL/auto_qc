@@ -5,6 +5,7 @@ from crispy_forms.bootstrap import Field
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, HTML
 from django.forms import ModelForm
+import datetime
 
 class RunAnalysisSignOffForm(forms.Form):
 	"""
@@ -73,3 +74,27 @@ class SensitivityForm(ModelForm):
 		self.helper.layout = Layout(
 
 		)
+
+
+class KpiDateForm(forms.Form):
+	"""
+	Form to input two dates, used to pull KPI data for NGS runs between the dates
+	"""
+	current_year = datetime.datetime.now().year
+	current_month = datetime.datetime.now().month
+
+	# choices for year dropdown box
+	YEAR_CHOICES = range(2019, (current_year + 1))
+
+	# default to first and last day of previous month
+	INITIAL_START_DATE = datetime.date(current_year, current_month -1, 1)
+	INITIAL_END_DATE = datetime.date(current_year, current_month, 1) - datetime.timedelta(days=1)
+
+	start_date = forms.DateField(
+		initial=INITIAL_START_DATE,
+		widget=forms.SelectDateWidget(years=YEAR_CHOICES)
+	)
+	end_date = forms.DateField(
+		initial=INITIAL_END_DATE,
+		widget=forms.SelectDateWidget(years=YEAR_CHOICES)
+	)

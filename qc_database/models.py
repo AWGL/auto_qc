@@ -302,7 +302,7 @@ class RunAnalysis(models.Model):
 
 		if checks_to_do == None:
 
-			return False, 'No Configuration For this Pipeline.'
+			return False, ['No Configuration For this Pipeline.']
 
 		checks_to_do = checks_to_do.split(',')
 
