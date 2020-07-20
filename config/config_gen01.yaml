@@ -554,8 +554,7 @@ pipelines:
                   '*_DepthOfCoverage.sample_summary',
                   '*_QC.txt',
                   '*_filtered_meta_annotated.vcf',
-                  'hotspot_variants',
-                  'hotspot_coverage'
+                  'hotspot_variants'
                   ]
     sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
     run_expected_files: []

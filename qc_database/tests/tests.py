@@ -21,14 +21,14 @@ class TestAutoQC(TestCase):
 			run = run_analysis.run
 			)
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (True, 'All Pass'))
+		self.assertEqual(run_analysis.passes_auto_qc(), (True, ['All Pass']))
 
 		first_interop = interops[0]
 		first_interop.percent_q30 = 73
 		first_interop.save()
 
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (False, 'Q30 Fail'))
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Q30 Fail']))
 
 	
 	def test_fastqc_fail(self):
@@ -45,12 +45,12 @@ class TestAutoQC(TestCase):
 
 		first_fastqc = fastqcs[0]
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (True, 'All Pass'))
+		self.assertEqual(run_analysis.passes_auto_qc(), (True, ['All Pass']))
 
 		first_fastqc.basic_statistics = 'FAIL'
 		first_fastqc.save()
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (False, 'FASTQC Fail'))
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['FASTQC Fail']))
 	
 
 	
@@ -66,12 +66,12 @@ class TestAutoQC(TestCase):
 
 		contamination = ContaminationMetrics.objects.get(sample_analysis = samples[0])
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (True, 'All Pass'))
+		self.assertEqual(run_analysis.passes_auto_qc(), (True, ['All Pass']))
 
 		contamination.freemix = 0.25
 		contamination.save()
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (False, 'Contamination Fail'))
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Contamination Fail']))
 	
 
 	def test_ntc_contamination_fail(self):
@@ -86,12 +86,12 @@ class TestAutoQC(TestCase):
 
 		hs_metrics = SampleHsMetrics.objects.get(sample_analysis = samples[0])
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (True, 'All Pass'))
+		self.assertEqual(run_analysis.passes_auto_qc(), (True, ['All Pass']))
 
 		hs_metrics.total_reads = 10000
 		hs_metrics.save()
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (False, 'NTC Contamination Fail'))
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['NTC Contamination Fail']))
 
 
 	def test_sex_match_fail(self):
@@ -106,12 +106,12 @@ class TestAutoQC(TestCase):
 
 		sex = CalculatedSexMetrics.objects.get(sample_analysis=samples[0])
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (True, 'All Pass'))
+		self.assertEqual(run_analysis.passes_auto_qc(), (True, ['All Pass']))
 
 		sex.calculated_sex = 'FEMALE'
 		sex.save()
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (False, 'Sex Match Fail'))
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Sex Match Fail']))
 
 	def test_variant_count_fail(self):
 
@@ -125,9 +125,9 @@ class TestAutoQC(TestCase):
 
 		sex = CalculatedSexMetrics.objects.get(sample_analysis=samples[0])
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (True, 'All Pass'))
+		self.assertEqual(run_analysis.passes_auto_qc(), (True, ['All Pass']))
 
 		sex.calculated_sex = 'FEMALE'
 		sex.save()
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (False, 'Sex Match Fail'))
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Sex Match Fail']))
