@@ -827,7 +827,7 @@ class Command(BaseCommand):
 
 				sample_ids = [sample.sample.sample_id for sample in samples]
 
-
+				
 				# have we configured a fastq folder
 				try:
 					has_fastqs = config_dict['pipelines'][run_config_key].get('fastq_dir')
@@ -851,7 +851,7 @@ class Command(BaseCommand):
 
 				else:
 
-					run_fastq_dir = '/data/'
+					run_fastq_dir = 'test'
 
 				run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id, run_analysis.analysis_type.analysis_type_id)
 
