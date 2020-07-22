@@ -829,7 +829,11 @@ class Command(BaseCommand):
 
 
 				# have we configured a fastq folder
-				has_fastqs = config_dict['pipelines'][run_config_key].get('fastq_dir')
+				try:
+					has_fastqs = config_dict['pipelines'][run_config_key].get('fastq_dir')
+				except:
+
+					has_fastqs = None
 
 
 				try:

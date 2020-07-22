@@ -148,13 +148,13 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = '/login/'
-
+"""
 # slack url
 f = open('/home/webapps/auto_qc/qc_database/utils/slack_url.txt')
 #f = open(os.path.join('qc_database', 'utils', 'slack_url.txt'))
 SLACK_URL = f.read()
 f.close()
-
+"""
 MESSAGE_SLACK = False
 
 
