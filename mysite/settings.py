@@ -76,31 +76,20 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-"""
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
 
-"""
+DB_PASSWORD_FILE = '/export/home/webapps/password.txt'
+with open(DB_PASSWORD_FILE) as f:
+    db_password = f.readline().strip()
 
-
-f= open('/export/home/webapps/password.txt')
-
-password = f.readline()
-password = password.strip()
-f.close()
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'auto_qc',
-	'USER': 'auto_qc_user',
-	'PASSWORD': password,
-	'HOST': 'localhost',
-	'PORT': '',
+        'USER': 'auto_qc_user',
+        'PASSWORD': db_password,
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
@@ -149,13 +138,11 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = '/login/'
 
-# slack url
-f = open('/home/webapps/auto_qc/qc_database/utils/slack_url.txt')
-#f = open(os.path.join('qc_database', 'utils', 'slack_url.txt'))
-SLACK_URL = f.read()
-f.close()
 
 MESSAGE_SLACK = False
+SLACK_URL_FILE = '/home/webapps/auto_qc/qc_database/utils/slack_url.txt'
 
-
-
+# load in slack url if slack messages are turned on
+if MESSAGE_SLACK:
+    with open(SLACK_URL_FILE) as f:
+        SLACK_URL = f.read()
