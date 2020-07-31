@@ -76,7 +76,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-"""
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -84,9 +84,9 @@ DATABASES = {
     }
 }
 
+
+
 """
-
-
 f= open('/export/home/webapps/password.txt')
 
 password = f.readline()
@@ -104,7 +104,7 @@ DATABASES = {
     }
 }
 
-
+"""
 
 
 
@@ -148,13 +148,13 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = '/login/'
-
+"""
 # slack url
 f = open('/home/webapps/auto_qc/qc_database/utils/slack_url.txt')
 #f = open(os.path.join('qc_database', 'utils', 'slack_url.txt'))
 SLACK_URL = f.read()
 f.close()
-
+"""
 MESSAGE_SLACK = False
 
 
