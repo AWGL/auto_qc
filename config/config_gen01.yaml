@@ -240,7 +240,38 @@ pipelines:
     run_not_expected_files: ['*_variants_filtered.vcf',
                 'BAMs.list']
 
-
+  GermlineEnrichment_TSC-1.0.1-IlluminaTruSightCancer:
+    fastq_dir: '/data/archive/fastq/'
+    results_dir: '/data/results/'
+    qc_checks: [pct_q30, fastqc, variant_check, contamination, ntc_contamination, sex_match]
+    min_q30_score: 0.75
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 10000
+    min_variants: 600
+    max_variants: 1100
+    sample_expected_files: ['*.bam',
+                '*.g.vcf',
+                  '*_AlignmentSummaryMetrics.txt',
+                  '*_Contamination.selfSM',
+                  '*_DepthOfCoverage.gz',
+                  '*_HsMetrics.txt',
+                  '*_InsertMetrics.txt',
+                  '*_MarkDuplicatesMetrics.txt',
+                  '*_QC.txt']
+    sample_not_expected_files: ['*_rmdup.bam',
+                   '*_DepthOfCoverage']
+    run_expected_files: ['*_filtered_annotated_roi.vcf',
+                '*_filtered_annotated_roi_noMT.vcf',
+                '*_pedigree.ped',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_detail_metrics',
+                '*_CollectVariantCallingMetrics.txt.variant_calling_summary_metrics',
+                '*_ExomeDepth_Metrics.txt',
+                '*_relatedness.relatedness2',
+                'combined_QC.txt',
+                '*_cnvReport.csv']
+    run_not_expected_files: ['*_variants_filtered.vcf',
+                'BAMs.list']
 
 
 
@@ -419,6 +450,28 @@ pipelines:
     min_fastq_size: 10000000
     min_variants: 100
     max_variants: 700
+    sample_expected_files: ['*_VariantReport.txt',
+                  '*.bam',
+                  '*_DepthOfCoverage.sample_summary',
+                  '*_qc.txt',
+                  '*_filtered_meta_annotated.vcf',
+                  'hotspot_variants',
+                  'hotspot_coverage'
+                  ]
+    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    run_expected_files: []
+    run_not_expected_files: []
+
+  SomaticAmplicon-1.7.9-NGHS-101X:
+    fastq_dir: '/data/archive/fastq/'
+    results_dir: '/data/results/'
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
+    min_fastq_size: 100000
+    min_variants: 10
+    max_variants: 250
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
