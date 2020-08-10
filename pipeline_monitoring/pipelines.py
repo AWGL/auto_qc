@@ -42,8 +42,8 @@ class GermlineEnrichment:
 		self.results_dir = results_dir
 		self.sample_names = sample_names
 		self.run_id = run_id
-		self.sample_complete_marker = '1_GermlineEnrichment.sh.e*'
-		self.run_complete_marker = '2_GermlineEnrichment.sh.e*'
+		self.sample_complete_marker = '1_GermlineEnrichment*.sh.e*'
+		self.run_complete_marker = '2_GermlineEnrichment*.sh.e*'
 		self.sample_expected_files = sample_expected_files
 		self.sample_not_expected_files = sample_not_expected_files
 		self.run_expected_files = run_expected_files
