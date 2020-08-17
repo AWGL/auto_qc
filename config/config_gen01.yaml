@@ -346,7 +346,7 @@ pipelines:
                   ]
     sample_not_expected_files: []
     run_sample_expected_files: ['CNVKit/*_common.vcf']
-    run_expected_files: ['combined_QC.txt', 'samplesCNVKit.txt']
+    run_expected_files: ['combined_QC.txt', 'sampleVCFs.txt']
     run_not_expected_files: ['*.bed']
 
 
