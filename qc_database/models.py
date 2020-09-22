@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings
-from qc_analysis.parsers import *
 from auditlog.registry import auditlog
 from auditlog.models import AuditlogHistoryField
 
@@ -362,7 +361,6 @@ class RunAnalysis(models.Model):
 
 					reasons_to_fail.append('Contamination Fail')
 
-
 		if 'ntc_contamination' in checks_to_do:
 
 			for sample in new_samples_list:
@@ -395,14 +393,16 @@ class RunAnalysis(models.Model):
 
 		if 'coverage' in checks_to_do:
 			
-
 			for sample in new_samples_list:
+
 				if sample.passes_region_coverage_over_20() == False:
 
 					reasons_to_fail.append('Low Coverage >20x')
 
 		if 'titv' in checks_to_do:
+
 			for sample in new_samples_list:
+
 				if sample.passes_titv() == False:
 
 					reasons_to_fail.append('Titv Ratio out of range for at least one sample')
@@ -414,6 +414,15 @@ class RunAnalysis(models.Model):
 				if sample.passes_fastqc() == False:
 
 					reasons_to_fail.append('FASTQC Fail')
+
+
+		if 'fusion_contamination' in checks_to_do:
+
+			for sample in new_samples_list:
+
+				if sample.passes_fusion_contamination() == False:
+
+					reasons_to_fail.append('Fusion Contamination Fail')
 
 		if len(reasons_to_fail) ==0:
 
@@ -789,6 +798,66 @@ class SampleAnalysis(models.Model):
 
 		return True
 
+
+	def get_aligned_reads_fusion(self):
+
+		try:
+			alignment_metrics = FusionAlignmentMetrics.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(alignment_metrics) != 1:
+
+			return None
+
+		else:
+
+			return alignment_metrics[0]
+
+
+	def get_contamination_fusion(self):
+
+		try:
+			contamination_metrics = FusionContamination.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(contamination_metrics) != 1:
+
+			return None
+
+		else:
+
+			return contamination_metrics[0].contamination
+
+	def get_contamination_referral_fusion(self):
+
+		try:
+			contamination_metrics = FusionContamination.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(contamination_metrics) != 1:
+
+			return None
+
+		else:
+
+			return contamination_metrics[0].contamination_referral
+
+	def passes_fusion_contamination(self):
+
+		if self.get_contamination_fusion() == True:
+
+			return False
+
+		elif self.get_contamination_referral_fusion() == True:
+
+			return False
+
+		else:
+
+			return True
 
 class SampleFastqcData(models.Model):
 	"""
@@ -1228,14 +1297,27 @@ class DragenRegionCoverageMetrics(models.Model):
 	aligned_reads_in_qc_coverage_region = models.BigIntegerField(null=True, blank=True)
 
 
+class FusionContamination(models.Model):
+	"""
+	Data for the SomaticFusion pipelines contamination metric
+
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	contamination = models.BooleanField()
+	contamination_referral = models.BooleanField()
 
 
 
+class FusionAlignmentMetrics(models.Model):
+	"""
+	Data on SomaticFusion alignment metrics
 
-
-
-
-
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	aligned_reads = models.IntegerField()
+	pct_reads_aligned = models.DecimalField(max_digits=6, decimal_places=2)
+	unique_reads_aligned = models.IntegerField()
+	pct_unique_reads_aligned = models.DecimalField(max_digits=6, decimal_places=2)
 
 
 

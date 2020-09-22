@@ -829,3 +829,83 @@ def parse_dragen_wgs_coverage_metrics_file(dragen_wgs_coverage_metrics_file):
 				dragen_wgs_coverage_metrics_file_dict[new_key] = value
 				
 	return dragen_wgs_coverage_metrics_file_dict
+
+
+def parse_fusion_contamination_metrics_file(fusion_contamination_metrics_file):
+
+	fusion_contamination_metrics_dict = {}
+
+	with open (fusion_contamination_metrics_file) as file:
+
+		fusion_file = csv.reader(file, delimiter=',')
+
+		for row in fusion_file:
+
+			if row[0] == 'Sample':
+
+				pass
+
+			else:
+
+				sample = row[0].strip()
+				contamination = row[1].strip()
+				contamination_referral = row[2].strip()
+
+				if contamination == 'No':
+
+					contamination = False
+
+				else:
+
+					contamination = True
+
+				if contamination_referral == 'No':
+
+					contamination_referral = False
+
+				else:
+
+					contamination_referral = True
+
+
+				if sample not in fusion_contamination_metrics_dict:
+					
+					fusion_contamination_metrics_dict[sample] = {}
+					
+				fusion_contamination_metrics_dict[sample]['contamination'] = contamination
+				fusion_contamination_metrics_dict[sample]['contamination_referral'] = contamination_referral
+
+	return fusion_contamination_metrics_dict
+
+def parse_fusion_alignment_metrics_file(fusion_alignment_metrics_file):
+
+	fusion_alignment_metrics_dict = {}
+
+	with open (fusion_alignment_metrics_file) as file:
+
+		fusion_file = csv.reader(file, delimiter=',')
+
+		for row in fusion_file:
+
+			if row[0] == 'sample':
+
+				pass
+
+			else:
+
+				sample = row[0].strip()
+				aligned_reads = row[1].strip()
+				pct_reads_aligned = row[2].strip()
+				unique_reads_aligned = row[3].strip()
+				pct_unique_reads_aligned = row[4].strip()
+
+				if sample not in fusion_alignment_metrics_dict:
+					
+					fusion_alignment_metrics_dict[sample] = {}
+					
+				fusion_alignment_metrics_dict[sample]['aligned_reads'] = aligned_reads
+				fusion_alignment_metrics_dict[sample]['pct_reads_aligned'] = pct_reads_aligned
+				fusion_alignment_metrics_dict[sample]['unique_reads_aligned'] = unique_reads_aligned
+				fusion_alignment_metrics_dict[sample]['pct_unique_reads_aligned'] = pct_unique_reads_aligned
+
+	return fusion_alignment_metrics_dict

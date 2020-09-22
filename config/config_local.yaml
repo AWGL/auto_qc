@@ -395,3 +395,12 @@ pipelines:
                ]
     run_not_expected_files: []
     post_sample_files: []
+
+  SomaticFusion-0.0.4-RocheSTFusion:
+    results_dir:  '/media/joseph/Storage/data/results/'
+    qc_checks: [pct_q30, fastqc, fusion_contamination, fusion_alignment]
+    min_q30_score: 0.75
+    sample_expected_files: ['*.bam', '*_DepthOfCoverage.sample_summary']
+    sample_not_expected_files: []
+    run_expected_files: ['contamination.csv', 'combined_QC.txt', '*-aligned_reads.csv' ]
+    run_not_expected_files: []

@@ -291,12 +291,47 @@
 	  	<th> Pct > 20x</th>
 	  {% endif %}
 
+	  {% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" %}
+
 	  <th>Total Reads</th>
 	  <th>Total Variants</th>
+
+	  {% endif %}
+
+	  {% if 'contamination' in checks_to_do %}
+
 	  <th>Contamination</th>
+
+	  {% endif %}
+
+	  {% if 'fusion_alignment' in checks_to_do %}
+
+	  <th> Aligned Reads </th>
+	  <th> Unique Aligned Reads </th>
+
+	  {% endif %}
+
+
+	  {% if 'fusion_contamination' in checks_to_do %}
+
+	  <th> Contamination </th>
+	  <th> Contamination Referral </th>
+
+	  {% endif %}
+
+
+	  {% if 'ntc_contamination' in checks_to_do %}
+
 	  <th>Passes NTC Contamination</th>
+
+	  {% endif %}
+
+	  {% if 'sex_check' in checks_to_do %}
+
 	  <th>Sample Sex</th>
 	  <th>Calculated Sex</th>
+
+	  {% endif %}
 	</tr>
   </thead>
 
@@ -317,12 +352,42 @@
 			<td class="table-dark"> {{sample_analysis.get_region_coverage_over_20}} </td>
 			{% endif %}
 
+			{% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" %}
+
 			<td class="table-dark"> {{sample_analysis.get_total_reads}} </td>
 			<td class="table-dark"> {{sample_analysis.get_variant_count}} </td>
+
+			{% endif %}
+
+
+			{% if 'contamination' in checks_to_do %}
 			<td class="table-dark"> {{sample_analysis.get_contamination}} </td>
+			{% endif %}
+
+			{% if 'fusion_alignment' in checks_to_do %}
+
+			<td class="table-dark"> {{sample_analysis.get_aligned_reads_fusion.aligned_reads}} </td>
+			<td class="table-dark"> {{sample_analysis.get_aligned_reads_fusion.unique_reads_aligned}} </td>
+
+			{% endif %}
+
+
+		    {% if 'fusion_contamination' in checks_to_do %}
+
+			<td class="table-dark"> {{sample_analysis.get_contamination_fusion}} </td>
+			<td class="table-dark"> {{sample_analysis.get_contamination_referral_fusion}}</td>
+
+		    {% endif %}
+
+			{% if 'ntc_contamination' in checks_to_do %}
 			<td class="table-dark"> {{sample_analysis.passes_ntc_contamination}} </td>
+			{% endif %}
+
+			{% if 'sex_check' in checks_to_do %}
 			<td class="table-dark"> {{sample_analysis.get_sex}} </td>
 			<td class="table-dark"> {{sample_analysis.get_calculated_sex}} </td>
+			{% endif %}
+
 
 		{% else %}
 
@@ -350,6 +415,8 @@
 			
 		{% endif %}
 
+		{% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" %}
+
 		<td> {{sample_analysis.get_total_reads}} </td>
 
 		{% if sample_analysis.get_variant_count == 'NA' %}
@@ -360,6 +427,9 @@
 			<td class="table-danger"> {{sample_analysis.get_variant_count}} </td>
 		{% endif %}
 
+		{% endif %}
+
+		{% if 'contamination' in checks_to_do %}
 
 		{% if sample_analysis.get_contamination == 'NA' %}
 			<td> {{sample_analysis.get_contamination}} </td>
@@ -369,11 +439,50 @@
 			<td class="table-danger"> {{sample_analysis.get_contamination}} </td>
 		{% endif %}
 
+		{% endif %}
+
+		{% if 'fusion_alignment' in checks_to_do %}
+
+			<td> {{sample_analysis.get_aligned_reads_fusion.aligned_reads}} </td>
+			<td> {{sample_analysis.get_aligned_reads_fusion.unique_reads_aligned}} </td>
+
+		{% endif %}
+
+		{% if 'fusion_contamination' in checks_to_do %}
+
+			{% if sample_analysis.get_contamination_fusion == False %}
+
+			<td class="table-success"> {{sample_analysis.get_contamination_fusion}} </td>
+
+			{% else %}
+
+			<td class="table-danger"> {{sample_analysis.get_contamination_fusion}} </td>
+
+			{% endif %}
+
+			{% if sample_analysis.get_contamination_referral_fusion == False %}
+
+			<td class="table-success"> {{sample_analysis.get_contamination_referral_fusion}} </td>
+
+			{% else %}
+
+			<td class="table-danger"> {{sample_analysis.get_contamination_referral_fusion}} </td>
+
+			{% endif %}
+
+		{% endif %}
+
+		{% if 'ntc_contamination' in checks_to_do %}
+
 		{% if sample_analysis.passes_ntc_contamination == True %}
 			<td class="table-success"> {{sample_analysis.passes_ntc_contamination}} </td>
 		{% else %}
 			<td class="table-danger"> {{sample_analysis.passes_ntc_contamination}} </td>
 		{% endif %}
+
+		{% endif %}
+
+		{% if 'sex_check' in checks_to_do %}
 
 		{% if sample_analysis.passes_sex_check == True %}
 			<td class="table-success"> {{sample_analysis.get_sex}} </td>
@@ -381,6 +490,8 @@
 		{% else %}
 			<td class="table-danger"> {{sample_analysis.get_sex}} </td>
 			<td class="table-danger"> {{sample_analysis.get_calculated_sex}} </td>
+		{% endif %}
+
 		{% endif %}
 
 	{% endif %}
