@@ -67,8 +67,6 @@ class SomaticFusion:
 
 			if len(list(found_file)) < 1:
 
-				print(file)
-
 				return False
 
 		# check file we do not want to be there are not there
@@ -115,6 +113,10 @@ class SomaticFusion:
 		return True
 
 	def get_fastqc_data(self):
+		"""
+		Parse fastq data and pass on as dict
+	
+		"""
 
 		fastqc_dict = {}
 
@@ -158,6 +160,9 @@ class SomaticFusion:
 		return fastqc_dict
 
 	def get_contamination_metrics(self):
+		"""
+		Get the fusion contamination metrics from the file
+		"""
 
 		results_path = Path(self.results_dir)
 
@@ -168,6 +173,9 @@ class SomaticFusion:
 		return parsed_fusion_contamination_data
 
 	def get_alignment_metrics(self):
+		"""		
+		Get the fusion alignments metrics from a file.
+		"""	
 
 		results_path = Path(self.results_dir)
 

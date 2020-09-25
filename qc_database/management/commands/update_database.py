@@ -1,6 +1,5 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.db import transaction
 import csv
 from pathlib import Path
@@ -222,7 +221,16 @@ class Command(BaseCommand):
 
 					except:
 
-						min_coverage = 90.0
+						min_coverage = 0.0
+
+
+					try:
+
+						min_fusion_aligned_reads_unique = config_dict['pipelines'][run_config_key]['min_fusion_aligned_reads_unique']
+
+					except:
+
+						min_fusion_aligned_reads_unique = 0
 
 					new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
 																			pipeline = pipeline_obj,
@@ -240,6 +248,7 @@ class Command(BaseCommand):
 						new_run_analysis_obj.min_titv = min_titv
 						new_run_analysis_obj.max_titv = max_titv
 						new_run_analysis_obj.min_coverage = min_coverage
+						new_run_analysis_obj.min_fusion_aligned_reads_unique = min_fusion_aligned_reads_unique
 
 						# message slack
 

@@ -105,6 +105,16 @@
 
 	{% endif %}
 
+	{% if 'fusion_alignment' in checks_to_do %}
+
+	<tr>
+		<td> Min Aligned Unique Reads</td>
+		<td> {{run_analysis.min_fusion_aligned_reads_unique}} </td>
+
+	</tr>
+
+	{% endif %}
+
 
 	{% if run_analysis.watching == False %}
 
@@ -326,7 +336,8 @@
 
 	  {% endif %}
 
-	  {% if 'sex_check' in checks_to_do %}
+
+	  {% if 'sex_match' in checks_to_do %}
 
 	  <th>Sample Sex</th>
 	  <th>Calculated Sex</th>
@@ -383,7 +394,7 @@
 			<td class="table-dark"> {{sample_analysis.passes_ntc_contamination}} </td>
 			{% endif %}
 
-			{% if 'sex_check' in checks_to_do %}
+			{% if 'sex_match' in checks_to_do %}
 			<td class="table-dark"> {{sample_analysis.get_sex}} </td>
 			<td class="table-dark"> {{sample_analysis.get_calculated_sex}} </td>
 			{% endif %}
@@ -444,7 +455,16 @@
 		{% if 'fusion_alignment' in checks_to_do %}
 
 			<td> {{sample_analysis.get_aligned_reads_fusion.aligned_reads}} </td>
-			<td> {{sample_analysis.get_aligned_reads_fusion.unique_reads_aligned}} </td>
+
+			{% if sample_analysis.passes_fusion_aligned_reads_duplicates %}
+
+				<td class="table-success"> {{sample_analysis.get_aligned_reads_fusion.unique_reads_aligned}} </td>
+
+			{% else %}
+
+				<td class="table-danger"> {{sample_analysis.get_aligned_reads_fusion.unique_reads_aligned}} </td>
+
+			{% endif %}
 
 		{% endif %}
 
@@ -482,7 +502,7 @@
 
 		{% endif %}
 
-		{% if 'sex_check' in checks_to_do %}
+		{% if 'sex_match' in checks_to_do %}
 
 		{% if sample_analysis.passes_sex_check == True %}
 			<td class="table-success"> {{sample_analysis.get_sex}} </td>

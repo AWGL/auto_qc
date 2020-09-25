@@ -1,5 +1,7 @@
 from pipelines import parsers
 from qc_database.models import *
+from django.contrib.auth.models import User
+
 
 def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 	"""
