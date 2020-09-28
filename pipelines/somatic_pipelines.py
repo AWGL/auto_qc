@@ -244,7 +244,10 @@ class SomaticEnrichment:
 				file_fastqc_dict['lane'] = lane
 				file_fastqc_dict['read_number'] = read_number
 				file_fastqc_dict['basic_statistics'] = parsed_fastqc_data['Basic Statistics']
-				file_fastqc_dict['per_tile_sequence_quality'] = parsed_fastqc_data['Per tile sequence quality']
+				try:
+					file_fastqc_dict['per_tile_sequence_quality'] = parsed_fastqc_data['Per tile sequence quality']
+				except KeyError:
+					file_fastqc_dict['per_tile_sequence_quality'] = 'FAIL'
 				file_fastqc_dict['per_base_sequencing_quality'] = parsed_fastqc_data['Per base sequence quality']
 				file_fastqc_dict['per_sequence_quality_scores'] = parsed_fastqc_data['Per sequence quality scores']
 				file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
@@ -531,7 +534,10 @@ class SomaticAmplicon:
 				file_fastqc_dict['lane'] = lane
 				file_fastqc_dict['read_number'] = read_number
 				file_fastqc_dict['basic_statistics'] = parsed_fastqc_data['Basic Statistics']
-				file_fastqc_dict['per_tile_sequence_quality'] = parsed_fastqc_data['Per tile sequence quality']
+				try:
+					file_fastqc_dict['per_tile_sequence_quality'] = parsed_fastqc_data['Per tile sequence quality']
+				except KeyError:
+					file_fastqc_dict['per_tile_sequence_quality'] = 'FAIL'
 				file_fastqc_dict['per_base_sequencing_quality'] = parsed_fastqc_data['Per base sequence quality']
 				file_fastqc_dict['per_sequence_quality_scores'] = parsed_fastqc_data['Per sequence quality scores']
 				file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
@@ -895,7 +901,10 @@ class Cruk:
 				file_fastqc_dict['lane'] = lane
 				file_fastqc_dict['read_number'] = read_number
 				file_fastqc_dict['basic_statistics'] = parsed_fastqc_data['Basic Statistics']
-				file_fastqc_dict['per_tile_sequence_quality'] = parsed_fastqc_data['Per tile sequence quality']
+				try:
+					file_fastqc_dict['per_tile_sequence_quality'] = parsed_fastqc_data['Per tile sequence quality']
+				except KeyError:
+					file_fastqc_dict['per_tile_sequence_quality'] = 'FAIL'
 				file_fastqc_dict['per_base_sequencing_quality'] = parsed_fastqc_data['Per base sequence quality']
 				file_fastqc_dict['per_sequence_quality_scores'] = parsed_fastqc_data['Per sequence quality scores']
 				file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
