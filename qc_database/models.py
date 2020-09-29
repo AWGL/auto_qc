@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings
-from qc_analysis.parsers import *
 from auditlog.registry import auditlog
 from auditlog.models import AuditlogHistoryField
 
@@ -174,7 +173,7 @@ class RunAnalysis(models.Model):
 	max_titv = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_coverage = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_sensitivity = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
-
+	min_fusion_aligned_reads_unique = models.IntegerField(null=True, blank=True)
 
 	history = AuditlogHistoryField()
 
@@ -362,7 +361,6 @@ class RunAnalysis(models.Model):
 
 					reasons_to_fail.append('Contamination Fail')
 
-
 		if 'ntc_contamination' in checks_to_do:
 
 			for sample in new_samples_list:
@@ -395,14 +393,16 @@ class RunAnalysis(models.Model):
 
 		if 'coverage' in checks_to_do:
 			
-
 			for sample in new_samples_list:
+
 				if sample.passes_region_coverage_over_20() == False:
 
 					reasons_to_fail.append('Low Coverage >20x')
 
 		if 'titv' in checks_to_do:
+
 			for sample in new_samples_list:
+
 				if sample.passes_titv() == False:
 
 					reasons_to_fail.append('Titv Ratio out of range for at least one sample')
@@ -414,6 +414,26 @@ class RunAnalysis(models.Model):
 				if sample.passes_fastqc() == False:
 
 					reasons_to_fail.append('FASTQC Fail')
+
+
+		if 'fusion_contamination' in checks_to_do:
+
+			for sample in new_samples_list:
+
+				if sample.passes_fusion_contamination() == False:
+
+					reasons_to_fail.append('Fusion Contamination Fail')
+
+		print (checks_to_do)
+		if 'fusion_alignment' in checks_to_do:
+
+			for sample in new_samples_list:
+
+				print (sample, sample.passes_fusion_aligned_reads_duplicates())
+
+				if sample.passes_fusion_aligned_reads_duplicates() == False:
+
+					reasons_to_fail.append('Fusion Aligned Reads Unique Fail')	
 
 		if len(reasons_to_fail) ==0:
 
@@ -790,6 +810,82 @@ class SampleAnalysis(models.Model):
 		return True
 
 
+	def get_aligned_reads_fusion(self):
+
+		try:
+			alignment_metrics = FusionAlignmentMetrics.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(alignment_metrics) != 1:
+
+			return None
+
+		else:
+
+			return alignment_metrics[0]
+
+
+	def get_contamination_fusion(self):
+
+		try:
+			contamination_metrics = FusionContamination.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(contamination_metrics) != 1:
+
+			return None
+
+		else:
+
+			return contamination_metrics[0].contamination
+
+	def get_contamination_referral_fusion(self):
+
+		try:
+			contamination_metrics = FusionContamination.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(contamination_metrics) != 1:
+
+			return None
+
+		else:
+
+			return contamination_metrics[0].contamination_referral
+
+	def passes_fusion_contamination(self):
+
+		if self.get_contamination_fusion() == True:
+
+			return False
+
+		elif self.get_contamination_referral_fusion() == True:
+
+			return False
+
+		else:
+
+			return True
+
+	def passes_fusion_aligned_reads_duplicates(self):
+
+		run_analysis = self.get_run_analysis()
+
+		aligned_reads = self.get_aligned_reads_fusion()
+
+		if aligned_reads == None:
+
+			return False
+
+		if aligned_reads.unique_reads_aligned < run_analysis.min_fusion_aligned_reads_unique:
+
+			return False
+
+		return True
+
 class SampleFastqcData(models.Model):
 	"""
 	Model to store data from the FastQC output, there will be one entry per fastq file.
@@ -1058,12 +1154,18 @@ class InsertMetrics(models.Model):
 
 
 class VCFVariantCount(models.Model):
+	"""
+	Store a count of the variants in a VCF
 
+	"""
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	variant_count = models.IntegerField()
 
 
 class InteropIndexMetrics(models.Model):
+	"""
+	Store the interop index information
+	"""
 
 	sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
 	run = models.ForeignKey(Run, on_delete=models.CASCADE)
@@ -1073,6 +1175,9 @@ class InteropIndexMetrics(models.Model):
 		return str(self.run) + '_' + str(self.sample)
 
 class DragenAlignmentMetrics(models.Model):
+	"""
+	Store the dragen alignments metrics file
+	"""
 
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	total_input_reads = models.BigIntegerField(null=True, blank=True)
@@ -1132,7 +1237,9 @@ class DragenAlignmentMetrics(models.Model):
 	estimated_sample_contamination = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 
 class DragenVariantCallingMetrics(models.Model):
-
+	"""
+	Store the dragen variant calling metrics file
+	"""
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	total = models.IntegerField(null=True, blank=True)
 	biallelic = models.IntegerField(null=True, blank=True)
@@ -1157,7 +1264,9 @@ class DragenVariantCallingMetrics(models.Model):
 
 
 class DragenWGSCoverageMetrics(models.Model):
-
+	"""
+	Store the dragen WGS coverage metrics file
+	"""
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	aligned_bases = models.BigIntegerField(null=True, blank=True)
 	aligned_bases_in_genome = models.BigIntegerField(null=True, blank=True)
@@ -1193,7 +1302,9 @@ class DragenWGSCoverageMetrics(models.Model):
 
 
 class DragenRegionCoverageMetrics(models.Model):
-
+	"""
+	Store the dragen region coverage metrics file
+	"""
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	aligned_bases  = models.BigIntegerField(null=True, blank=True)
 	aligned_bases_in_qc_coverage_region  = models.BigIntegerField(null=True, blank=True)
@@ -1228,17 +1339,27 @@ class DragenRegionCoverageMetrics(models.Model):
 	aligned_reads_in_qc_coverage_region = models.BigIntegerField(null=True, blank=True)
 
 
+class FusionContamination(models.Model):
+	"""
+	Data for the SomaticFusion pipelines contamination metric
+
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	contamination = models.BooleanField()
+	contamination_referral = models.BooleanField()
 
 
 
+class FusionAlignmentMetrics(models.Model):
+	"""
+	Data on SomaticFusion alignment metrics
 
-
-
-
-
-
-
-
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	aligned_reads = models.IntegerField()
+	pct_reads_aligned = models.DecimalField(max_digits=6, decimal_places=2)
+	unique_reads_aligned = models.IntegerField()
+	pct_unique_reads_aligned = models.DecimalField(max_digits=6, decimal_places=2)
 
 
 auditlog.register(RunAnalysis)
