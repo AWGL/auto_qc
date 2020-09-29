@@ -6,7 +6,7 @@
 <br>
 
 
-<table id="run_analysis" class="table table-hover table-bordered table-responsive">
+<table id="run_analysis" class="table table-hover table-bordered">
 
   <thead>
 	<tr>
@@ -16,12 +16,6 @@
 	  <th>Analysis</th>
 	  <th>Pipeline</th>
 	  <th>Start Date</th>
-	  <th>Demultiplex Complete</th>
-	  <th>Demultiplex Valid</th>
-	  <th>Samples Complete</th>
-	  <th>Samples Valid</th>
-	  <th>Run Complete</th>
-	  <th>Run Valid</th>
 	  <th>Manual QC</th> 
 	</tr>
   </thead>
@@ -36,51 +30,6 @@
 		<td> {{run_analysis.pipeline.pipeline_id}} </td>
 		<td> {{run_analysis.start_date|date:'Y-m-d'}} </td>
 
-
-		{% if run_analysis.analysis_type.analysis_type_id == "NIPT" %}
-			<td class="table-success"> NA</td>
-			<td class="table-success"> NA</td>
-			<td class="table-success"> NA</td>
-			<td class="table-success"> NA</td>
-			<td class="table-success"> NA</td>
-			<td class="table-success"> NA</td>
-
-		{% else %}
-
-		{% if run_analysis.demultiplexing_completed == True %}
-		<td  class="table-success" > {{run_analysis.demultiplexing_completed}} </td>
-		{% else %}
-		<td  class="table-danger" > {{run_analysis.demultiplexing_completed}} </td>
-		{% endif %}
-
-
-		{% if run_analysis.demultiplexing_valid == True %}
-		<td class="table-success"> {{run_analysis.demultiplexing_valid}} </td>
-		{% else %}
-		<td  class="table-danger" > {{run_analysis.demultiplexing_valid}} </td>
-		{% endif %}
-
-		{% if  run_analysis.get_n_samples_completed.0 == run_analysis.get_n_samples_valid.0 %}
-		<td class="table-success"> {{run_analysis.get_n_samples_completed|join:" / "}} </td>
-		<td class="table-success"> {{run_analysis.get_n_samples_valid|join:" / "}} </td>
-		{% else %}
-		<td class="table-danger"> {{run_analysis.get_n_samples_completed|join:" / "}} </td>
-		<td class="table-danger"> {{run_analysis.get_n_samples_valid|join:" / "}} </td>
-		{% endif %}
-
-		{% if run_analysis.results_completed == True %}
-		<td class="table-success"> {{run_analysis.results_completed}} </td>
-		{% else %}
-		<td  class="table-danger" > {{run_analysis.results_completed}} </td>
-		{% endif %}
-
-		{% if run_analysis.results_valid == True %}
-		<td class="table-success"> {{run_analysis.results_valid}} </td>
-		{% else %}
-		<td  class="table-danger" > {{run_analysis.results_valid}} </td>
-		{% endif %}
-
-		{% endif %}
 
 		{% if run_analysis.manual_approval == True %}
 		<td class="table-success">

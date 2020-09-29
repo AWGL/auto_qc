@@ -6,6 +6,11 @@ A software system to monitor the status of in house pipeline at AWGS and view an
 
 ## Project Workflow
 
+The software consists of several modules and configuration files:
+
+1) Pipelines (pipelines/). This module consists of different classes which each represent a different pipeline run at AWMGL. These classes have methods for detecting whether a pipeline has completed ina valid manner and for collecting relevant QC metrics. The module also contains parsers.py which contains functions for parsing common QC files used in NGS. These classes can be configured for example changing the expected files each pipeline produces using the confi/config.yaml files.
+2) config/*.yaml. Specific pipeline configuration. Each pipeline gets a key in the config. The key is a concatanation of the pipeline name, pipeline version and panel. For example GermlineEnrichment-2.5.3-IlluminaTruSightCancer. This way multiple pipelines can use the same class in the pipelines module.
+3) update_database.py. Script for updating the database.
 
 
 ## Install
@@ -56,9 +61,6 @@ python manage.py update_database --raw_data_dir /media/joseph/Storage/data/archi
 								--config config/config_local.yaml
 
 ```
-
-
-
 
 It is recommended you set up a cronjob to automate the update of the database.
 
