@@ -791,3 +791,57 @@ pipelines:
     sample_not_expected_files: []
     run_expected_files: ['contamination.csv', 'combined_QC.txt', '*-aligned_reads.csv', 'samples_list.txt' ]
     run_not_expected_files: []
+
+
+
+  SomaticFusion-0.0.6-RocheSTFusion:
+    results_dir:  '/data/results/'
+    qc_checks: [pct_q30, fastqc, fusion_contamination, fusion_alignment]
+    min_q30_score: 0.75
+    min_fusion_aligned_reads_unique: 38000
+    sample_expected_files: ['*Aligned_out.bam',
+                          '*_DepthOfCoverage.sample_summary',
+                          'fusionReport/*_fusionReport.txt',
+                          '*_fusions_adapted.tsv',
+                          'STAR-Fusion/star-fusion.fusion_predictions.abridged.coding_effect.tsv',
+                          'RMATS/SE.MATS.JC.txt',
+                          '*_RMATS_Report.tsv',
+                          'Results/STAR_Fusion/*fusion_report_NTRK3.txt',
+                          'Results/arriba/*fusion_report_NTRK3_arriba.txt',
+                          'Results/arriba_discarded/*fusion_report_NTRK3_arriba_discarded.txt'
+                           ]
+    sample_not_expected_files: []
+    run_expected_files: ['contamination.csv', 'combined_QC.txt', '*-aligned_reads.csv', 'samples_list.txt' ]
+    run_not_expected_files: [
+
+  SomaticFusion-1.0.0-RocheSTFusion:
+    results_dir:  '/data/results/'
+    qc_checks: [pct_q30, fastqc, fusion_contamination, fusion_alignment]
+    min_q30_score: 0.75
+    min_fusion_aligned_reads_unique: 38000
+    sample_expected_files: ['*Aligned_out.bam',
+                          '*_DepthOfCoverage.sample_summary',
+                          'fusionReport/*_fusionReport.txt',
+                          '*_fusions_adapted.tsv',
+                          'STAR-Fusion/star-fusion.fusion_predictions.abridged.coding_effect.tsv',
+                          'RMATS/SE.MATS.JC.txt',
+                          '*_RMATS_Report.tsv',
+                          'Results/STAR_Fusion/*fusion_report_NTRK3.txt',
+                          'Results/arriba/*fusion_report_NTRK3_arriba.txt',
+                          'Results/arriba_discarded/*fusion_report_NTRK3_arriba_discarded.txt'
+                           ]
+    sample_not_expected_files: []
+    run_expected_files: ['contamination.csv', 'combined_QC.txt', '*-aligned_reads.csv', 'samples_list.txt' ]
+    run_not_expected_files: [
+
+
+
+
+
+
+
+
+
+
+
+
