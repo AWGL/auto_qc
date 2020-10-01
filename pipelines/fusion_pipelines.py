@@ -110,6 +110,24 @@ class SomaticFusion:
 
 				return False
 
+
+		for file in self.run_expected_files:
+
+			found_file = results_path.glob(file)
+
+			if len(list(found_file)) != 1:
+
+				return False
+
+		# check file we do not want to be there are not there
+		for file in self.run_not_expected_files:
+
+			found_file = results_path.glob(file)
+
+			if len(list(found_file)) > 0:
+
+				return False	
+
 		return True
 
 	def get_fastqc_data(self):
