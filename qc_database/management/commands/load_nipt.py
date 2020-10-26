@@ -6,7 +6,7 @@ from pathlib import Path
 import csv
 import datetime
 from qc_database.models import *
-from qc_analysis.parsers import *
+from pipelines.parsers import *
 
 def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 	"""
