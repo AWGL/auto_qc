@@ -354,8 +354,27 @@ class DragenWGS:
 		"""
 
 		results_path = Path(self.results_dir)
-		
-		results_path = results_path.joinpath('results')
+
+		new_path = False
+
+		for i in self.run_expected_files:
+
+			if 'post_processing' in i:
+
+				
+				new_path = True
+				break
+
+		if new_path:
+
+			results_path = results_path.joinpath('post_processing')
+
+		else:
+
+			results_path = results_path.joinpath('results')
+
+
+		print(results_path)
 
 		marker = results_path.glob(self.sample_complete_marker)
 
@@ -417,8 +436,23 @@ class DragenWGS:
 		"""
 
 		results_path = Path(self.results_dir)
+
+		new_path = False
 		
-		results_path = results_path.joinpath('results')
+		for i in self.run_expected_files:
+
+			if 'post_processing' in i:
+
+				new_path = True
+				break
+
+		if new_path:
+
+			results_path = results_path.joinpath('post_processing')
+
+		else:
+
+			results_path = results_path.joinpath('results')
 
 		marker = results_path.glob(self.sample_complete_marker)
 
