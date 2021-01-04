@@ -367,7 +367,7 @@ class DragenWGS:
 
 		if new_path:
 
-			results_path = results_path.joinpath('post_processing')
+			results_path = results_path.joinpath('post_processing/results/')
 
 		else:
 
@@ -401,7 +401,7 @@ class DragenWGS:
 
 			found_file = sample_path.glob(file)
 
-			if len(list(found_file)) != 1:
+			if len(list(found_file)) == 0:
 
 				return False
 
@@ -448,7 +448,7 @@ class DragenWGS:
 
 		if new_path:
 
-			results_path = results_path.joinpath('post_processing')
+			results_path = results_path.joinpath('post_processing/results/')
 
 		else:
 
