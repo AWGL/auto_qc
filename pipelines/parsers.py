@@ -909,3 +909,33 @@ def parse_fusion_alignment_metrics_file(fusion_alignment_metrics_file):
 				fusion_alignment_metrics_dict[sample]['pct_unique_reads_aligned'] = pct_unique_reads_aligned
 
 	return fusion_alignment_metrics_dict
+
+def parse_ploidy_metrics_file(ploidy_metrics_file):
+	"""
+	Parse the dragen ploidy metrics file.
+	
+	"""
+	
+	dragen_ploidy_metrics_file_dict = {}
+
+	with open (ploidy_metrics_file) as file:
+
+		dragen_ploidy_file = csv.reader(file, delimiter=',')
+		
+		for row in dragen_ploidy_file:
+						
+			prefix = row[0]
+			key = row[2]
+			value = row[3]
+	
+			new_key = key.translate(str.maketrans('', '', string.punctuation.replace('_' ,'')))
+			
+			new_key = new_key.lower().replace(' ', '_').replace('__', '_')
+
+			new_key = new_key.replace('__', '_')
+			
+			if prefix == 'PLOIDY ESTIMATION':
+								
+				dragen_ploidy_metrics_file_dict[new_key] = value
+				
+	return dragen_ploidy_metrics_file_dict

@@ -627,7 +627,23 @@ class SampleAnalysis(models.Model):
 
 			wgs_obj = DragenWGSCoverageMetrics.objects.get(sample_analysis=self)
 
-			if wgs_obj.predicted_sex_chromosome_ploidy == 'XX':
+			if wgs_obj.predicted_sex_chromosome_ploidy is None:
+
+				wgs_obj = DragenPloidyMetrics.objects.get(sample_analysis=self)
+				
+				if wgs_obj.ploidy_estimation == 'XX':
+
+					return 'female'
+
+				elif wgs_obj.ploidy_estimation == 'XY':
+
+					return 'male'
+
+				else:
+
+					return 'unknown'
+
+			elif wgs_obj.predicted_sex_chromosome_ploidy == 'XX':
 
 				return 'female'
 
@@ -1360,6 +1376,14 @@ class FusionAlignmentMetrics(models.Model):
 	pct_reads_aligned = models.DecimalField(max_digits=6, decimal_places=2)
 	unique_reads_aligned = models.IntegerField()
 	pct_unique_reads_aligned = models.DecimalField(max_digits=6, decimal_places=2)
+
+class DragenPloidyMetrics(models.Model):
+	"""
+	Data for the SomaticFusion pipelines contamination metric
+
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	ploidy_estimation = models.CharField(max_length=10, blank=True, null=True)
 
 
 auditlog.register(RunAnalysis)

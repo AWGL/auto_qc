@@ -434,9 +434,9 @@ pipelines:
     sample_not_expected_files: []
     run_expected_files: ['*.hard-filtered.vcf.gz',
                   '*.vc_metrics.csv',
-                 'post_processing/relatedness/*.relatedness2',
-                 'post_processing/annotated_vcf/*.norm.anno.vcf.gz',
-                 'post_processing/database_config/*_config.csv',
+                 'post_processing/results/relatedness/*.relatedness2',
+                 'post_processing/results/annotated_vcf/*.norm.anno.vcf.gz',
+                 'post_processing/results/database_config/*_config.csv',
                ]
     run_not_expected_files: []
     post_sample_files: []
@@ -459,9 +459,9 @@ pipelines:
     sample_not_expected_files: []
     run_expected_files: ['*.hard-filtered.vcf.gz',
                   '*.vc_metrics.csv',
-                 'post_processing/relatedness/*.relatedness2',
-                 'post_processing/annotated_vcf/*.norm.anno.vcf.gz',
-                 'post_processing/database_config/*_config.csv',
+                 'post_processing/results/relatedness/*.relatedness2',
+                 'post_processing/results/annotated_vcf/*.norm.anno.vcf.gz',
+                 'post_processing/results/database_config/*_config.csv',
                ]
     run_not_expected_files: []
     post_sample_files: []
