@@ -1124,6 +1124,13 @@ class Command(BaseCommand):
 							exonic_coverage_metrics_dict = dragen_wgs.get_exonic_mapping_metrics()
 							management_utils.add_dragen_exonic_coverage_metrics(exonic_coverage_metrics_dict, run_analysis)
 
+							logger.info (f'Putting ploidy metrics into db for run {run_analysis.run.run_id}')
+							dragen_ploidy_metrics_dict = dragen_wgs.get_ploidy_metrics()
+							management_utils.add_dragen_ploidy_metrics(dragen_ploidy_metrics_dict, run_analysis)
+
+
+
+
 							send_to_slack = True
 
 						else:
@@ -1149,6 +1156,12 @@ class Command(BaseCommand):
 							logger.info (f'Putting exonic coverage metrics into db for run {run_analysis.run.run_id}')
 							exonic_coverage_metrics_dict = dragen_wgs.get_exonic_mapping_metrics()
 							management_utils.add_dragen_exonic_coverage_metrics(exonic_coverage_metrics_dict, run_analysis)
+
+							logger.info (f'Putting ploidy metrics into db for run {run_analysis.run.run_id}')
+							dragen_ploidy_metrics_dict = dragen_wgs.get_ploidy_metrics()
+							management_utils.add_dragen_ploidy_metrics(dragen_ploidy_metrics_dict, run_analysis)
+
+
 							send_to_slack = True
 
 					run_analysis.results_completed = run_complete

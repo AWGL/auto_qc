@@ -601,3 +601,28 @@ class DragenWGS:
 			run_wgs_coverage_metrics_dict[sample] = parsed_wgs_coverage_metrics
 
 		return run_wgs_coverage_metrics_dict
+
+	def get_ploidy_metrics(self):
+		"""
+		Need this for version 3.7 Dragen VC to get calculated sex.
+		"""
+
+		results_path = Path(self.results_dir)
+
+		run_ploidy_metrics_dict = {}
+
+		for sample in self.sample_names:
+
+			run_ploidy_metrics_file = results_path.joinpath(sample).glob(f'*{sample}.ploidy_estimation_metrics.csv')
+
+			if len(list(run_ploidy_metrics_file)) ==1:
+
+				run_ploidy_metrics_file = results_path.joinpath(sample).glob(f'*{sample}.ploidy_estimation_metrics.csv')
+
+				run_ploidy_metrics_file = list(run_ploidy_metrics_file)[0]
+				
+				parsed_run_ploidy_metrics = parsers.parse_ploidy_metrics_file(run_ploidy_metrics_file)
+
+				run_ploidy_metrics_dict[sample] = parsed_run_ploidy_metrics
+
+		return run_ploidy_metrics_dict

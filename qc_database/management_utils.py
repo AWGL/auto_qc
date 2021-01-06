@@ -564,6 +564,51 @@ def add_dragen_exonic_coverage_metrics(dragen_exonic_coverage_metrics, run_analy
 			new_dragen_region_cov_obj.save()
 
 
+def add_dragen_ploidy_metrics(dragen_ploidy_metrics, run_analysis_obj):
+
+	"""
+	Add data from the Dragen ploidy files to database.
+
+	"""
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in dragen_ploidy_metrics:
+		
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+		
+		existing_data = DragenPloidyMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+		
+		if len(existing_data) < 1:
+
+			sample_data = dragen_ploidy_metrics[key]
+
+			sample_data['sample_analysis'] = sample_analysis_obj
+			
+			for key in sample_data:
+
+				if sample_data[key] == 'NA' or sample_data[key] == ''  or sample_data[key] == 'inf':
+
+					sample_data[key] = None
+
+			new_dragen_ploidy_metrics_obj = DragenPloidyMetrics(sample_analysis=sample_analysis_obj, ploidy_estimation=sample_data['ploidy_estimation'])
+			new_dragen_ploidy_metrics_obj.save()
+
+
+
+
+
+
+
+
+
+
+
+
 def add_fusion_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
 	"""
 	Add data from fusion contamination file to database
