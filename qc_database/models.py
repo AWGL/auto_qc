@@ -1379,7 +1379,7 @@ class FusionAlignmentMetrics(models.Model):
 
 class DragenPloidyMetrics(models.Model):
 	"""
-	Data for the SomaticFusion pipelines contamination metric
+	Data for Dragen V7 Sex Metrics
 
 	"""
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
