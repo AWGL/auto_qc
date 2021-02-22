@@ -12,7 +12,6 @@
 	<tr>
 	  <th>ID</th>
 	  <th>Run</th>
-	  <th>Worksheets</th>
 	  <th>Analysis</th>
 	  <th>Pipeline</th>
 	  <th>Start Date</th>
@@ -25,7 +24,6 @@
 	<tr>
 		<td> {{run_analysis.pk}} </td>
 		<td> {{run_analysis.run.run_id}} </td>
-		<td> {{run_analysis.get_worksheets}} </td>
 		<td> {{run_analysis.analysis_type.analysis_type_id}} </td>
 		<td> {{run_analysis.pipeline.pipeline_id}} </td>
 		<td> {{run_analysis.start_date|date:'Y-m-d'}} </td>

@@ -573,7 +573,7 @@ class SampleAnalysis(models.Model):
 
 		if total_reads == None:
 
-			return False
+			return 'Cannot count reads for sample.'
 
 		ntc_objs = run_analysis.get_ntc_sample(self.worksheet)
 
@@ -588,6 +588,10 @@ class SampleAnalysis(models.Model):
 			if self == ntc:
 
 				return 'NA'
+
+			if ntc_reads == None:
+
+				return 'Cannot count reads for sample.'
 
 			if ntc_reads == None:
 
