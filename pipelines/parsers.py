@@ -817,12 +817,28 @@ def parse_dragen_wgs_coverage_metrics_file(dragen_wgs_coverage_metrics_file):
 			prefix = row[0]
 			key = row[2]
 			value = row[3]
-	
+						
 			new_key = key.translate(str.maketrans('', '', string.punctuation.replace('_' ,'')))
 			
 			new_key = new_key.lower().replace(' ', '_').replace('__', '_')
 
 			new_key = new_key.replace('__', '_')
+
+			# fix strange NTC results in Dragen 3.7
+
+			new_key = new_key.replace('xinf', 'x_inf')
+
+			new_key = new_key.replace('20x50x', '20x_50x')
+
+			new_key = new_key.replace('15x20x', '15x_20x')
+
+			new_key = new_key.replace('10x15x', '10x_15x')
+
+			new_key = new_key.replace('3x10x', '3x_10x')
+
+			new_key = new_key.replace('1x3x', '1x_3x')
+
+			new_key = new_key.replace('0x1x', '0x_1x')
 			
 			if prefix == 'COVERAGE SUMMARY':
 								
