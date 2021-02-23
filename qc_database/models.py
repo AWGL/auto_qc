@@ -424,12 +424,9 @@ class RunAnalysis(models.Model):
 
 					reasons_to_fail.append('Fusion Contamination Fail')
 
-		print (checks_to_do)
 		if 'fusion_alignment' in checks_to_do:
 
 			for sample in new_samples_list:
-
-				print (sample, sample.passes_fusion_aligned_reads_duplicates())
 
 				if sample.passes_fusion_aligned_reads_duplicates() == False:
 
@@ -754,17 +751,28 @@ class SampleAnalysis(models.Model):
 	def get_region_coverage_over_20(self):
 
 		try:
-			coverage = DragenRegionCoverageMetrics.objects.filter(sample_analysis = self)
+			coverage = DragenRegionCoverageMetrics.objects.get(sample_analysis = self)
 		except:
-			return None
+			
+			try:
+				coverage = CustomCoverageMetrics.objects.filter(sample_analysis = self)
 
-		if len(coverage) != 1:
+				if len(coverage) != 1:
 
-			return None
+					return None
 
-		else:
+				else:
 
-			return coverage[0].pct_of_qc_coverage_region_with_coverage_20x_inf
+					return coverage[0].pct_greater_20x
+
+			except:
+				return None
+
+
+
+
+
+		return coverage.pct_of_qc_coverage_region_with_coverage_20x_inf
 
 	def passes_region_coverage_over_20(self):
 
@@ -993,6 +1001,9 @@ class SampleHsMetrics(models.Model):
 	gc_dropout = models.DecimalField(max_digits=20, decimal_places=4, null=True)
 	het_snp_sensitivity = models.DecimalField(max_digits=20, decimal_places=4, null=True)
 	het_snp_q = models.BigIntegerField(null=True) 
+	pf_bases = models.BigIntegerField(null=True, blank=True)
+	min_target_coverage = models.BigIntegerField(null=True, blank=True)
+	pct_exc_adapter = models.DecimalField(max_digits=20, decimal_places=4, null=True)
 
 	def __str__(self):
 		return str(self.sample_analysis)
@@ -1389,6 +1400,20 @@ class DragenPloidyMetrics(models.Model):
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	ploidy_estimation = models.CharField(max_length=10, blank=True, null=True)
 
+
+class CustomCoverageMetrics(models.Model):
+	"""
+	Model for custom coverage metrics from nextflow pipeline
+
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	mean_depth = models.DecimalField(max_digits=8, decimal_places=1, null=True)
+	min_depth = models.DecimalField(max_digits=8, decimal_places=1, null=True)
+	max_depth = models.DecimalField(max_digits=8, decimal_places=1, null=True)
+	stddev_depth = models.DecimalField(max_digits=8, decimal_places=1, null=True)
+	pct_greater_20x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+	pct_greater_250x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+	pct_greater_160x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
 
 auditlog.register(RunAnalysis)
 auditlog.register(SampleAnalysis)

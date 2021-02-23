@@ -663,3 +663,31 @@ def add_fusion_alignment_metrics(alignment_metrics_dict, run_analysis_obj):
 
 			new_fusion_alignments_obj = FusionAlignmentMetrics(**sample_data)
 			new_fusion_alignments_obj.save()
+
+
+def add_custom_coverage_metrics(coverage_metrics_dict, run_analysis_obj):
+	"""
+	Add data from custom coverage metrics file to database
+
+	"""
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in coverage_metrics_dict:
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+		
+		existing_data = CustomCoverageMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+		
+		if len(existing_data) < 1:
+
+			sample_data = coverage_metrics_dict[key]
+
+			sample_data['sample_analysis'] = sample_analysis_obj
+
+			new_custom_coverage_obj = CustomCoverageMetrics(**sample_data)
+			new_custom_coverage_obj.save()

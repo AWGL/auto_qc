@@ -465,3 +465,15 @@ pipelines:
                ]
     run_not_expected_files: []
     post_sample_files: []
+
+
+  germline_enrichment_nextflow-master-AgilentOGTFH:
+    results_dir:  '/media/joseph/Storage/data/results/'
+    qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, coverage]
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 0
+    min_variants: 20
+    max_variants: 80
+    min_coverage: 0.98

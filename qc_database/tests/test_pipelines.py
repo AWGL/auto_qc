@@ -1,5 +1,5 @@
 import unittest
-from pipelines import germline_pipelines, fusion_pipelines
+from pipelines import germline_pipelines, fusion_pipelines, nextflow_pipelines
 
 
 class TestPipelineMonitoring(unittest.TestCase):
@@ -23,7 +23,7 @@ class TestPipelineMonitoring(unittest.TestCase):
 
 		self.assertEqual(sample_valid, True)
 
-		def test_somatic_fusion_valid(self):
+	def test_somatic_fusion_valid(self):
 
 			results_dir = 'test_data/200731_NB551319_0117_AH7K2TAFX2/RocheSTFusion'
 			sample_names = ['19M80611_zymo']
@@ -34,10 +34,46 @@ class TestPipelineMonitoring(unittest.TestCase):
 												run_id = run_id
 				)
 
-			sample_complete = germline_enrichment.sample_is_complete('19M80611_zymo')
+			sample_complete = somatic_fusion.sample_is_complete('19M80611_zymo')
 
 			self.assertEqual(sample_complete, True)
 
-			sample_valid = germline_enrichment.sample_is_valid('19M80611_zymo')
+			sample_valid = somatic_fusion.sample_is_valid('19M80611_zymo')
 
 			self.assertEqual(sample_valid, True)
+
+
+	def test_nextflow_germline_valid(self):
+
+
+			results_dir = 'test_data/190916_M00766_0252_000000000-CJMB5/AgilentOGTFH'
+			sample_names = ['na']
+			run_id = '190916_M00766_0252_000000000-CD583'
+
+			nextflow = nextflow_pipelines.NextflowGermlineEnrichment(results_dir = results_dir,
+												sample_names = sample_names,
+												run_id = run_id
+				)
+
+
+			run_valid = nextflow.run_is_valid()
+
+			self.assertEqual(run_valid, True)
+
+
+	def test_nextflow_germline_not_valid(self):
+
+
+			results_dir = 'test_data/190916_M00766_0252_000000000-CJMB5/AgilentOGTFH2'
+			sample_names = ['na']
+			run_id = '190916_M00766_0252_000000000-CD583'
+
+			nextflow = nextflow_pipelines.NextflowGermlineEnrichment(results_dir = results_dir,
+												sample_names = sample_names,
+												run_id = run_id
+				)
+
+
+			run_valid = nextflow.run_is_valid()
+
+			self.assertEqual(run_valid, False)

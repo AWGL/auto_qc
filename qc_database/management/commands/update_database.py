@@ -8,7 +8,7 @@ import logging
 
 from qc_database.models import *
 from qc_database.utils.slack import message_slack
-from pipelines import dragen_pipelines, fusion_pipelines, germline_pipelines, parsers, quality_pipelines, somatic_pipelines
+from pipelines import dragen_pipelines, fusion_pipelines, germline_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines
 from qc_database import management_utils
 
 class Command(BaseCommand):
@@ -1186,6 +1186,141 @@ class Command(BaseCommand):
 
 					run_analysis.save()
 
+				# for nextflow piplines
+				elif 'nextflow' in run_analysis.pipeline.pipeline_id:
+
+					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+
+					try:
+
+						nextflow = nextflow_pipelines.NextflowGermlineEnrichment(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id,
+															)
+
+					except:
+
+						nextflow = nextflow_pipelines.NextflowGermlineEnrichment(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id
+															)
+
+					# kust say all samples are valid - we only check run level here
+					for sample in sample_ids:
+
+						sample_obj = Sample.objects.get(sample_id = sample)
+
+						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
+																		run = run_analysis.run,
+																		pipeline = run_analysis.pipeline)
+
+
+						sample_analysis_obj.results_completed = True
+						sample_analysis_obj.results_valid = True
+						sample_analysis_obj.save()
+
+
+					run_complete = nextflow.run_is_complete()
+					run_valid = nextflow.run_is_valid()
+
+					if run_analysis.results_completed == False and run_complete == True:
+
+						if run_valid == True:
+
+							logger.info (f'Run {run_analysis.run.run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							# put qc here
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = nextflow.get_fastqc_data()
+							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+
+							logger.info(f'Putting hs metrics into db for run {run_analysis.run.run_id}')
+							hs_metrics_dict = nextflow.get_hs_metrics()
+							management_utils.add_hs_metrics(hs_metrics_dict, run_analysis)
+
+							logger.info (f'Putting duplication into db for run {run_analysis.run.run_id}')
+							duplication_metrics_dict = nextflow.get_duplication_metrics()
+							management_utils.add_duplication_metrics(duplication_metrics_dict, run_analysis)
+
+							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
+							contamination_metrics_dict = nextflow.get_contamination()
+							management_utils.add_contamination_metrics(contamination_metrics_dict, run_analysis)
+
+							logger.info (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							alignment_metrics_dict = nextflow.get_alignment_metrics()
+							management_utils.add_alignment_metrics(alignment_metrics_dict, run_analysis)
+
+							logger.info (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							variant_calling_metrics_dict = nextflow.get_variant_calling_metrics()
+							management_utils.add_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
+
+							logger.info (f'Putting insert metrics into db for run {run_analysis.run.run_id}')
+							insert_metrics_dict = nextflow.get_insert_metrics()
+							management_utils.add_insert_metrics(insert_metrics_dict, run_analysis)
+
+							logger.info (f'Putting coverage metrics into db for run {run_analysis.run.run_id}')
+							coverage_metrics_dict = nextflow.get_coverage_metrics()
+							management_utils.add_custom_coverage_metrics(coverage_metrics_dict, run_analysis)
+
+							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
+							sex_dict = nextflow.get_sex_metrics()
+							management_utils.add_sex_metrics(sex_dict, run_analysis, 'sex')
+
+							send_to_slack = True
+
+						else:
+
+							logger.info (f'Run {run_analysis.run.run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+
+					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
+
+							logger.info (f'Run {run_analysis.run.run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+
+							# put qc here
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = nextflow.get_fastqc_data()
+							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+
+							logger.info(f'Putting hs metrics into db for run {run_analysis.run.run_id}')
+							hs_metrics_dict = nextflow.get_hs_metrics()
+							management_utils.add_hs_metrics(hs_metrics_dict, run_analysis)
+
+							logger.info (f'Putting duplication into db for run {run_analysis.run.run_id}')
+							duplication_metrics_dict = nextflow.get_duplication_metrics()
+							management_utils.add_duplication_metrics(duplication_metrics_dict, run_analysis)
+
+							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
+							contamination_metrics_dict = nextflow.get_contamination()
+							management_utils.add_contamination_metrics(contamination_metrics_dict, run_analysis)
+
+							logger.info (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
+							alignment_metrics_dict = nextflow.get_alignment_metrics()
+							management_utils.add_alignment_metrics(alignment_metrics_dict, run_analysis)
+
+							logger.info (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
+							variant_calling_metrics_dict = nextflow.get_variant_calling_metrics()
+							management_utils.add_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
+
+							logger.info (f'Putting insert metrics into db for run {run_analysis.run.run_id}')
+							insert_metrics_dict = nextflow.get_insert_metrics()
+							management_utils.add_insert_metrics(insert_metrics_dict, run_analysis)
+
+							logger.info (f'Putting coverage metrics into db for run {run_analysis.run.run_id}')
+							coverage_metrics_dict = nextflow.get_coverage_metrics()
+							management_utils.add_custom_coverage_metrics(coverage_metrics_dict, run_analysis)
+
+							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
+							sex_dict = nextflow.get_sex_metrics()
+							management_utils.add_sex_metrics(sex_dict, run_analysis, 'sex')
+
+
+							send_to_slack = True
+
+					run_analysis.results_completed = run_complete
+					run_analysis.results_valid = run_valid
+
+					run_analysis.save()
 
 				# message slack
 				if settings.MESSAGE_SLACK:
