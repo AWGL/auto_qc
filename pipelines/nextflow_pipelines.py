@@ -252,9 +252,12 @@ class NextflowGermlineEnrichment:
 			sample_sex_metrics_file = results_path.glob(f'post_processing/results/sex/*{sample}_calculated_sex.txt')
 
 			try:
+
 				sample_sex_metrics_file = list(sample_sex_metrics_file)[0]
-			
+
 				parsed_sex_metrics = parsers.parse_dragen_sex_file(sample_sex_metrics_file)
+
+				run_sex_metrics_dict[sample] = parsed_sex_metrics
 
 			except:
 

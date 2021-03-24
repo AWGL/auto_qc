@@ -10,24 +10,13 @@ class DragenGE:
 				 results_dir,
 				 sample_names,
 				 run_id,
-				 sample_expected_files= ['*.bam',
-									'*.mapping_metrics.csv',
-									'*.insert-stats.tab'],
-				run_expected_files = ['*.hard-filtered.vcf.gz',
-									'*.vc_metrics.csv',
-									 'results/relatedness/*.relatedness2',
-									 'results/sensitivity/*_sensitivity.txt',
-									 'results/database_vcf/*.roi.filtered.database.vcf',
-									 'results/annotated_vcf/*.roi.filtered.norm.anno.vcf.gz'],
+				 sample_expected_files= [],
+				run_expected_files = [],
 				sample_not_expected_files =[],
 				run_not_expected_files= [],
-				post_sample_files = ['results/contamination/*{sample}_contamination.selfSM',
-									'results/calculated_sex/*{sample}_calculated_sex.txt',
-									'results/coverage/*{sample}_depth_of_coverage.gz',
-									'results/coverage/*{sample}_gaps.bed'
-									],
-				run_complete_marker  = 'post_processing_finished.txt',
-				sample_complete_marker  = 'post_processing_finished.txt'
+				post_sample_files = [],
+				run_complete_marker  = 'post_processing/results/post_processing_finished.txt',
+				sample_complete_marker  = 'post_processing/results/post_processing_finished.txt'
 				):
 
 		self.results_dir = results_dir
@@ -41,179 +30,70 @@ class DragenGE:
 		self.run_not_expected_files = run_not_expected_files
 		self.post_sample_files = post_sample_files
 		
-		
-	def sample_is_complete(self, sample):
-		"""
-		Look for presence of file indicating that a sample has completed the pipeline.
-
-		For example the output error log.
-		"""
-
-		results_path = Path(self.results_dir)
-		
-		results_path = results_path.joinpath('results')
-
-		marker = results_path.glob(self.sample_complete_marker)
-
-		if len(list(marker)) >= 1:
-
-			return True
-
-		return False
-	
-	def sample_is_valid(self, sample):
-		"""
-		Look for files which have to be present for a sample level pipeline to have completed \
-		correctly.
-
-		Look for file which if present indicate the pipeline has not finished correctly e.g. intermediate files.
-		"""
-
-		results_path = Path(self.results_dir)
-
-		sample_path = results_path.joinpath(sample)
-
-		# check files we want to be there are there
-		for file in self.sample_expected_files:
-
-			found_file = sample_path.glob(file)
-
-			if len(list(found_file)) != 1:
-
-				return False
-
-		# check file we do not want to be there are not there
-		for file in self.sample_not_expected_files:
-
-			found_file = sample_path.glob(file)
-
-			if len(list(found_file)) > 0:
-
-				return False
-			
-		for file in self.post_sample_files:
-			
-			split = file.split('{sample}')
-			
-			joined = f'{sample}'.join(split)
-						
-			found_file = results_path.glob(joined)
-			
-			if len(list(found_file)) < 1:
-
-				return False
-
-		return True
-	
 	def run_is_complete(self):
 		"""
-		Look for presence of file indicating that a sample has completed the pipeline.
-
-		For example the output error log.
+		Look for the file nextflow creates on run end
 		"""
 
 		results_path = Path(self.results_dir)
 		
-		results_path = results_path.joinpath('results')
+		marker = results_path.glob(self.run_complete_marker)
 
-		marker = results_path.glob(self.sample_complete_marker)
-
-		if len(list(marker)) >= 1:
+		if len(list(marker)) == 1:
 
 			return True
 
-		return False
-	
+		return False	
 
+	
 	def run_is_valid(self):
 		"""
-		Look for files which have to be present for a run level pipeline to have completed \
-		correctly.
+		Read the file nextflow created on run end (post_processing/results/post_processing_finished.txt)
 
-		Look for files which if present indicate the pipeline has not finished correctly e.g. intermediate files.
+		open it and see if the success or fail mark is there
+
 		"""
 
-		results_path = Path(self.results_dir)
+		if self.run_is_complete():
 
-		# check files we want to be there are there
-		for file in self.run_expected_files:
+			results_path = Path(self.results_dir)
+		
+			marker = results_path.glob(self.run_complete_marker)
+
+			marker = list(marker)[0]
+
+			# last line in file
+			last_report = ''
+
+			with open(marker, 'r') as outfile:
+
+				for x in outfile:
+					last_report = x.strip()
+
+			if 'success' in last_report:
+
+				return True
+
 			
-			found_file = results_path.glob(file)
-						
-			found_file = results_path.glob(file)
-
-			if len(list(found_file)) != 1:
-								
-				return False
-
-		# check file we do not want to be there are not there
-		for file in self.run_not_expected_files:
-			
-
-			found_file = results_path.glob(file)
-
-			if len(list(found_file)) > 0:
-
-				return False
-			
-		return True
-
-	def run_and_samples_complete(self):
-			"""
-			Return True if all samples are complete and valid and the run
-			level is complete and valid. Otherwise return False.
-
-			"""
-
-			# sample level
-			for sample in self.sample_names:
-
-				if self.sample_is_complete(sample) == False:
-
-					return False
-
-			# run level
-			if self.run_is_complete() == False:
-
-				return False
-
-			return True
-
-
-	def run_and_samples_valid(self):
-
-		# sample level
-		for sample in self.sample_names:
-
-			if self.sample_is_valid(sample) == False:
-
-				return False
-
-		# run level
-		if self.run_is_valid() == False:
-
-			return False
-
-		return True	
+		return False
 	
-	
-	def get_depth_metrics(self):
+	def get_coverage_metrics(self):
 
 		results_path = Path(self.results_dir)
 
-		run_depth_metrics_dict = {}
+		run_coverage_metrics_dict = {}
 
 		for sample in self.sample_names:
 
-			sample_depth_summary_file = results_path.joinpath('results', 'coverage').glob(f'*{sample}_depth_of_coverage.sample_summary')
+			sample_coverage_metrics_file = results_path.glob(f'post_processing/results/coverage/*{sample}.depth_summary')
 
-			sample_depth_summary_file = list(sample_depth_summary_file)[0]
+			sample_coverage_metrics_file = list(sample_coverage_metrics_file)[0]	
 
-			parsed_depth_metrics = parsers.parse_gatk_depth_summary_file(sample_depth_summary_file)
+			parsed_coverage_metrics = parsers.parse_custom_coverage_metrics(sample_coverage_metrics_file)
 
-			run_depth_metrics_dict[sample] = parsed_depth_metrics
+			run_coverage_metrics_dict[sample] = parsed_coverage_metrics
 
-		return run_depth_metrics_dict
+		return run_coverage_metrics_dict
 	
 	def get_contamination(self):
 
@@ -223,7 +103,7 @@ class DragenGE:
 
 		for sample in self.sample_names:
 
-			sample_contamination_metrics_file = results_path.joinpath('results', 'contamination').glob(f'*{sample}_contamination.selfSM')
+			sample_contamination_metrics_file = results_path.glob(f'post_processing/results/contamination/*{sample}_contamination.selfSM')
 
 			sample_contamination_metrics_file = list(sample_contamination_metrics_file)[0]	
 
@@ -241,15 +121,20 @@ class DragenGE:
 
 		for sample in self.sample_names:
 
-			sample_sex_metrics_file = results_path.joinpath('results', 'calculated_sex').glob(f'*{sample}_calculated_sex.txt')
+			sample_sex_metrics_file = results_path.glob(f'post_processing/results/sex/*{sample}_calculated_sex.txt')
 
-			sample_sex_metrics_file = list(sample_sex_metrics_file)[0]
+			try:
+				sample_sex_metrics_file = list(sample_sex_metrics_file)[0]
 			
-			parsed_sex_metrics = parsers.parse_dragen_sex_file(sample_sex_metrics_file)
+				parsed_sex_metrics = parsers.parse_dragen_sex_file(sample_sex_metrics_file)
 
-			run_sex_metrics_dict[sample] = parsed_sex_metrics
+				run_sex_metrics_dict[sample] = parsed_sex_metrics
 
-		return run_sex_metrics_dict   
+			except:
+
+				run_sex_metrics_dict[sample] = {'sex': 'Unknown'}
+
+		return run_sex_metrics_dict
 	
 	
 	def get_variant_calling_metrics(self):
@@ -288,7 +173,7 @@ class DragenGE:
 		
 		results_path = Path(self.results_dir)
 
-		sensitivity_file = results_path.glob(f'results/sensitivity/{self.run_id}*_sensitivity.txt')
+		sensitivity_file = results_path.glob(f'post_processing/results/sensitivity/{self.run_id}*_sensitivity.txt')
 		
 		sensitivity_file = list(sensitivity_file)[0]
 		
@@ -305,7 +190,7 @@ class DragenGE:
 
 		for sample in self.sample_names:
 
-			vcf_file = results_path.glob(f'results/database_vcf/{self.run_id}.roi.filtered.database.vcf')
+			vcf_file = results_path.glob(f'post_processing/results/old_variant_database_vcf/{self.run_id}_old_variant_database.vcf')
 
 			vcf_file = list(vcf_file)[0]
 
@@ -372,9 +257,6 @@ class DragenWGS:
 		else:
 
 			results_path = results_path.joinpath('results')
-
-
-		print(results_path)
 
 		marker = results_path.glob(self.sample_complete_marker)
 

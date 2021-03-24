@@ -835,10 +835,8 @@ class Command(BaseCommand):
 															run_id = run_analysis.run.run_id
 															)
 
+					# just say all samples are valid - we only check run level here
 					for sample in sample_ids:
-
-						sample_complete = dragen_ge.sample_is_complete(sample)
-						sample_valid = dragen_ge.sample_is_valid(sample)
 
 						sample_obj = Sample.objects.get(sample_id = sample)
 
@@ -846,26 +844,14 @@ class Command(BaseCommand):
 																		run = run_analysis.run,
 																		pipeline = run_analysis.pipeline)
 
-						if sample_analysis_obj.results_completed == False and sample_complete == True:
 
-							if sample_valid == True:
-
-								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has finished DragenGE pipelines successfully.')
-
-							else:
-								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has failed DragenGE pipeline.')
-
-						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
-
-							logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
-
-
-						sample_analysis_obj.results_completed = sample_complete
-						sample_analysis_obj.results_valid = sample_valid
+						sample_analysis_obj.results_completed = True
+						sample_analysis_obj.results_valid = True
 						sample_analysis_obj.save()
 
-					run_complete = dragen_ge.run_and_samples_complete()
-					run_valid = dragen_ge.run_and_samples_valid()
+
+					run_complete = dragen_ge.run_is_complete()
+					run_valid = dragen_ge.run_is_valid()
 
 					if run_analysis.results_completed == False and run_complete == True:
 
@@ -873,9 +859,9 @@ class Command(BaseCommand):
 
 							logger.info (f'Run {run_analysis.run.run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							logger.info (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
-							depth_metrics_dict = dragen_ge.get_depth_metrics()
-							management_utils.add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+							logger.info (f'Putting coverage metrics into db for run {run_analysis.run.run_id}')
+							coverage_metrics_dict = dragen_ge.get_coverage_metrics()
+							management_utils.add_custom_coverage_metrics(coverage_metrics_dict, run_analysis)
 
 							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
 							contamination_metrics_dict = dragen_ge.get_contamination()
@@ -911,9 +897,9 @@ class Command(BaseCommand):
 
 							logger.info (f'Run {run_analysis.run.run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							logger.info (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
-							depth_metrics_dict = dragen_ge.get_depth_metrics()
-							management_utils.add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
+							logger.info (f'Putting coverage metrics into db for run {run_analysis.run.run_id}')
+							coverage_metrics_dict = dragen_ge.get_coverage_metrics()
+							management_utils.add_custom_coverage_metrics(coverage_metrics_dict, run_analysis)
 
 							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
 							contamination_metrics_dict = dragen_ge.get_contamination()

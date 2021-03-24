@@ -1412,6 +1412,7 @@ class CustomCoverageMetrics(models.Model):
 	max_depth = models.DecimalField(max_digits=8, decimal_places=1, null=True)
 	stddev_depth = models.DecimalField(max_digits=8, decimal_places=1, null=True)
 	pct_greater_20x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+	pct_greater_30x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
 	pct_greater_250x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
 	pct_greater_160x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
 
