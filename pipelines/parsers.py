@@ -955,3 +955,23 @@ def parse_ploidy_metrics_file(ploidy_metrics_file):
 				dragen_ploidy_metrics_file_dict[new_key] = value
 				
 	return dragen_ploidy_metrics_file_dict
+
+
+def parse_custom_coverage_metrics(custom_coverage_file):
+	"""
+	Parse the coverage summary file from germline enrichment nextflow
+	"""
+
+	custom_coverage_dict  = {}
+
+	with open (custom_coverage_file) as file:
+
+		coverage_file = csv.reader(file, delimiter=',')
+
+		for row in coverage_file:
+						
+			key = row[0]
+			value = row[1]
+			custom_coverage_dict[key] = value
+
+	return custom_coverage_dict
