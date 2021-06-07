@@ -62,7 +62,7 @@
 	{% if 'variant_check' in checks_to_do %}
 
 	<tr>
-		<td> Min Number of Variants </td>
+		<td> Min Number of Variants (Warning Only) </td>
 		<td> {{run_analysis.min_variants}}</td>
 
 	</tr>
@@ -435,7 +435,7 @@
 		{% elif sample_analysis.get_variant_count > run_analysis.min_variants and sample_analysis.get_variant_count < run_analysis.max_variants  %}
 			<td class="table-success"> {{sample_analysis.get_variant_count}} </td>
 		{% else %}
-			<td class="table-danger"> {{sample_analysis.get_variant_count}} </td>
+			<td class="table-warning"> {{sample_analysis.get_variant_count}} </td>
 		{% endif %}
 
 		{% endif %}
