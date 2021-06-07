@@ -801,7 +801,7 @@ pipelines:
     ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
     min_variants: 4775905
-    max_variants: 5003809
+    max_variants: 7000000
     min_titv: 2.0
     max_titv: 2.1
     min_coverage: 90
