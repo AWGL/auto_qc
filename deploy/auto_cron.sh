@@ -27,5 +27,7 @@ python manage.py update_database --raw_data_dir /mnt/wren_archive/novaseq/ --con
 echo doing the wren miseq
 python manage.py update_database --raw_data_dir /mnt/wren_archive/miseq/ --config /export/home/webapps/auto_qc/config/config_gen01.yaml
 
+echo doing the wren nextseq
+python manage.py update_database --raw_data_dir /mnt/wren_archive/nextseq/ --config /export/home/webapps/auto_qc/config/config_gen01.yaml
 
 source /home/webapps/miniconda3/bin/deactivate
