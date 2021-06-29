@@ -114,7 +114,7 @@ class SomaticEnrichment:
 			hs_metrics_file = list(hs_metrics_file)[0]
 
 			parsed_hs_metrics_data  = parsers.parse_hs_metrics_file(hs_metrics_file)
-			total_reads=int(parsed_hs_metrics_data.get('total_reads'))
+			total_reads = int(parsed_hs_metrics_data.get('total_reads'))
 	
 			#CNVKit will not run if number of reads is less than 2 million
 			if total_reads < 2000000:
@@ -161,6 +161,7 @@ class SomaticEnrichment:
 
 			#get the total number of reads in the sample
 			hs_metrics_file = results_path.joinpath(sample).glob(f'*{sample}*_HsMetrics.txt')
+
 
 			hs_metrics_file = list(hs_metrics_file)[0]
 
