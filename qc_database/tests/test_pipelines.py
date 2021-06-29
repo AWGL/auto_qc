@@ -1,5 +1,5 @@
 import unittest
-from pipelines import germline_pipelines, fusion_pipelines, nextflow_pipelines
+from pipelines import germline_pipelines, fusion_pipelines, nextflow_pipelines, somatic_pipelines
 
 
 class TestPipelineMonitoring(unittest.TestCase):
@@ -41,6 +41,96 @@ class TestPipelineMonitoring(unittest.TestCase):
 			sample_valid = somatic_fusion.sample_is_valid('19M80611_zymo')
 
 			self.assertEqual(sample_valid, True)
+
+
+
+	def test_somatic_enrichment_valid(self):
+
+
+
+			#run without sample 3
+			results_dir = 'test_data/run1/RochePanCancer'
+			sample_names = ['sample1', 'sample2']
+			run_id = 'run1'
+
+			somatic_enrichment = somatic_pipelines.SomaticEnrichment(results_dir = results_dir,
+												sample_names = sample_names,
+												run_id = run_id
+				)
+
+
+			#sample1
+
+			sample_complete = somatic_enrichment.sample_is_complete('sample1')
+
+			self.assertEqual(sample_complete, True)
+
+			sample_valid = somatic_enrichment.sample_is_valid('sample1')
+
+			self.assertEqual(sample_valid, True)
+
+
+
+			#sample2
+			sample_complete = somatic_enrichment.sample_is_complete('sample2')
+
+			self.assertEqual(sample_complete, True)
+
+			sample_valid = somatic_enrichment.sample_is_valid('sample2')
+
+			self.assertEqual(sample_valid, True)
+
+
+			#run without sample 3 valid/complete
+
+			run_complete = somatic_enrichment.run_is_complete()
+
+			self.assertEqual(run_complete, True)
+
+
+
+			run_valid = somatic_enrichment.run_is_valid()
+
+			self.assertEqual(run_valid, True)
+
+
+
+
+
+			#run with sample3
+
+			results_dir = 'test_data/run1/RochePanCancer'
+			sample_names = ['sample1', 'sample2', 'sample3']
+			run_id = 'run1'
+
+			somatic_enrichment = somatic_pipelines.SomaticEnrichment(results_dir = results_dir,
+												sample_names = sample_names,
+												run_id = run_id
+				)
+
+
+
+
+			#sample3
+			sample_complete = somatic_enrichment.sample_is_complete('sample3')
+
+			self.assertEqual(sample_complete, True)
+
+			sample_valid = somatic_enrichment.sample_is_valid('sample3')
+
+			self.assertEqual(sample_valid, True)
+
+
+			#run with sample 3 complete/valid
+			run_complete = somatic_enrichment.run_is_complete()
+
+			self.assertEqual(run_complete, False)
+
+
+
+			run_valid = somatic_enrichment.run_is_valid()
+
+			self.assertEqual(run_valid, False)
 
 
 	def test_nextflow_germline_valid(self):

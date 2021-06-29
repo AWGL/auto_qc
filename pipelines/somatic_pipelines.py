@@ -74,6 +74,7 @@ class SomaticEnrichment:
 
 		sample_path = results_path.joinpath(sample)
 
+
 		# check files we want to be there are there
 		for file in self.sample_expected_files:
 
@@ -82,6 +83,7 @@ class SomaticEnrichment:
 			if len(list(found_file)) != 1:
 
 				return False
+	
 
 		# check file we do not want to be there are not there
 		for file in self.sample_not_expected_files:
@@ -104,6 +106,21 @@ class SomaticEnrichment:
 		for sample in self.sample_names:
 
 			skip_sample = False
+
+			
+			#get the total number of reads in the sample
+			hs_metrics_file = results_path.joinpath(sample).glob(f'*{sample}*_HsMetrics.txt')
+
+			hs_metrics_file = list(hs_metrics_file)[0]
+
+			parsed_hs_metrics_data  = parsers.parse_hs_metrics_file(hs_metrics_file)
+			total_reads = int(parsed_hs_metrics_data.get('total_reads'))
+	
+			#CNVKit will not run if number of reads is less than 2 million
+			if total_reads < 2000000:
+
+				skip_sample = True
+
 
 			for ntc in self.ntc_patterns:
 
@@ -141,6 +158,21 @@ class SomaticEnrichment:
 		for sample in self.sample_names:
 
 			skip_sample = False
+
+			#get the total number of reads in the sample
+			hs_metrics_file = results_path.joinpath(sample).glob(f'*{sample}*_HsMetrics.txt')
+
+
+			hs_metrics_file = list(hs_metrics_file)[0]
+
+			parsed_hs_metrics_data  = parsers.parse_hs_metrics_file(hs_metrics_file)
+			total_reads=int(parsed_hs_metrics_data.get('total_reads'))
+
+			#CNVKit will not run for the sample if number of reads is less than 2 million
+			if total_reads < 2000000:
+
+				skip_sample = True
+
 
 			for ntc in self.ntc_patterns:
 
