@@ -17,9 +17,7 @@ class SomaticEnrichment:
 									'*_AlignmentSummaryMetrics.txt',
 									'*_DepthOfCoverage.sample_summary',
 									'*_QC.txt',
-									'*_filteredStrLeftAligned_annotated.vcf',
-									'hotspot_variants',
-									'hotspot_coverage_135x'
+									'*_filteredStrLeftAligned_annotated.vcf'
 									],
 
 				sample_not_expected_files = [],
