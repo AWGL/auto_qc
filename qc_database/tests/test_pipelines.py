@@ -43,7 +43,7 @@ class TestPipelineMonitoring(unittest.TestCase):
 			self.assertEqual(sample_valid, True)
 
 
-	"""
+	
 	def test_somatic_enrichment_valid(self):
 
 
@@ -131,7 +131,7 @@ class TestPipelineMonitoring(unittest.TestCase):
 			run_valid = somatic_enrichment.run_is_valid()
 
 			self.assertEqual(run_valid, False)
-	"""
+	
 
 	def test_nextflow_germline_valid(self):
 
