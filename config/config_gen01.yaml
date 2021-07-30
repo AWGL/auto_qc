@@ -331,6 +331,18 @@ pipelines:
     max_variants: 80
     min_coverage: 0.90
 
+
+  germline_enrichment_nextflow-master-IlluminaTruSightCancer:
+    results_dir:  '/mnt/wren_results/results/'
+    qc_checks: [pct_q30, fastqc, variant_check, contamination, ntc_contamination, sex_match]
+    min_q30_score: 0.75
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 10000
+    min_variants: 600
+    max_variants: 1100
+
+
   DragenGE-master-IlluminaTruSightOne:
     results_dir:  '/mnt/wren_results/results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity, coverage]
@@ -347,4 +359,5 @@ pipelines:
     run_expected_files: []
     run_not_expected_files: []
     post_sample_files: []
+
 
