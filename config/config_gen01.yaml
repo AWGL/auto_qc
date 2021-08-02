@@ -204,12 +204,12 @@ pipelines:
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
-                  '*_qc.txt',
+                  '*_QC.txt',
                   '*_filtered_meta_annotated.vcf',
                   'hotspot_variants',
                   'hotspot_coverage'
                   ]
-    sample_not_expected_files: ['*_fastqc.zip', 'VariantCallingLogs']
+    sample_not_expected_files: ['*_fastqc.zip']
     run_expected_files: []
     run_not_expected_files: []
 
