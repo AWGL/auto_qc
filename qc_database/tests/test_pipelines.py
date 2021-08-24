@@ -70,7 +70,6 @@ class TestPipelineMonitoring(unittest.TestCase):
 			self.assertEqual(sample_valid, True)
 
 
-
 			#sample2
 			sample_complete = somatic_enrichment.sample_is_complete('sample2')
 
