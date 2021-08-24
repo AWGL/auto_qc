@@ -192,7 +192,6 @@ pipelines:
     #run_not_expected_files: []
     
   SomaticAmplicon-master-NGHS-101X:
-    fastq_dir: '/data/output/fastq/'
     results_dir: '/mnt/wren_results/results/'
     min_q30_score: 0.8
     contamination_cutoff: 0.025
@@ -200,7 +199,7 @@ pipelines:
     qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 100000
     min_variants: 10
-    max_variants: 250
+    max_variants: 1000
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
@@ -221,7 +220,7 @@ pipelines:
     qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
     min_variants: 10
-    max_variants: 250
+    max_variants: 1000
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
