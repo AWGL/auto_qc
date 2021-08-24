@@ -43,7 +43,7 @@ class TestPipelineMonitoring(unittest.TestCase):
 			self.assertEqual(sample_valid, True)
 
 
-
+	
 	def test_somatic_enrichment_valid(self):
 
 
@@ -130,7 +130,7 @@ class TestPipelineMonitoring(unittest.TestCase):
 			run_valid = somatic_enrichment.run_is_valid()
 
 			self.assertEqual(run_valid, False)
-
+	
 
 	def test_nextflow_germline_valid(self):
 
@@ -165,4 +165,20 @@ class TestPipelineMonitoring(unittest.TestCase):
 
 			run_valid = nextflow.run_is_valid()
 
+			self.assertEqual(run_valid, False)
+	
+	
+	def test_nextflow_germline_tsc(self):
+			
+			results_dir = ''
+			sample_names = ['na']
+			run_id = '210225_NB551415_0194_AHMGV3AFX2'
+			
+			nextflow = nextflow_pipelines.NextflowGermlineEnrichment(results_dir = results_dir, 
+												sample_names = sample_names, 
+												run_id = run_id
+				)
+			
+			run_valid = nextflow.run_is_valid()
+			
 			self.assertEqual(run_valid, False)

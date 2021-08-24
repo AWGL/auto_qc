@@ -170,15 +170,37 @@ pipelines:
     run_expected_files: []
     run_not_expected_files: []
 
+  #SomaticAmplicon-master-NGHS-101X:
+    #results_dir: '/mnt/wren_results/results/'
+    #min_q30_score: 0.8
+    #contamination_cutoff: 0.025
+    #ntc_contamination_cutoff: 10
+    #qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
+    #min_fastq_size: 10000000
+    #min_variants: 100
+    #max_variants: 700
+    #sample_expected_files: ['*_VariantReport.txt',
+                  #'*.bam',
+                  #'*_DepthOfCoverage.sample_summary',
+                  #'*_QC.txt',
+                  #'*_filtered_meta_annotated.vcf',
+                  #'hotspot_variants',
+                  #'hotspot_coverage'
+                  #]
+    #sample_not_expected_files: ['*_fastqc.zip']
+    #run_expected_files: []
+    #run_not_expected_files: []
+    
   SomaticAmplicon-master-NGHS-101X:
+    fastq_dir: '/data/output/fastq/'
     results_dir: '/mnt/wren_results/results/'
     min_q30_score: 0.8
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
-    min_fastq_size: 10000000
-    min_variants: 100
-    max_variants: 700
+    min_fastq_size: 100000
+    min_variants: 10
+    max_variants: 250
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
@@ -331,6 +353,18 @@ pipelines:
     max_variants: 80
     min_coverage: 0.90
 
+
+  germline_enrichment_nextflow-master-IlluminaTruSightCancer:
+    results_dir:  '/mnt/wren_results/results/'
+    qc_checks: [pct_q30, fastqc, variant_check, contamination, ntc_contamination, sex_match]
+    min_q30_score: 0.75
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 10000
+    min_variants: 600
+    max_variants: 1100
+
+
   DragenGE-master-IlluminaTruSightOne:
     results_dir:  '/mnt/wren_results/results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity, coverage]
@@ -347,4 +381,5 @@ pipelines:
     run_expected_files: []
     run_not_expected_files: []
     post_sample_files: []
+
 
