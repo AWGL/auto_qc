@@ -182,3 +182,37 @@ class TestPipelineMonitoring(unittest.TestCase):
 			run_valid = nextflow.run_is_valid()
 			
 			self.assertEqual(run_valid, False)
+
+	def test_somaticamplicon_101X_valid(self):
+
+
+			results_dir = 'test_data/210823_M00766_0416_000000000-JMTTY/NGHS-101X'
+			sample_names = ['21M15195']
+			run_id = '210823_M00766_0416_000000000-JMTTY'
+
+			somatic_amplicon = somatic_pipelines.SomaticAmplicon(results_dir = results_dir,
+												sample_names = sample_names,
+												run_id = run_id
+												
+
+				)
+
+			run_complete = somatic_amplicon.run_is_complete()
+
+			self.assertEqual(run_complete, True)
+
+	def test_somaticamplicon_102X_valid(self):
+
+
+			results_dir = 'test_data/210823_M00766_0416_000000000-JMTTY/NGHS-102X'
+			sample_names = ['21M14838']
+			run_id = '210823_M00766_0416_000000000-JMTTY'
+
+			somatic_amplicon = somatic_pipelines.SomaticAmplicon(results_dir = results_dir,
+												sample_names = sample_names,
+												run_id = run_id
+				)
+
+			run_complete = somatic_amplicon.run_is_complete()
+
+			self.assertEqual(run_complete, True)
