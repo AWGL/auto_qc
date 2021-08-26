@@ -43,7 +43,9 @@ There are several files which need to be configured to get the application to ru
 
 1) mysite/settings.py - Update the variable CONFIG_PATH to point to the config yaml below.
 
-2) config/config.yaml - Pipeline specific variables - see example for how to set this up.
+2) mysite/settings.py - Uncomment the first DATABASES variable surronded by """ """, and comment out the second DATABASES variable.
+
+3) config/config.yaml - Pipeline specific variables - see example for how to set this up.
 
 ## Update
 

@@ -209,7 +209,7 @@ pipelines:
                   'hotspot_coverage'
                   ]
     sample_not_expected_files: ['*_fastqc.zip']
-    run_expected_files: []
+    run_expected_files: ['*CRM.xlsx']
     run_not_expected_files: []
 
   SomaticAmplicon-master-NGHS-102X:
@@ -228,7 +228,9 @@ pipelines:
                   '*_filtered_meta_annotated.vcf'
                   ]
     sample_not_expected_files: ['*_fastqc.zip']
-    run_expected_files: []
+    run_expected_files: ['*merged_coverage_report.txt',
+                         '*merged_variant_report.txt',
+                        ]
     run_not_expected_files: []
 
   SomaticAmplicon-master-TruSightMyeloid:
