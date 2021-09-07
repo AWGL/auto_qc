@@ -192,12 +192,21 @@ class TestPipelineMonitoring(unittest.TestCase):
 
 			somatic_amplicon = somatic_pipelines.SomaticAmplicon(results_dir = results_dir,
 												sample_names = sample_names,
-												run_id = run_id
-												
+												run_id = run_id,
+												sample_expected_files = ['*_VariantReport.txt',
+				  														'*.bam',
+				  														'*_DepthOfCoverage.sample_summary',
+				  														'*_QC.txt',
+				  														'*_filtered_meta_annotated.vcf',
+				  														'hotspot_variants',
+				  														'hotspot_coverage'
+				  														],
+				  								run_expected_files = ['*CRM.xlsx']
+
 
 				)
 
-			run_complete = somatic_amplicon.run_is_complete()
+			run_complete = somatic_amplicon.run_is_valid()
 
 			self.assertEqual(run_complete, True)
 
@@ -210,9 +219,18 @@ class TestPipelineMonitoring(unittest.TestCase):
 
 			somatic_amplicon = somatic_pipelines.SomaticAmplicon(results_dir = results_dir,
 												sample_names = sample_names,
-												run_id = run_id
+												run_id = run_id,
+												sample_expected_files = ['*_VariantReport.txt',
+                  														'*.bam',
+                  														'*_DepthOfCoverage.sample_summary',
+                  														'*_QC.txt',
+                  														'*_filtered_meta_annotated.vcf'
+                  														],
+                  								run_expected_files = ['*merged_coverage_report.txt',
+                  													'*merged_variant_report.txt',
+                        											]
 				)
 
-			run_complete = somatic_amplicon.run_is_complete()
+			run_complete = somatic_amplicon.run_is_valid()
 
 			self.assertEqual(run_complete, True)

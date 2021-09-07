@@ -521,11 +521,6 @@ class SomaticAmplicon:
 			if self.sample_is_complete(sample) == False:
 
 				return False
-
-		for file in self.run_expected_files:
-			found_file = results_path.glob(file)
-			if len(list(found_file)) == 0:
-				return False
 		return True
 
 
@@ -540,6 +535,11 @@ class SomaticAmplicon:
 
 			if self.sample_is_valid(sample) == False:
 
+				return False
+
+		for file in self.run_expected_files:
+			found_file = results_path.glob(file)
+			if len(list(found_file)) == 0:
 				return False
 		return True
 
