@@ -255,7 +255,7 @@ pipelines:
 
   DragenWGS-master-NexteraDNAFlex:
     results_dir: '/mnt/wren_results/results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10

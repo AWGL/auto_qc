@@ -8,7 +8,7 @@ import logging
 
 from qc_database.models import *
 from qc_database.utils.slack import message_slack
-from pipelines import dragen_pipelines, fusion_pipelines, germline_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines
+from pipelines import dragen_pipelines, fusion_pipelines, germline_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines, relatedness2
 from qc_database import management_utils
 
 class Command(BaseCommand):
@@ -1005,6 +1005,10 @@ class Command(BaseCommand):
 							variant_calling_metrics_dict = dragen_wgs.get_variant_calling_metrics()
 							management_utils.add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
 
+							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
+							parsed_relatedness, parsed_relatedness_comment = dragen_wgs.get_relatedness_metrics()
+							management_utils.add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_analysis)
+
 							logger.info (f'Putting WGS metrics into db for run {run_analysis.run.run_id}')
 							wgs_coverage_metrics_dict = dragen_wgs.get_wgs_mapping_metrics()
 							management_utils.add_dragen_wgs_coverage_metrics(wgs_coverage_metrics_dict, run_analysis)
@@ -1037,6 +1041,10 @@ class Command(BaseCommand):
 							logger.info (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
 							variant_calling_metrics_dict = dragen_wgs.get_variant_calling_metrics()
 							management_utils.add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
+
+							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
+							parsed_relatedness, parsed_relatedness_comment = dragen_wgs.get_relatedness_metrics()
+							management_utils.add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_analysis)
 
 							logger.info (f'Putting WGS metrics into db for run {run_analysis.run.run_id}')
 							wgs_coverage_metrics_dict = dragen_wgs.get_wgs_mapping_metrics()

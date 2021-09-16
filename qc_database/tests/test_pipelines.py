@@ -1,5 +1,5 @@
 import unittest
-from pipelines import germline_pipelines, fusion_pipelines, nextflow_pipelines, somatic_pipelines
+from pipelines import germline_pipelines, fusion_pipelines, nextflow_pipelines, somatic_pipelines, dragen_pipelines
 
 
 class TestPipelineMonitoring(unittest.TestCase):
@@ -234,3 +234,26 @@ class TestPipelineMonitoring(unittest.TestCase):
 			run_complete = somatic_amplicon.run_is_valid()
 
 			self.assertEqual(run_complete, True)
+
+	def test_relatedness_valid(self):
+
+			results_dir = 'test_data/210204_A00748_0075_AHVHYCDRXX'
+			sample_names = ['21M01510', '21M01683', '21M01688']
+			run_id = '210204_A00748_0075_AHVHYCDRXX'
+	
+			dragen_relatedness = dragen_pipelines.DragenWGS(results_dir = results_dir,
+												sample_names = sample_names,
+												run_id = run_id,
+												sample_expected_files= ['*.bam',
+																	'*.mapping_metrics.csv',
+																	'*.insert-stats.tab'],
+												run_expected_files = ['*.hard-filtered.vcf.gz',
+																	'*.vc_metrics.csv'],
+												run_complete_marker  = 'post_processing_finished.txt',
+												sample_complete_marker  = 'post_processing_finished.txt')
+	
+			relatedness_result, relatedness_comment = dragen_relatedness.get_relatedness_metrics()
+
+			self.assertEqual(relatedness_result, True)
+
+

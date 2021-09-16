@@ -1,0 +1,14 @@
+SEX GENOTYPER,,21M01688,XY,0.9936
+CNV SUMMARY,,Bases in reference genome,3137454505
+CNV SUMMARY,,Average alignment coverage over genome,63.88
+CNV SUMMARY,,Number of alignment records,1454039273
+CNV SUMMARY,,Number of filtered records (total),74471555,5.12
+CNV SUMMARY,,Number of filtered records (duplicates),0,0.00
+CNV SUMMARY,,Number of filtered records (MAPQ),1017775,0.07
+CNV SUMMARY,,Number of filtered records (unmapped),73453780,5.05
+CNV SUMMARY,,Number of target intervals,2426385
+CNV SUMMARY,,Number of segments,2871
+CNV SUMMARY,,Number of amplifications,210
+CNV SUMMARY,,Number of deletions,697
+CNV SUMMARY,,Number of passing amplifications,91,43.33
+CNV SUMMARY,,Number of passing deletions,56,8.03

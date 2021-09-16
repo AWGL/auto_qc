@@ -1,0 +1,3 @@
+RUN TIME,,Time loading reference,00:00:00.000,0.00
+RUN TIME,,Time structural variant calling,00:26:45.653,1605.65
+RUN TIME,,Total runtime,00:26:50.542,1610.54

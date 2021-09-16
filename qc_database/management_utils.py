@@ -1,4 +1,4 @@
-from pipelines import parsers
+from pipelines import parsers, relatedness2
 from qc_database.models import *
 from django.contrib.auth.models import User
 
@@ -691,3 +691,19 @@ def add_custom_coverage_metrics(coverage_metrics_dict, run_analysis_obj):
 
 			new_custom_coverage_obj = CustomCoverageMetrics(**sample_data)
 			new_custom_coverage_obj.save()
+
+
+def add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_analysis_obj):
+	"""
+	Add data relatedness metrics file to database
+	"""
+	run = run_analysis_obj.run
+
+	relatedness_data = RelatednessQuality.objects.filter(run_analysis=run_analysis_obj)
+
+	if len(relatedness_data) < 1:
+
+		 new_relatedness_obj = RelatednessQuality(results_valid=parsed_relatedness, comment=' | '.join(parsed_relatedness_comment), run_analysis=run_analysis_obj)
+
+		 new_relatedness_obj.save()
+
