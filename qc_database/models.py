@@ -174,6 +174,10 @@ class RunAnalysis(models.Model):
 	min_coverage = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_sensitivity = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_fusion_aligned_reads_unique = models.IntegerField(null=True, blank=True)
+	min_relatedness_parents = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	max_relatedness_unrelated = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	max_relatedness_between_parents = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	max_child_parent_relatedness = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 
 	history = AuditlogHistoryField()
 
@@ -288,6 +292,16 @@ class RunAnalysis(models.Model):
 
 				return False
 
+	def passes_relatedness(self):
+
+		relatedness_obj = RelatednessQuality.objects.filter(run_analysis = self)
+
+		if len(relatedness_obj) == 1:
+
+			return relatedness_obj[0].results_valid, relatedness_obj[0].comment
+
+		return False, 'Oops'
+
 
 	def passes_auto_qc(self):
 		"""
@@ -308,6 +322,7 @@ class RunAnalysis(models.Model):
 		samples = SampleAnalysis.objects.filter(run = self.run,
 												pipeline = self.pipeline,
 												analysis_type = self.analysis_type)
+
 
 
 		# check is complete and valid
@@ -352,6 +367,12 @@ class RunAnalysis(models.Model):
 			if self.passes_run_level_qc() == False:
 
 				reasons_to_fail.append('Q30 Fail')
+
+		if 'relatedness' in checks_to_do:
+			
+			if self.passes_relatedness()[0] == False:
+				
+				reasons_to_fail.append(self.passes_relatedness()[1])
 
 		if 'contamination' in checks_to_do:
 
@@ -441,6 +462,18 @@ class RunAnalysis(models.Model):
 			return False, list(set(reasons_to_fail))
 
 
+class RelatednessQuality(models.Model):
+	"""
+
+	Model to calculate whether relatedness passes or fails
+
+	"""
+	run_analysis = models.ForeignKey(RunAnalysis, on_delete=models.CASCADE)
+	results_valid = models.BooleanField(default=False)
+	comment = models.TextField(null=True, blank=True)
+
+	def __str__(self):
+		return str(self.run_analysis) + " - " + str(self.results_valid)
 
 
 class SampleAnalysis(models.Model):
@@ -1418,3 +1451,4 @@ class CustomCoverageMetrics(models.Model):
 
 auditlog.register(RunAnalysis)
 auditlog.register(SampleAnalysis)
+

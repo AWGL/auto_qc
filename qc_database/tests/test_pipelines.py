@@ -1,5 +1,5 @@
 import unittest
-from pipelines import germline_pipelines, fusion_pipelines, nextflow_pipelines, somatic_pipelines
+from pipelines import germline_pipelines, fusion_pipelines, nextflow_pipelines, somatic_pipelines, dragen_pipelines
 
 
 class TestPipelineMonitoring(unittest.TestCase):
@@ -234,3 +234,5 @@ class TestPipelineMonitoring(unittest.TestCase):
 			run_complete = somatic_amplicon.run_is_valid()
 
 			self.assertEqual(run_complete, True)
+
+
