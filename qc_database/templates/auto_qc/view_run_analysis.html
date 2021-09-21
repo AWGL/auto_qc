@@ -115,6 +115,36 @@
 
 	{% endif %}
 
+	{% if 'relatedness' in checks_to_do %}
+
+	<tr>
+		<td> Min Relatedness between Child and Parents </td>
+		<td> {{run_analysis.min_relatedness_parents}} </td>
+
+	</tr>
+
+	<tr>
+		<td> Max Relatedness between Unrelated Samples </td>
+		<td> {{run_analysis.max_relatedness_unrelated}} </td>
+
+	</tr>
+
+	<tr>
+		<td> Max Relatedness between Parents (Warning Only) </td>
+		<td> {{run_analysis.max_relatedness_between_parents}} </td>
+
+	</tr>
+
+	<tr>
+		<td> Max Relatedness between Child and Parents </td>
+		<td> {{run_analysis.max_child_parent_relatedness}} </td>
+
+	</tr>
+
+	{% endif %}
+
+
+
 
 	{% if run_analysis.watching == False %}
 

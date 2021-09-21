@@ -174,7 +174,10 @@ class RunAnalysis(models.Model):
 	min_coverage = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_sensitivity = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_fusion_aligned_reads_unique = models.IntegerField(null=True, blank=True)
-
+	min_relatedness_parents = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	max_relatedness_unrelated = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	max_relatedness_between_parents = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	max_child_parent_relatedness = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 
 	history = AuditlogHistoryField()
 

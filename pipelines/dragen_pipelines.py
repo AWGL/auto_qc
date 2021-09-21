@@ -1,8 +1,8 @@
 from pathlib import Path
 import glob
 import re
-from pipelines import parsers, relatedness2 
-
+from pipelines import parsers 
+from qc_database.utils import relatedness2 
 
 class DragenGE:
 
@@ -429,7 +429,7 @@ class DragenWGS:
 		return parsed_variant_metrics_file  
 
 
-	def get_relatedness_metrics(self):
+	def get_relatedness_metrics(self, min_relatedness_parents, max_relatedness_unrelated, max_relatedness_between_parents, max_child_parent_relatedness):
 
 		results_path = Path(self.results_dir)
 
@@ -441,8 +441,11 @@ class DragenWGS:
 
 		relatedness_file = list(relatedness_file)[0]
 
-		parsed_relatedness, parsed_relatedness_comment = relatedness2.relatedness_test(ped_file, relatedness_file, 0.2, 0.06, 0.06, 0.4)
-
+		parsed_relatedness, parsed_relatedness_comment = relatedness2.relatedness_test(ped_file, relatedness_file,
+																					 min_relatedness_parents,
+																					 max_relatedness_unrelated,
+																					 max_relatedness_between_parents,
+																					 max_child_parent_relatedness)
 		return parsed_relatedness, parsed_relatedness_comment
 
 

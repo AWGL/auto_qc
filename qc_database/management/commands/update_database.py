@@ -8,7 +8,7 @@ import logging
 
 from qc_database.models import *
 from qc_database.utils.slack import message_slack
-from pipelines import dragen_pipelines, fusion_pipelines, germline_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines, relatedness2
+from pipelines import dragen_pipelines, fusion_pipelines, germline_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines
 from qc_database import management_utils
 
 class Command(BaseCommand):
@@ -232,6 +232,23 @@ class Command(BaseCommand):
 
 						min_fusion_aligned_reads_unique = 0
 
+
+					try:
+
+						min_relatedness_parents = config_dict['pipelines'][run_config_key]['min_relatedness_parents']
+						max_relatedness_unrelated = config_dict['pipelines'][run_config_key]['max_relatedness_unrelated']
+						max_relatedness_between_parents = config_dict['pipelines'][run_config_key]['max_relatedness_between_parents']
+						max_child_parent_relatedness = config_dict['pipelines'][run_config_key]['max_child_parent_relatedness']
+
+
+					except:
+
+
+						min_relatedness_parents = 0.2
+						max_relatedness_unrelated = 0.05
+						max_relatedness_between_parents = 0.05
+						max_child_parent_relatedness = 0.4
+
 					new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
 																			pipeline = pipeline_obj,
 																			analysis_type = analysis_type_obj)
@@ -249,6 +266,10 @@ class Command(BaseCommand):
 						new_run_analysis_obj.max_titv = max_titv
 						new_run_analysis_obj.min_coverage = min_coverage
 						new_run_analysis_obj.min_fusion_aligned_reads_unique = min_fusion_aligned_reads_unique
+						new_run_analysis_obj.min_relatedness_parents = min_relatedness_parents
+						new_run_analysis_obj.max_relatedness_unrelated = max_relatedness_unrelated
+						new_run_analysis_obj.max_relatedness_between_parents = max_relatedness_between_parents
+						new_run_analysis_obj.max_child_parent_relatedness = max_child_parent_relatedness
 
 						# message slack
 
@@ -1006,7 +1027,11 @@ class Command(BaseCommand):
 							management_utils.add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
 
 							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
-							parsed_relatedness, parsed_relatedness_comment = dragen_wgs.get_relatedness_metrics()
+							parsed_relatedness, parsed_relatedness_comment = dragen_wgs.get_relatedness_metrics(run_analysis.min_relatedness_parents,
+																												run_analysis.max_relatedness_unrelated,
+																												run_analysis.max_relatedness_between_parents,
+																												run_analysis.max_child_parent_relatedness)
+
 							management_utils.add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_analysis)
 
 							logger.info (f'Putting WGS metrics into db for run {run_analysis.run.run_id}')
@@ -1020,9 +1045,6 @@ class Command(BaseCommand):
 							logger.info (f'Putting ploidy metrics into db for run {run_analysis.run.run_id}')
 							dragen_ploidy_metrics_dict = dragen_wgs.get_ploidy_metrics()
 							management_utils.add_dragen_ploidy_metrics(dragen_ploidy_metrics_dict, run_analysis)
-
-
-
 
 							send_to_slack = True
 
@@ -1043,7 +1065,10 @@ class Command(BaseCommand):
 							management_utils.add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
 
 							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
-							parsed_relatedness, parsed_relatedness_comment = dragen_wgs.get_relatedness_metrics()
+							parsed_relatedness, parsed_relatedness_comment = dragen_wgs.get_relatedness_metrics(run_analysis.min_relatedness_parents,
+																												run_analysis.max_relatedness_unrelated,
+																												run_analysis.max_relatedness_between_parents,
+																												run_analysis.max_child_parent_relatedness)
 							management_utils.add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_analysis)
 
 							logger.info (f'Putting WGS metrics into db for run {run_analysis.run.run_id}')
@@ -1057,7 +1082,6 @@ class Command(BaseCommand):
 							logger.info (f'Putting ploidy metrics into db for run {run_analysis.run.run_id}')
 							dragen_ploidy_metrics_dict = dragen_wgs.get_ploidy_metrics()
 							management_utils.add_dragen_ploidy_metrics(dragen_ploidy_metrics_dict, run_analysis)
-
 
 							send_to_slack = True
 

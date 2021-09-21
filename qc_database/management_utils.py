@@ -1,4 +1,4 @@
-from pipelines import parsers, relatedness2
+from pipelines import parsers
 from qc_database.models import *
 from django.contrib.auth.models import User
 
