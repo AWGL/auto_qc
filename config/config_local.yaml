@@ -429,8 +429,8 @@ pipelines:
     max_titv: 2.1
     min_coverage: 90
     min_relatedness_parents: 0.2
-    max_relatedness_unrelated: 0.05
-    max_relatedness_between_parents: 0.05
+    max_relatedness_unrelated: 0.02
+    max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
     sample_expected_files: ['*.bam',
                   '*.mapping_metrics.csv',
@@ -458,8 +458,8 @@ pipelines:
     max_titv: 2.1
     min_coverage: 90
     min_relatedness_parents: 0.2
-    max_relatedness_unrelated: 0.05
-    max_relatedness_between_parents: 0.05
+    max_relatedness_unrelated: 0.02
+    max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
     sample_expected_files: ['*.bam',
                   '*.mapping_metrics.csv',
