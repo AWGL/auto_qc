@@ -40,6 +40,10 @@ def view_run_analysis(request, pk):
 		analysis_type = run_analysis.analysis_type
 	).order_by('worksheet', 'sample')
 
+	relatedness = RelatednessQuality.objects.filter(run_analysis = run_analysis)
+
+	print(relatedness)
+
 	run_level_qualities = InteropRunQuality.objects.filter(run = run_analysis.run)
 
 	auto_qc = run_analysis.passes_auto_qc()
@@ -141,7 +145,8 @@ def view_run_analysis(request, pk):
 															 'form': form,
 															 'reset_form': reset_form,
 															 'sensitivity_form': sensitivity_form,
-															 'checks_to_do': checks_to_do})
+															 'checks_to_do': checks_to_do,
+															 'relatedness': relatedness})
 
 @transaction.atomic
 @login_required

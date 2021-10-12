@@ -1,8 +1,8 @@
 from pathlib import Path
 import glob
 import re
-from pipelines import parsers
-
+from pipelines import parsers 
+from qc_database.utils import relatedness2 
 
 class DragenGE:
 
@@ -427,7 +427,29 @@ class DragenWGS:
 		parsed_variant_metrics_file = parsers.parse_dragen_vc_metrics_file(variant_metrics_file)
 
 		return parsed_variant_metrics_file  
+
+
+	def get_relatedness_metrics(self, min_relatedness_parents, max_relatedness_unrelated, max_relatedness_between_parents, max_child_parent_relatedness):
+
+		results_path = Path(self.results_dir)
+
+		ped_file = results_path.glob(f'post_processing/results/ped/{self.run_id}.ped')
+
+		ped_file = list(ped_file)[0]
 	
+		relatedness_file = results_path.glob(f'post_processing/results/relatedness/{self.run_id}.relatedness2')
+
+		relatedness_file = list(relatedness_file)[0]
+
+		parsed_relatedness, parsed_relatedness_comment = relatedness2.relatedness_test(ped_file, relatedness_file,
+																					 min_relatedness_parents,
+																					 max_relatedness_unrelated,
+																					 max_relatedness_between_parents,
+																					 max_child_parent_relatedness)
+		return parsed_relatedness, parsed_relatedness_comment
+
+
+
 	
 	def get_alignment_metrics(self):
 		
