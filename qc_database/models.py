@@ -292,6 +292,7 @@ class RunAnalysis(models.Model):
 
 				return False
 
+
 	def passes_relatedness(self):
 
 		relatedness_obj = RelatednessQuality.objects.filter(run_analysis = self)
@@ -322,7 +323,6 @@ class RunAnalysis(models.Model):
 		samples = SampleAnalysis.objects.filter(run = self.run,
 												pipeline = self.pipeline,
 												analysis_type = self.analysis_type)
-
 
 
 		# check is complete and valid
@@ -368,11 +368,13 @@ class RunAnalysis(models.Model):
 
 				reasons_to_fail.append('Q30 Fail')
 
+
 		if 'relatedness' in checks_to_do:
 			
 			if self.passes_relatedness()[0] == False:
 				
 				reasons_to_fail.append(self.passes_relatedness()[1])
+
 
 		if 'contamination' in checks_to_do:
 
@@ -387,6 +389,25 @@ class RunAnalysis(models.Model):
 			for sample in new_samples_list:
 
 				if sample.passes_ntc_contamination() != True:
+
+					reasons_to_fail.append('NTC Contamination Fail')
+
+		if 'ntc_contamination_TSO500' in checks_to_do:
+
+			for sample_object in new_samples_list:
+
+
+				if "NTC" not in sample_object.sample_id:
+
+					if sample_object.passes_percent_ntc_tso500() != True:
+
+						reasons_to_fail.append('NTC Contamination Fail')
+
+		if 'reads_tso500' in checks_to_do:
+
+			for sample in new_samples_list:
+
+				if sample.passes_reads_tso500() != True:
 
 					reasons_to_fail.append('NTC Contamination Fail')
 
@@ -460,13 +481,11 @@ class RunAnalysis(models.Model):
 		else:
 
 			return False, list(set(reasons_to_fail))
-
+			
 
 class RelatednessQuality(models.Model):
 	"""
-
 	Model to calculate whether relatedness passes or fails
-
 	"""
 	run_analysis = models.ForeignKey(RunAnalysis, on_delete=models.CASCADE)
 	results_valid = models.BooleanField(default=False)
@@ -474,6 +493,8 @@ class RelatednessQuality(models.Model):
 
 	def __str__(self):
 		return str(self.run_analysis) + " - " + str(self.results_valid)
+
+
 
 
 class SampleAnalysis(models.Model):
@@ -538,6 +559,7 @@ class SampleAnalysis(models.Model):
 		return True
 
 	def get_total_reads(self):
+
 
 		try:
 
@@ -633,6 +655,42 @@ class SampleAnalysis(models.Model):
 
 
 		return True
+
+
+
+	def get_reads_tso500(self):
+
+		try:
+			tso500_reads = Tso500Reads.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(tso500_reads) != 1:
+
+			return None
+
+		else:
+			return tso500_reads[0].total_on_target_reads
+
+
+
+
+
+	def passes_reads_tso500(self):
+
+			
+		try:
+			reads = self.get_reads_tso500()
+		except:
+			return None
+
+		if reads < 9000000:
+
+				return False
+
+		return True
+
+
 
 	def get_sex(self):
 
@@ -885,6 +943,44 @@ class SampleAnalysis(models.Model):
 		else:
 
 			return alignment_metrics[0]
+
+
+
+
+
+	def get_percent_ntc_tso500(self):
+
+		try:
+			tso500_reads = Tso500Reads.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(tso500_reads) != 1:
+
+			return None
+
+		else:
+
+			return tso500_reads[0].percent_ntc_reads
+
+
+
+	def passes_percent_ntc_tso500(self):
+
+			
+		try:
+			percent_ntc = self.get_percent_ntc_tso500()
+		except:
+			return None
+
+		if percent_ntc < 10:
+
+				return True
+
+		return False
+
+
+
 
 
 	def get_contamination_fusion(self):
@@ -1425,6 +1521,20 @@ class FusionAlignmentMetrics(models.Model):
 	unique_reads_aligned = models.IntegerField()
 	pct_unique_reads_aligned = models.DecimalField(max_digits=6, decimal_places=2)
 
+
+
+class Tso500Reads(models.Model):
+	"""
+	Data on SomaticFusion alignment metrics
+
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	total_on_target_reads= models.IntegerField(null=True)
+	total_pf_reads = models.IntegerField(null=True)
+	percent_ntc_reads=models.IntegerField(null=True)
+
+
+
 class DragenPloidyMetrics(models.Model):
 	"""
 	Data for Dragen V7 Sex Metrics
@@ -1451,4 +1561,3 @@ class CustomCoverageMetrics(models.Model):
 
 auditlog.register(RunAnalysis)
 auditlog.register(SampleAnalysis)
-
