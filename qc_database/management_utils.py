@@ -693,6 +693,8 @@ def add_custom_coverage_metrics(coverage_metrics_dict, run_analysis_obj):
 			new_custom_coverage_obj.save()
 
 
+
+
 def add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_analysis_obj):
 	"""
 	Add data relatedness metrics file to database
@@ -706,4 +708,58 @@ def add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_
 		 new_relatedness_obj = RelatednessQuality(results_valid=parsed_relatedness, comment=' | '.join(parsed_relatedness_comment), run_analysis=run_analysis_obj)
 
 		 new_relatedness_obj.save()
+
+
+
+
+def add_tso500_reads(reads_dict, run_analysis_obj):
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in reads_dict:
+		
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+		
+		existing_data = Tso500Reads.objects.filter(sample_analysis= sample_analysis_obj)
+		
+		if len(existing_data) < 1:
+
+			reads= reads_dict[key]
+
+			new_reads_obj = Tso500Reads(sample_analysis = sample_analysis_obj, total_on_target_reads= reads)
+			
+			new_reads_obj.save()
+
+
+
+def add_tso500_ntc_contamination(ntc_contamination_dict, run_analysis_obj):
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in ntc_contamination_dict:
+		
+		sample_obj = Sample.objects.get(sample_id=key)
+
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline)
+		
+		existing_data = Tso500Reads.objects.filter(sample_analysis= sample_analysis_obj)
+		
+		if len(existing_data) < 1:
+
+			sample_data = ntc_contamination_dict[key]
+
+			new_reads_obj = Tso500Reads(sample_analysis = sample_analysis_obj, percent_ntc_reads= sample_data)
+
+			new_reads_obj.save()
+
+
 
