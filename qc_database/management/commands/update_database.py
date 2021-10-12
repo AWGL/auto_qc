@@ -8,7 +8,7 @@ import logging
 
 from qc_database.models import *
 from qc_database.utils.slack import message_slack
-from pipelines import dragen_pipelines, fusion_pipelines, germline_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines
+from pipelines import dragen_pipelines, fusion_pipelines, germline_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines, TSO500_pipeline
 from qc_database import management_utils
 
 class Command(BaseCommand):
@@ -38,7 +38,6 @@ class Command(BaseCommand):
 
 		# get runs in existing archive directory
 		raw_data_dir = list(Path(raw_data_dir).glob('*/'))
-
 
 		sample_sheet_dict = {}
 
@@ -116,12 +115,20 @@ class Command(BaseCommand):
 				run_analyses_to_create = set()
 
 				# create sample analysis objects for each sample
+
 				for sample in sample_sheet_data:
 
 					sample_obj, created = Sample.objects.get_or_create(sample_id=sample)
 					pipeline = sample_sheet_data[sample]['pipelineName']
 					pipeline_version = sample_sheet_data[sample]['pipelineVersion']
-					panel = sample_sheet_data[sample]['panel']
+
+					if pipeline=="TSO500-master":
+						panel= sample_sheet_data[sample]['Sample_Type']
+
+					else:
+						panel = sample_sheet_data[sample]['panel']
+					
+
 					sex = sample_sheet_data[sample].get('sex', None)
 
 					worksheet = sample_sheet_data[sample].get('Sample_Plate', 'Unknown')
@@ -249,6 +256,8 @@ class Command(BaseCommand):
 						max_relatedness_between_parents = 0.05
 						max_child_parent_relatedness = 0.4
 
+
+
 					new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
 																			pipeline = pipeline_obj,
 																			analysis_type = analysis_type_obj)
@@ -296,6 +305,7 @@ class Command(BaseCommand):
 												 pipeline= run_analysis.pipeline,
 												 analysis_type= run_analysis.analysis_type)
 
+
 				sample_ids = [sample.sample.sample_id for sample in samples]
 
 				
@@ -315,6 +325,8 @@ class Command(BaseCommand):
 					logger.warn(f'No results directory configured for this pipeline {run_config_key}')
 					results_dir = '/data/results/'
 
+
+
 				if has_fastqs != None:
 					
 					fastq_data_dir = config_dict['pipelines'][run_config_key]['fastq_dir']
@@ -324,7 +336,12 @@ class Command(BaseCommand):
 
 					run_fastq_dir = 'test'
 
-				run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id, run_analysis.analysis_type.analysis_type_id)
+				if 'TSO500' in run_config_key:
+					run_data_dir = Path(results_dir)
+
+				else:
+
+					run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id, run_analysis.analysis_type.analysis_type_id)
 
 				lanes = run_analysis.run.lanes
 
@@ -345,6 +362,16 @@ class Command(BaseCommand):
 										min_fastq_size = min_fastq_size,
 										run_id = run_analysis.run.run_id)
 
+
+				if 'TSO500' in run_config_key:
+
+					illumina_qc = quality_pipelines.TSO500_demultiplex(fastq_dir= run_fastq_dir,
+											sample_names = sample_ids,
+											n_lanes = lanes,
+											analysis_type = run_analysis.analysis_type.analysis_type_id,
+											min_fastq_size = min_fastq_size,
+											run_id = run_analysis.run.run_id)
+
 				else:
 
 					illumina_qc = quality_pipelines.IlluminaQC(fastq_dir= run_fastq_dir,
@@ -363,6 +390,7 @@ class Command(BaseCommand):
 
 				else:
 
+
 					has_completed = illumina_qc.demultiplex_run_is_complete()
 
 					is_valid = illumina_qc.demultiplex_run_is_valid()
@@ -378,7 +406,7 @@ class Command(BaseCommand):
 
 					else:
 
-						logger.info(f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now failed demultiplexing')
+						logger.info(f'Run {run_analysis} {run_analysis.analysis_type.analysis_type_id} has now failed demultiplexing')
 						run_analysis.demultiplexing_completed = has_completed
 						run_analysis.demultiplexing_valid = is_valid
 						run_analysis.save()
@@ -1046,6 +1074,9 @@ class Command(BaseCommand):
 							dragen_ploidy_metrics_dict = dragen_wgs.get_ploidy_metrics()
 							management_utils.add_dragen_ploidy_metrics(dragen_ploidy_metrics_dict, run_analysis)
 
+
+
+
 							send_to_slack = True
 
 						else:
@@ -1064,6 +1095,7 @@ class Command(BaseCommand):
 							variant_calling_metrics_dict = dragen_wgs.get_variant_calling_metrics()
 							management_utils.add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
 
+							
 							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
 							parsed_relatedness, parsed_relatedness_comment = dragen_wgs.get_relatedness_metrics(run_analysis.min_relatedness_parents,
 																												run_analysis.max_relatedness_unrelated,
@@ -1082,6 +1114,7 @@ class Command(BaseCommand):
 							logger.info (f'Putting ploidy metrics into db for run {run_analysis.run.run_id}')
 							dragen_ploidy_metrics_dict = dragen_wgs.get_ploidy_metrics()
 							management_utils.add_dragen_ploidy_metrics(dragen_ploidy_metrics_dict, run_analysis)
+
 
 							send_to_slack = True
 
@@ -1339,6 +1372,238 @@ class Command(BaseCommand):
 					run_analysis.results_valid = run_valid
 
 					run_analysis.save()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+				elif 'TSO500' in run_analysis.pipeline.pipeline_id and 'RNA' in run_analysis.analysis_type.analysis_type_id:
+					run_id='run1'
+					dna_or_rna="RNA"
+					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+
+					if run_config_key not in config_dict['pipelines']:
+
+						tso500 = TSO500_pipeline.TSO500_RNA(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id
+															)
+					else:
+
+						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
+						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
+						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
+						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
+
+						tso500 = TSO500_pipeline.TSO500_RNA(results_dir = run_data_dir,
+																sample_expected_files = sample_expected_files,
+																sample_not_expected_files = sample_not_expected_files,
+																run_expected_files = run_expected_files,
+																dna_or_rna=dna_or_rna,
+																sample_names = sample_ids
+																)
+
+					for sample in sample_ids:
+
+						sample_complete = tso500.sample_is_complete(sample, dna_or_rna)
+
+						sample_valid = tso500.sample_is_valid(sample, dna_or_rna)
+
+
+						sample_obj = Sample.objects.get(sample_id = sample)
+
+						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
+																		run = run_analysis.run,
+																		pipeline = run_analysis.pipeline)
+
+						if sample_analysis_obj.results_completed == False and sample_complete == True:
+
+							if sample_valid == True:
+
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level TSO500 successfully.')
+
+							else:
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level TSO500.')
+
+						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
+
+							logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now completed successfully.')
+
+			
+						sample_analysis_obj.results_completed = sample_complete
+						sample_analysis_obj.results_valid = sample_valid
+						sample_analysis_obj.save()
+
+					run_complete = tso500.run_is_complete(dna_or_rna)
+					run_valid = tso500.run_is_valid(dna_or_rna)
+
+					if run_analysis.results_completed == False and run_complete == True:
+
+						if run_valid == True:
+
+							logger.info (f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = tso500.get_fastqc_data()
+							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							
+							logger.info (f'Putting reads data into db for run {run_analysis.run.run_id}')
+							reads_dict = tso500.get_reads(sample, dna_or_rna)
+							management_utils.add_tso500_reads(reads_dict, run_analysis)
+
+							send_to_slack = True
+
+						else:
+
+							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+
+					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
+
+							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = tso500.get_fastqc_data()
+							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							
+							logger.info (f'Putting reads data into db for run {run_analysis.run.run_id}')
+							reads_dict = tso500.get_reads(sample, dna_or_rna)
+							management_utils.add_tso500_reads(reads_dict, run_analysis)
+
+							send_to_slack = True
+
+					run_analysis.results_completed = run_complete
+					run_analysis.results_valid = run_valid
+
+					run_analysis.save()
+
+
+				elif 'TSO500' in run_analysis.pipeline.pipeline_id and 'DNA' in run_analysis.analysis_type.analysis_type_id:
+					run_id='run1'
+					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+					dna_or_rna=run_analysis.analysis_type.analysis_type_id
+
+					if run_config_key not in config_dict['pipelines']:
+
+						tso500 = TSO500_pipeline.TSO500_DNA(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id
+															)
+					else:
+
+						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
+						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
+						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
+						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
+
+						tso500 = TSO500_pipeline.TSO500_DNA(results_dir = run_data_dir,
+																sample_expected_files = sample_expected_files,
+																sample_not_expected_files = sample_not_expected_files,
+																run_expected_files = run_expected_files,
+																dna_or_rna=dna_or_rna,
+																sample_names = sample_ids,
+
+																)
+
+
+
+					for sample in sample_ids:
+
+						sample_complete = tso500.sample_is_complete(sample, dna_or_rna)
+
+						sample_valid = tso500.sample_is_valid(sample, dna_or_rna)
+
+						sample_obj = Sample.objects.get(sample_id = sample)
+
+						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
+																		run = run_analysis.run,
+																		pipeline = run_analysis.pipeline,
+																		analysis_type_id=dna_or_rna)
+
+						if sample_analysis_obj.results_completed == False and sample_complete == True:
+
+							if sample_valid == True:
+
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level TSO500 successfully.')
+
+							else:
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level TSO500.')
+
+						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
+
+							logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now completed successfully.')
+
+			
+						sample_analysis_obj.results_completed = sample_complete
+						sample_analysis_obj.results_valid = sample_valid
+						sample_analysis_obj.save()
+
+					run_complete = tso500.run_is_complete(dna_or_rna)
+					run_valid = tso500.run_is_valid(dna_or_rna)
+
+					if run_analysis.results_completed == False and run_complete == True:
+
+						if run_valid == True:
+
+							logger.info (f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							#logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = tso500.get_fastqc_data()
+							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							
+							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
+							ntc_contamination_dict= tso500.ntc_contamination()
+							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, run_analysis)
+
+							send_to_slack = True
+
+						else:
+
+							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+
+					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
+
+							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = tso500.get_fastqc_data()
+							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							
+							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
+							ntc_contamination_dict = tso500.ntc_contamination()
+							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, run_analysis)
+
+
+							send_to_slack = True
+
+					run_analysis.results_completed = run_complete
+					run_analysis.results_valid = run_valid
+
+					run_analysis.save()
+
+
+
+
+
+
+
+
+
 
 				# message slack
 				if settings.MESSAGE_SLACK:
