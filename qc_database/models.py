@@ -681,12 +681,12 @@ class SampleAnalysis(models.Model):
 			
 		try:
 			reads = self.get_reads_tso500()
-		except:
-			return None
 
-		if reads < 9000000:
+			if reads < 9000000:
 
 				return False
+		except:
+			return None
 
 		return True
 
@@ -970,12 +970,11 @@ class SampleAnalysis(models.Model):
 			
 		try:
 			percent_ntc = self.get_percent_ntc_tso500()
-		except:
-			return None
-
-		if percent_ntc < 10:
+			if percent_ntc < 10:
 
 				return True
+		except:
+			return None
 
 		return False
 
