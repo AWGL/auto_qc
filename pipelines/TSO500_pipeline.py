@@ -8,16 +8,19 @@ import pandas
 
 class TSO500_DNA():
 
-	def __init__(self,results_dir, sample_expected_files,sample_not_expected_files,  run_expected_files, dna_or_rna, sample_names ):
+	def __init__(self,results_dir, sample_expected_files,sample_not_expected_files,  run_expected_files, dna_or_rna, sample_names, run_id ):
 
 		self.dna_or_rna=dna_or_rna
 		self.results_dir = results_dir
+
+		self.run_id = run_id
 	
 
 
-		self.run_completed_files=['contamination-worksheet1.xlsx']
+		self.run_completed_files=['contamination-*.xlsx']
 		self.run_expected_files=['DNA_QC_combined.txt','completed_samples.txt' ]
 		self.metrics_file=['DNA_QC_combined.txt']
+
 
 
 
@@ -28,11 +31,16 @@ class TSO500_DNA():
 
 	def run_is_complete(self, dna_or_rna):
 
+
+
+		results_dir_path = Path(self.results_dir)
+		results_path = results_dir_path.joinpath(self.run_id)
+
 		found_file_list=[]
-		results_path = Path(self.results_dir)
 		for file in self.run_completed_files:
 			found_file = results_path.glob(file)
-			found_file_list.append(found_file)
+			for file in found_file:
+				found_file_list.append(file)
 		if len(found_file_list) >=1:
 			return True
 		
@@ -41,14 +49,15 @@ class TSO500_DNA():
 
 	def run_is_valid(self, dna_or_rna):
 
-
-		results_path = Path(self.results_dir)
+		results_dir_path = Path(self.results_dir)
+		results_path = results_dir_path.joinpath(self.run_id)
 
 		found_file_list=[]
 
 		for file in self.run_expected_files:
 			found_file = results_path.glob(file)
-			found_file_list.append(found_file)
+			for file in found_file:
+				found_file_list.append(file)
 		if len(list(found_file_list)) >= 2:
 				return True
 
@@ -60,11 +69,21 @@ class TSO500_DNA():
 
 		value=False
 
-		results_path = Path(self.results_dir)
+		results_dir_path = Path(self.results_dir)
+		results_path = results_dir_path.joinpath(self.run_id)
+
+
+
+
+
 		for file in self.sample_valid_files:
+
 			found_file = results_path.glob(file)
+
 			for metrics_file in found_file:
+
 				dna_metrics_data = pandas.read_csv(metrics_file, sep="\t")
+
 				dna_metrics_filtered=dna_metrics_data[["Sample", "completed_all_steps"]]
 				sample_metrics=dna_metrics_filtered[dna_metrics_filtered["Sample"]==sample]
 				if sample_metrics.iloc[0,1]==True:
@@ -79,16 +98,21 @@ class TSO500_DNA():
 
 	def sample_is_complete(self, sample, dna_or_rna):
 
-		results_path = Path(self.results_dir)
+		results_dir_path = Path(self.results_dir)
+		results_path = results_dir_path.joinpath(self.run_id)
 
 		sample_files=0
 
 
-		for file in self.sample_completed_files:
-			found_file = results_path.glob(file)
+		for sample_completed_file in self.sample_completed_files:
+			found_file = results_path.joinpath('Gathered_Results/Database').glob(sample_completed_file)
+
 			for file in found_file:
+
 				file2=str(file)
+
 				if sample in file2:
+
 					sample_files=sample_files+1
 
 
@@ -109,7 +133,8 @@ class TSO500_DNA():
 
 		for sample in self.sample_names:
 
-			results_path = Path(self.results_dir)
+			results_dir_path = Path(self.results_dir)
+			results_path = results_dir_path.joinpath(self.run_id)
 
 			for file in self.metrics_file:
 				found_file = results_path.glob(file)
@@ -139,10 +164,13 @@ class TSO500_DNA():
 
 		fastqc_dict = {}
 
-		results_path = Path(self.results_dir)
 
 		for sample in self.sample_names:
-			fastqc_data_files = results_path.glob(f'*{sample}*_fastqc.txt')
+
+			results_dir_path = Path(self.results_dir)
+			results_path = results_dir_path.joinpath(self.run_id)
+
+			fastqc_data_files = results_path.glob(f'analysis/{sample}/FastQC/*{sample}*_fastqc.txt')
 
 			sample_fastqc_list = []
 
@@ -185,12 +213,13 @@ class TSO500_DNA():
 class TSO500_RNA():
 
 
-	def __init__(self,results_dir, sample_expected_files,sample_not_expected_files,  run_expected_files, dna_or_rna, sample_names):
+	def __init__(self,results_dir, sample_expected_files,sample_not_expected_files,  run_expected_files, dna_or_rna, sample_names, run_id ):
 		self.results_dir = results_dir
+		self.run_id = run_id
 
 
-		self.run_completed_files=['contamination-worksheet1.xlsx']
-		self.run_expected_files=['RNA_QC_combined.txt', 'contamination-worksheet1.xlsx' ,'completed_samples.txt']
+		self.run_completed_files=['contamination-*.xlsx']
+		self.run_expected_files=['RNA_QC_combined.txt', 'contamination-*.xlsx' ,'completed_samples.txt']
 		self.metrics_file=['RNA_QC_combined.txt']
 
 
@@ -199,7 +228,6 @@ class TSO500_RNA():
 
 
 		self.dna_or_rna=dna_or_rna
-
 		self.sample_names=sample_names
 
 
@@ -207,14 +235,18 @@ class TSO500_RNA():
 
 	def run_is_complete(self, dna_or_rna):
 
-		results_path = Path(self.results_dir)
+		results_dir_path = Path(self.results_dir)
+		results_path = results_dir_path.joinpath(self.run_id)
+
 
 		found_file_list=[]
 
 		for file in self.run_completed_files:
 			found_file = results_path.glob(file)
+
 			found_file_list.append(found_file)
-		if len(list(found_file)) >=1:
+
+		if len(list(found_file_list)) >= 1:
 			return True
 	
 		return False
@@ -222,15 +254,20 @@ class TSO500_RNA():
 
 	def run_is_valid(self, dna_or_rna):
 
-
 		results_path = Path(self.results_dir)
 
 		found_file_list=[]
 
 		for file in self.run_expected_files:
-			found_file = results_path.glob(file)
-			found_file_list.append(found_file)
-		if len(list(found_file_list)) >= 3:
+
+			found_file = results_path.joinpath(self.run_id).glob(file)
+
+			for output_file in found_file:
+
+				found_file_list.append(output_file)
+
+		if len(found_file_list) >= 3:
+
 			return True
 
 		return False
@@ -241,16 +278,23 @@ class TSO500_RNA():
 	def sample_is_complete(self, sample, dna_or_rna):
 
 
-		results_path = Path(self.results_dir)
+		results_dir_path = Path(self.results_dir)
+		results_path = results_dir_path.joinpath(self.run_id)
+
+
 
 		sample_files=0
 
 
-		for file in self.sample_completed_files:
-			found_file = results_path.glob(file)
+		for sample_completed_file in self.sample_completed_files:
+
+			found_file = results_path.joinpath('Gathered_Results/Database').glob(sample_completed_file)
+
+
 			for file in found_file:
-				file2=str(file)
-				if sample in file2:
+
+				if sample in str(file):
+
 					sample_files=sample_files+1
 
 
@@ -267,8 +311,9 @@ class TSO500_RNA():
 
 	def sample_is_valid(self, sample, dna_or_rna):
 
+		results_dir_path = Path(self.results_dir)
+		results_path = results_dir_path.joinpath(self.run_id)
 
-		results_path = Path(self.results_dir)
 
 		for file in self.metrics_file:
 			found_file = results_path.glob(file)
@@ -289,7 +334,9 @@ class TSO500_RNA():
 	def get_reads(self, sample, dna_or_rna):
 
 
-		results_path = Path(self.results_dir)
+		results_dir_path = Path(self.results_dir)
+		results_path = results_dir_path.joinpath(self.run_id)
+
 
 		reads_dict={}
 
@@ -317,17 +364,18 @@ class TSO500_RNA():
 
 		fastqc_dict = {}
 
-		results_path = Path(self.results_dir)
-		print(results_path)
-
 		for sample in self.sample_names:
-			fastqc_data_files = results_path.glob(f'*{sample}*_fastqc.txt')
-			print(fastqc_data_files)
+
+
+
+			results_dir_path = Path(self.results_dir)
+			results_path = results_dir_path.joinpath(self.run_id)
+
+			fastqc_data_files = results_path.glob(f'analysis/{sample}/FastQC/*{sample}*_fastqc.txt')
 
 			sample_fastqc_list = []
 
 			for fastqc_data in fastqc_data_files:
-				print (fastqc_data)
 
 				file = fastqc_data.name
 				read_number = file.split('_')[-2]
