@@ -1416,7 +1416,8 @@ class Command(BaseCommand):
 																sample_not_expected_files = sample_not_expected_files,
 																run_expected_files = run_expected_files,
 																dna_or_rna=dna_or_rna,
-																sample_names = sample_ids
+																sample_names = sample_ids,
+																run_id = run_analysis.run.run_id
 																)
 
 					for sample in sample_ids:
@@ -1424,6 +1425,7 @@ class Command(BaseCommand):
 						sample_complete = tso500.sample_is_complete(sample, dna_or_rna)
 
 						sample_valid = tso500.sample_is_valid(sample, dna_or_rna)
+
 
 
 						sample_obj = Sample.objects.get(sample_id = sample)
@@ -1517,6 +1519,7 @@ class Command(BaseCommand):
 																run_expected_files = run_expected_files,
 																dna_or_rna=dna_or_rna,
 																sample_names = sample_ids,
+																run_id = run_analysis.run.run_id
 
 																)
 
