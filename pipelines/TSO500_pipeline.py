@@ -8,24 +8,18 @@ import pandas
 
 class TSO500_DNA():
 
-	def __init__(self,results_dir, sample_expected_files,sample_not_expected_files,  run_expected_files, dna_or_rna, sample_names, run_id ):
+	def __init__(self,results_dir, sample_completed_files, sample_valid_files, run_completed_files, run_expected_files, metrics_file, run_id, dna_or_rna, sample_names):
 
-		self.dna_or_rna=dna_or_rna
+
+
 		self.results_dir = results_dir
-
+    	self.sample_completed_files=sample_completed_files
+    	self.sample_valid_files=sample_valid_files
+    	self.run_completed_files=run_completed_files
+    	self.run_expected_files=run_expected_files
+    	self.metrics_file= metrics_file
 		self.run_id = run_id
-	
-
-
-		self.run_completed_files=['contamination-*.xlsx']
-		self.run_expected_files=['DNA_QC_combined.txt','completed_samples.txt' ]
-		self.metrics_file=['DNA_QC_combined.txt']
-
-
-
-
-		self.sample_completed_files=['*variants.tsv', '*_coverage.json']
-		self.sample_valid_files=['DNA_QC_combined.txt']
+		self.dna_or_rna= dna_or_rna
 		self.sample_names=sample_names
 
 
@@ -213,19 +207,19 @@ class TSO500_DNA():
 class TSO500_RNA():
 
 
-	def __init__(self,results_dir, sample_expected_files,sample_not_expected_files,  run_expected_files, dna_or_rna, sample_names, run_id ):
+	def __init__(self,results_dir, sample_completed_files, sample_valid_files, run_completed_files, run_expected_files, metrics_file, sample_names, dna_or_rna, run_id):
+
+
+
 		self.results_dir = results_dir
 		self.run_id = run_id
 
+		self.run_completed_files=run_completed_files
+		self.run_expected_files=run_expected_files
+		self.metrics_file=metrics_file
 
-		self.run_completed_files=['contamination-*.xlsx']
-		self.run_expected_files=['RNA_QC_combined.txt', 'contamination-*.xlsx' ,'completed_samples.txt']
-		self.metrics_file=['RNA_QC_combined.txt']
-
-
-		self.sample_completed_files=['*_fusion_check.tsv']
-		self.sample_valid_files=['RNA_QC_combined.txt']
-
+		self.sample_completed_files=sample_completed_files
+		self.sample_valid_files=sample_valid_files
 
 		self.dna_or_rna=dna_or_rna
 		self.sample_names=sample_names
