@@ -1377,22 +1377,6 @@ class Command(BaseCommand):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 				elif 'TSO500' in run_analysis.pipeline.pipeline_id and 'RNA' in run_analysis.analysis_type.analysis_type_id:
 					run_id=run_analysis.run.run_id
 					dna_or_rna="RNA"
