@@ -1,5 +1,5 @@
 import unittest
-from pipelines import germline_pipelines, fusion_pipelines, nextflow_pipelines, somatic_pipelines, dragen_pipelines
+from pipelines import germline_pipelines, fusion_pipelines, nextflow_pipelines, somatic_pipelines, dragen_pipelines, TSO500_pipeline
 
 
 class TestPipelineMonitoring(unittest.TestCase):
@@ -234,5 +234,109 @@ class TestPipelineMonitoring(unittest.TestCase):
 			run_complete = somatic_amplicon.run_is_valid()
 
 			self.assertEqual(run_complete, True)
+
+
+
+
+	def test_tso500(self):
+
+
+
+			results_dir = 'test_data/tso500_test'
+			tso500 = TSO500_pipeline.TSO500_DNA(results_dir = 'test_data/tso500_test/',
+																sample_expected_files = ['*variants.tsv', '*_coverage.json'],
+																sample_not_expected_files = [],
+																run_expected_files =['DNA_QC_combined.txt','completed_samples.txt' ],
+																dna_or_rna="DNA",
+																sample_names = ["Sample1", "Sample2", "Sample3"],
+																run_id = "run1")
+
+			#run complete
+			run_complete= tso500.run_is_complete('DNA')
+			self.assertEqual(run_complete, True)
+
+
+			#run complete
+			run_valid= tso500.run_is_valid('DNA')
+			self.assertEqual(run_valid, True)
+		
+		
+			#samples complete
+			sample_complete=tso500.sample_is_complete(sample='Sample1', dna_or_rna="DNA")
+			self.assertEqual(sample_complete, True)
+
+			sample_complete=tso500.sample_is_complete(sample='Sample2', dna_or_rna="DNA")
+			self.assertEqual(sample_complete, False)
+
+			sample_complete=tso500.sample_is_complete(sample='Sample3',dna_or_rna="DNA")
+			self.assertEqual(sample_complete, False)
+
+
+			#samples valid
+			sample_valid=tso500.sample_is_valid(sample='Sample1', dna_or_rna="DNA")
+			self.assertEqual(sample_valid, True)
+
+			sample_valid=tso500.sample_is_valid(sample='Sample2', dna_or_rna="DNA")
+			self.assertEqual(sample_valid, True)
+
+			sample_valid=tso500.sample_is_valid(sample='Sample3',dna_or_rna="DNA")
+			self.assertEqual(sample_valid, True)
+
+
+			#ntc contamination
+			ntc_contamination=tso500.ntc_contamination()
+			self.assertEqual(ntc_contamination.get('Sample1'), 0.002807590883471642)
+			self.assertEqual(ntc_contamination.get('Sample2'), 0.003062867952855785)
+			self.assertEqual(ntc_contamination.get('Sample3'), 80.0)
+
+
+
+			results_dir = 'test_data/tso500_test'
+			tso500 = TSO500_pipeline.TSO500_RNA(results_dir = 'test_data/tso500_test/',
+																sample_expected_files = ['*_fusion_check.tsv'],
+																sample_not_expected_files = [],
+																run_expected_files =['RNA_QC_combined.txt', 'contamination-*.xlsx' ,'completed_samples.txt'],
+																dna_or_rna="RNA",
+																sample_names = ["Sample4", "Sample5", "Sample6"],
+																run_id = "run1")
+
+
+
+			#run complete
+			run_complete= tso500.run_is_complete('RNA')
+			self.assertEqual(run_complete, True)
+
+			#run valid
+			run_valid= tso500.run_is_valid('RNA')
+			self.assertEqual(run_valid, True)
+
+
+			#sample complete RNA
+			sample_complete=tso500.sample_is_complete(sample='Sample4', dna_or_rna="RNA")
+			self.assertEqual(sample_complete, True)
+
+			sample_complete=tso500.sample_is_complete(sample='Sample5', dna_or_rna="RNA")
+			self.assertEqual(sample_complete, False)
+
+
+			sample_complete=tso500.sample_is_complete(sample='Sample6', dna_or_rna="RNA")
+			self.assertEqual(sample_complete, False)
+
+
+			#sample valid RNA
+			sample_valid=tso500.sample_is_valid(sample='Sample4', dna_or_rna="DNA")
+			self.assertEqual(sample_valid, True)                            
+
+			sample_valid=tso500.sample_is_valid(sample='Sample5', dna_or_rna="DNA")                                                                                                             
+			self.assertEqual(sample_valid, False)
+
+
+			sample_complete=tso500.sample_is_valid(sample='Sample6', dna_or_rna="DNA")
+			self.assertEqual(sample_valid, False)
+
+
+			#reads RNA
+			reads=tso500.get_reads(sample='Sample4', dna_or_rna="RNA")
+			self.assertEqual(reads, {'Sample4': 27567216, 'Sample5': 5000, 'Sample6': 28146104})
 
 
