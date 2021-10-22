@@ -13,11 +13,11 @@ class TSO500_DNA():
 
 
 		self.results_dir = results_dir
-    	self.sample_completed_files=sample_completed_files
-    	self.sample_valid_files=sample_valid_files
-    	self.run_completed_files=run_completed_files
-    	self.run_expected_files=run_expected_files
-    	self.metrics_file= metrics_file
+		self.sample_completed_files=sample_completed_files
+		self.sample_valid_files=sample_valid_files
+		self.run_completed_files=run_completed_files
+		self.run_expected_files=run_expected_files
+		self.metrics_file= metrics_file
 		self.run_id = run_id
 		self.dna_or_rna= dna_or_rna
 		self.sample_names=sample_names
