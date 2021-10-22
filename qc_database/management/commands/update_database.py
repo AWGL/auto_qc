@@ -1494,17 +1494,10 @@ class Command(BaseCommand):
 					if run_config_key not in config_dict['pipelines']:
 
 						tso500 = TSO500_pipeline.TSO500_DNA(results_dir = run_data_dir,
-    															sample_completed_files=sample_completed_files
-    															sample_valid_files=sample_valid_files
-    															run_completed_files=run_completed_files
-    															run_expected_files=run_expected_files
-    															metrics_file= metrics_file
-																run_id = run_analysis.run.run_id
-																dna_or_rna= dna_or_rna
-																sample_names=sample_names
-
-																)
-
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id
+															)
+					else:
 
 						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
 						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
