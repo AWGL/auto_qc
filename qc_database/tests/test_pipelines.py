@@ -244,12 +244,17 @@ class TestPipelineMonitoring(unittest.TestCase):
 
 			results_dir = 'test_data/tso500_test'
 			tso500 = TSO500_pipeline.TSO500_DNA(results_dir = 'test_data/tso500_test/',
-																sample_expected_files = ['*variants.tsv', '*_coverage.json'],
-																sample_not_expected_files = [],
-																run_expected_files =['DNA_QC_combined.txt','completed_samples.txt' ],
+																sample_completed_files= ['*variants.tsv', '*_coverage.json'],
+																sample_valid_files = [ 'DNA_QC_combined.txt'],
+																run_completed_files =['contamination-*.xlsx'],
+																run_expected_files=['DNA_QC_combined.txt','completed_samples.txt' ],
+																metrics_file=['DNA_QC_combined.txt'],
+																run_id = "run1",
 																dna_or_rna="DNA",
-																sample_names = ["Sample1", "Sample2", "Sample3"],
-																run_id = "run1")
+																sample_names = ["Sample1", "Sample2", "Sample3"])
+
+
+
 
 			#run complete
 			run_complete= tso500.run_is_complete('DNA')
@@ -293,12 +298,16 @@ class TestPipelineMonitoring(unittest.TestCase):
 
 			results_dir = 'test_data/tso500_test'
 			tso500 = TSO500_pipeline.TSO500_RNA(results_dir = 'test_data/tso500_test/',
-																sample_expected_files = ['*_fusion_check.tsv'],
-																sample_not_expected_files = [],
-																run_expected_files =['RNA_QC_combined.txt', 'contamination-*.xlsx' ,'completed_samples.txt'],
-																dna_or_rna="RNA",
+																sample_completed_files = ['*_fusion_check.tsv'],
+																sample_valid_files = ['RNA_QC_combined.txt'],
+																run_completed_files =['contamination-*.xlsx'],
+																run_expected_files=['RNA_QC_combined.txt', 'contamination-*.xlsx' ,'completed_samples.txt'],
+																metrics_file=['RNA_QC_combined.txt'],
 																sample_names = ["Sample4", "Sample5", "Sample6"],
-																run_id = "run1")
+																dna_or_rna="RNA",
+																run_id = "run1"
+																)
+
 
 
 
