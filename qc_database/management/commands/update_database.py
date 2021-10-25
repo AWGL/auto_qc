@@ -1385,29 +1385,25 @@ class Command(BaseCommand):
 					if run_config_key not in config_dict['pipelines']:
 
 						tso500 = TSO500_pipeline.TSO500_RNA(results_dir = run_data_dir,
-
-
-
-
-
 															sample_names = sample_ids,
 															run_id = run_analysis.run.run_id
 															)
 					else:
 
-						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
-						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
+						sample_completed_files = config_dict['pipelines'][run_config_key]['sample_completed_files']
+						sample_valid_files = config_dict['pipelines'][run_config_key]['sample_valid_files']
+						run_completed_files = config_dict['pipelines'][run_config_key]['run_completed_files']
 						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
-						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
+						metrics_file = config_dict['pipelines'][run_config_key]['metrics_file']
 
 						tso500 = TSO500_pipeline.TSO500_RNA(results_dir = run_data_dir,
-    															sample_completed_files=['*_fusion_check.tsv']
-    															sample_valid_files=['RNA_QC_combined.txt']
-    															run_completed_files=['contamination-*.xlsx']
-    															run_expected_files=['RNA_QC_combined.txt', 'contamination-*.xlsx' ,'completed_samples.txt']
-    															metrics_file=['RNA_QC_combined.txt']
+    															sample_completed_files=['*_fusion_check.tsv'],
+    															sample_valid_files=['RNA_QC_combined.txt'],
+    															run_completed_files=['contamination-*.xlsx'],
+    															run_expected_files=['RNA_QC_combined.txt', 'contamination-*.xlsx' ,'completed_samples.txt'],
+    															metrics_file=['RNA_QC_combined.txt'],
 																sample_names = sample_ids,
-																dna_or_rna=dna_or_rna
+																dna_or_rna=dna_or_rna,
 																run_id = run_analysis.run.run_id
 																)
 
@@ -1499,20 +1495,21 @@ class Command(BaseCommand):
 															)
 					else:
 
-						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
-						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
+						sample_completed_files = config_dict['pipelines'][run_config_key]['sample_completed_files']
+						sample_valid_files = config_dict['pipelines'][run_config_key]['sample_valid_files']
 						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
-						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
+						run_completed_files = config_dict['pipelines'][run_config_key]['run_completed_files']
+						metrics_file = config_dict['pipelines'][run_config_key]['metrics_file']
 
 						tso500 = TSO500_pipeline.TSO500_DNA(results_dir = run_data_dir,
-    															sample_completed_files=sample_completed_files
-    															sample_valid_files=sample_valid_files
-    															run_completed_files=run_completed_files
-    															run_expected_files=run_expected_files
-    															metrics_file= metrics_file
-																run_id = run_analysis.run.run_id
-																dna_or_rna= dna_or_rna
-																sample_names=sample_names
+    															sample_completed_files=sample_completed_files,
+    															sample_valid_files=sample_valid_files,
+    															run_completed_files=run_completed_files,
+    															run_expected_files=run_expected_files,
+    															metrics_file= metrics_file,
+																run_id = run_analysis.run.run_id,
+																dna_or_rna= dna_or_rna,
+																sample_names=sample_ids,
 
 																)
 
