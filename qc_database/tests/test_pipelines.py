@@ -333,15 +333,15 @@ class TestPipelineMonitoring(unittest.TestCase):
 
 
 			#sample valid RNA
-			sample_valid=tso500.sample_is_valid(sample='Sample4', dna_or_rna="DNA")
+			sample_valid=tso500.sample_is_valid(sample='Sample4', dna_or_rna="RNA")
 			self.assertEqual(sample_valid, True)                            
 
-			sample_valid=tso500.sample_is_valid(sample='Sample5', dna_or_rna="DNA")                                                                                                             
+			sample_valid=tso500.sample_is_valid(sample='Sample5', dna_or_rna="RNA")                                                                                                             
 			self.assertEqual(sample_valid, False)
 
 
-			sample_complete=tso500.sample_is_valid(sample='Sample6', dna_or_rna="DNA")
-			self.assertEqual(sample_valid, False)
+			sample_valid=tso500.sample_is_valid(sample='Sample6', dna_or_rna="RNA")
+			self.assertEqual(sample_valid, True)
 
 
 			#reads RNA
