@@ -193,12 +193,55 @@ def signup(request):
 		form = UserCreationForm()
 		return render(request, 'auto_qc/signup.html', {'form': form, 'warning': []})
 
+@transaction.atomic
+@login_required
+def search(request):
+	"""
+	Allow user to search for samples, worksheets
+	"""
+
+	form = SearchForm()
+
+	results = None
+
+	if request.method == 'POST':
+
+		form = SearchForm(request.POST)
+
+		if form.is_valid():
+
+			query = form.cleaned_data['search']
+			
+			if form.cleaned_data['search_type'] == 'Sample':
+
+				try:
+					queried_sample = Sample.objects.get(sample_id = query)
+				except:
+					return render(request, 'auto_qc/search.html', {'form': form, 'results': None})
+
+				results = SampleAnalysis.objects.filter(sample=queried_sample)
+
+				return render(request, 'auto_qc/search.html', {'form': form, 'results': results})
+
+			elif form.cleaned_data['search_type'] == 'Worksheet':
+
+				try:
+					queried_sample = WorkSheet.objects.get(worksheet_id = query)
+				except:
+					return render(request, 'auto_qc/search.html', {'form': form, 'results': None})
+
+				results = SampleAnalysis.objects.filter(worksheet=queried_sample)
+
+				return render(request, 'auto_qc/search.html', {'form': form, 'results': results})
+
+	return render(request, 'auto_qc/search.html', {'form': form, 'results': results})
 
 @transaction.atomic
+@login_required
 def ngs_kpis(request):
-	'''
+	"""
 	Query NGS runs between 2 dates and output excel sheet for tech team
-	'''
+	"""
 	form = KpiDateForm()
 
 	if request.POST:

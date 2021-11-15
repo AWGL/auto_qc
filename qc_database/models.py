@@ -392,6 +392,7 @@ class RunAnalysis(models.Model):
 
 					reasons_to_fail.append('NTC Contamination Fail')
 
+		# DNA
 		if 'ntc_contamination_TSO500' in checks_to_do:
 
 			for sample_object in new_samples_list:
@@ -403,6 +404,7 @@ class RunAnalysis(models.Model):
 
 						reasons_to_fail.append('NTC Contamination Fail')
 
+		# RNA
 		if 'reads_tso500' in checks_to_do:
 
 			for sample in new_samples_list:
@@ -494,9 +496,6 @@ class RelatednessQuality(models.Model):
 	def __str__(self):
 		return str(self.run_analysis) + " - " + str(self.results_valid)
 
-
-
-
 class SampleAnalysis(models.Model):
 	"""
 	A SampleAnalysis object is a Sample analysed on a specific Run with a specific Pipeline on \
@@ -575,7 +574,7 @@ class SampleAnalysis(models.Model):
 
 			except:
 
-				pass
+				return None
 
 		return None
 
@@ -656,8 +655,6 @@ class SampleAnalysis(models.Model):
 
 		return True
 
-
-
 	def get_reads_tso500(self):
 
 		try:
@@ -672,13 +669,8 @@ class SampleAnalysis(models.Model):
 		else:
 			return tso500_reads[0].total_on_target_reads
 
-
-
-
-
 	def passes_reads_tso500(self):
 
-			
 		try:
 			reads = self.get_reads_tso500()
 
@@ -686,11 +678,10 @@ class SampleAnalysis(models.Model):
 
 				return False
 		except:
+
 			return None
 
 		return True
-
-
 
 	def get_sex(self):
 
@@ -1530,9 +1521,7 @@ class Tso500Reads(models.Model):
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	total_on_target_reads= models.IntegerField(null=True)
 	total_pf_reads = models.IntegerField(null=True)
-	percent_ntc_reads=models.IntegerField(null=True)
-
-
+	percent_ntc_reads = models.IntegerField(null=True)
 
 class DragenPloidyMetrics(models.Model):
 	"""

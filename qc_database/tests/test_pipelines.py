@@ -249,42 +249,41 @@ class TestPipelineMonitoring(unittest.TestCase):
 																run_completed_files =['contamination-*.xlsx'],
 																run_expected_files=['DNA_QC_combined.txt','completed_samples.txt' ],
 																metrics_file=['DNA_QC_combined.txt'],
-																run_id = "run1",
-																dna_or_rna="DNA",
-																sample_names = ["Sample1", "Sample2", "Sample3"])
+																run_id = 'run1',
+																sample_names = ['Sample1', 'Sample2', 'Sample3'])
 
 
 
 
 			#run complete
-			run_complete= tso500.run_is_complete('DNA')
+			run_complete= tso500.run_is_complete()
 			self.assertEqual(run_complete, True)
 
 
 			#run complete
-			run_valid= tso500.run_is_valid('DNA')
+			run_valid= tso500.run_is_valid()
 			self.assertEqual(run_valid, True)
 		
 		
 			#samples complete
-			sample_complete=tso500.sample_is_complete(sample='Sample1', dna_or_rna="DNA")
+			sample_complete=tso500.sample_is_complete(sample='Sample1')
 			self.assertEqual(sample_complete, True)
 
-			sample_complete=tso500.sample_is_complete(sample='Sample2', dna_or_rna="DNA")
+			sample_complete=tso500.sample_is_complete(sample='Sample2')
 			self.assertEqual(sample_complete, False)
 
-			sample_complete=tso500.sample_is_complete(sample='Sample3',dna_or_rna="DNA")
+			sample_complete=tso500.sample_is_complete(sample='Sample3')
 			self.assertEqual(sample_complete, False)
 
 
 			#samples valid
-			sample_valid=tso500.sample_is_valid(sample='Sample1', dna_or_rna="DNA")
+			sample_valid=tso500.sample_is_valid(sample='Sample1')
 			self.assertEqual(sample_valid, True)
 
-			sample_valid=tso500.sample_is_valid(sample='Sample2', dna_or_rna="DNA")
+			sample_valid=tso500.sample_is_valid(sample='Sample2')
 			self.assertEqual(sample_valid, True)
 
-			sample_valid=tso500.sample_is_valid(sample='Sample3',dna_or_rna="DNA")
+			sample_valid=tso500.sample_is_valid(sample='Sample3')
 			self.assertEqual(sample_valid, True)
 
 
@@ -303,49 +302,47 @@ class TestPipelineMonitoring(unittest.TestCase):
 																run_completed_files =['contamination-*.xlsx'],
 																run_expected_files=['RNA_QC_combined.txt', 'contamination-*.xlsx' ,'completed_samples.txt'],
 																metrics_file=['RNA_QC_combined.txt'],
-																sample_names = ["Sample4", "Sample5", "Sample6"],
-																dna_or_rna="RNA",
-																run_id = "run1"
+																sample_names = ['Sample4', 'Sample5', 'Sample6'],
+																run_id = 'run1'
 																)
 
 
 
 
 			#run complete
-			run_complete= tso500.run_is_complete('RNA')
+			run_complete= tso500.run_is_complete()
 			self.assertEqual(run_complete, True)
 
 			#run valid
-			run_valid= tso500.run_is_valid('RNA')
+			run_valid= tso500.run_is_valid()
 			self.assertEqual(run_valid, True)
 
 
 			#sample complete RNA
-			sample_complete=tso500.sample_is_complete(sample='Sample4', dna_or_rna="RNA")
+			sample_complete=tso500.sample_is_complete(sample='Sample4')
 			self.assertEqual(sample_complete, True)
 
-			sample_complete=tso500.sample_is_complete(sample='Sample5', dna_or_rna="RNA")
+			sample_complete=tso500.sample_is_complete(sample='Sample5')
 			self.assertEqual(sample_complete, False)
 
 
-			sample_complete=tso500.sample_is_complete(sample='Sample6', dna_or_rna="RNA")
+			sample_complete=tso500.sample_is_complete(sample='Sample6')
 			self.assertEqual(sample_complete, False)
-
 
 			#sample valid RNA
-			sample_valid=tso500.sample_is_valid(sample='Sample4', dna_or_rna="RNA")
+			sample_valid=tso500.sample_is_valid(sample='Sample4')
 			self.assertEqual(sample_valid, True)                            
 
-			sample_valid=tso500.sample_is_valid(sample='Sample5', dna_or_rna="RNA")                                                                                                             
+			sample_valid=tso500.sample_is_valid(sample='Sample5')                                                                                                             
 			self.assertEqual(sample_valid, False)
 
 
-			sample_valid=tso500.sample_is_valid(sample='Sample6', dna_or_rna="RNA")
+			sample_valid=tso500.sample_is_valid(sample='Sample6')
 			self.assertEqual(sample_valid, True)
 
 
 			#reads RNA
-			reads=tso500.get_reads(sample='Sample4', dna_or_rna="RNA")
+			reads=tso500.get_reads()
 			self.assertEqual(reads, {'Sample4': 27567216, 'Sample5': 5000, 'Sample6': 28146104})
 
 

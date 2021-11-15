@@ -50,7 +50,7 @@ def sample_sheet_parser(sample_sheet_path):
 
 					sample_sheet_dict[sample_id][split_item[0]] = split_item[1]
 
-				for tag in ['pipelineName', 'pipelineVersion', 'panel']:
+				for tag in ['pipelineName', 'pipelineVersion']:
 
 					if tag not in sample_sheet_dict[sample_id]:
 

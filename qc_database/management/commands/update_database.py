@@ -122,10 +122,12 @@ class Command(BaseCommand):
 					pipeline = sample_sheet_data[sample]['pipelineName']
 					pipeline_version = sample_sheet_data[sample]['pipelineVersion']
 
-					if pipeline=="TSO500-master":
-						panel= sample_sheet_data[sample]['Sample_Type']
+					if pipeline == 'TSO500':
+
+						panel = sample_sheet_data[sample]['Sample_Type']
 
 					else:
+
 						panel = sample_sheet_data[sample]['panel']
 					
 
@@ -156,7 +158,7 @@ class Command(BaseCommand):
 																			analysis_type = analysis_type_obj,
 																			worksheet = worksheet_obj
 																			)
-					if created == True:
+					if created:
 						new_sample_analysis_obj.contamination_cutoff = contamination_cutoff
 						new_sample_analysis_obj.ntc_contamination_cutoff = ntc_contamination_cutoff
 
@@ -263,7 +265,7 @@ class Command(BaseCommand):
 																			analysis_type = analysis_type_obj)
 
 
-					if created == True:
+					if created:
 
 						new_run_analysis_obj.auto_qc_checks = checks_to_try
 						new_run_analysis_obj.min_variants = min_variants
@@ -1373,11 +1375,9 @@ class Command(BaseCommand):
 
 					run_analysis.save()
 
-
-
-
-
+				# TSO500 RNA
 				elif 'TSO500' in run_analysis.pipeline.pipeline_id and 'RNA' in run_analysis.analysis_type.analysis_type_id:
+					
 					run_id=run_analysis.run.run_id
 					dna_or_rna="RNA"
 					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
@@ -1391,29 +1391,25 @@ class Command(BaseCommand):
 					else:
 
 						sample_completed_files = config_dict['pipelines'][run_config_key]['sample_completed_files']
-						sample_valid_files = config_dict['pipelines'][run_config_key]['sample_valid_files']
 						run_completed_files = config_dict['pipelines'][run_config_key]['run_completed_files']
 						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
 						metrics_file = config_dict['pipelines'][run_config_key]['metrics_file']
 
 						tso500 = TSO500_pipeline.TSO500_RNA(results_dir = run_data_dir,
-    															sample_completed_files=['*_fusion_check.tsv'],
-    															sample_valid_files=['RNA_QC_combined.txt'],
-    															run_completed_files=['contamination-*.xlsx'],
-    															run_expected_files=['RNA_QC_combined.txt', 'contamination-*.xlsx' ,'completed_samples.txt'],
-    															metrics_file=['RNA_QC_combined.txt'],
+    															sample_completed_files=sample_completed_files,
+    															sample_valid_files=None,
+    															run_completed_files=run_completed_files,
+    															run_expected_files=run_expected_files,
+    															metrics_file=metrics_file,
 																sample_names = sample_ids,
-																dna_or_rna=dna_or_rna,
 																run_id = run_analysis.run.run_id
 																)
 
 					for sample in sample_ids:
 
-						sample_complete = tso500.sample_is_complete(sample, dna_or_rna)
+						sample_complete = tso500.sample_is_complete(sample)
 
-						sample_valid = tso500.sample_is_valid(sample, dna_or_rna)
-
-
+						sample_valid = tso500.sample_is_valid(sample)
 
 						sample_obj = Sample.objects.get(sample_id = sample)
 
@@ -1439,8 +1435,8 @@ class Command(BaseCommand):
 						sample_analysis_obj.results_valid = sample_valid
 						sample_analysis_obj.save()
 
-					run_complete = tso500.run_is_complete(dna_or_rna)
-					run_valid = tso500.run_is_valid(dna_or_rna)
+					run_complete = tso500.run_is_complete()
+					run_valid = tso500.run_is_valid()
 
 					if run_analysis.results_completed == False and run_complete == True:
 
@@ -1453,7 +1449,7 @@ class Command(BaseCommand):
 							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
 							
 							logger.info (f'Putting reads data into db for run {run_analysis.run.run_id}')
-							reads_dict = tso500.get_reads(sample, dna_or_rna)
+							reads_dict = tso500.get_reads()
 							management_utils.add_tso500_reads(reads_dict, run_analysis)
 
 							send_to_slack = True
@@ -1471,7 +1467,7 @@ class Command(BaseCommand):
 							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
 							
 							logger.info (f'Putting reads data into db for run {run_analysis.run.run_id}')
-							reads_dict = tso500.get_reads(sample, dna_or_rna)
+							reads_dict = tso500.get_reads()
 							management_utils.add_tso500_reads(reads_dict, run_analysis)
 
 							send_to_slack = True
@@ -1481,7 +1477,7 @@ class Command(BaseCommand):
 
 					run_analysis.save()
 
-
+				# TS500 DNA
 				elif 'TSO500' in run_analysis.pipeline.pipeline_id and 'DNA' in run_analysis.analysis_type.analysis_type_id:
 					run_id=run_analysis.run.run_id
 					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
@@ -1508,18 +1504,14 @@ class Command(BaseCommand):
     															run_expected_files=run_expected_files,
     															metrics_file= metrics_file,
 																run_id = run_analysis.run.run_id,
-																dna_or_rna= dna_or_rna,
 																sample_names=sample_ids,
-
 																)
-
-
 
 					for sample in sample_ids:
 
-						sample_complete = tso500.sample_is_complete(sample, dna_or_rna)
+						sample_complete = tso500.sample_is_complete(sample)
 
-						sample_valid = tso500.sample_is_valid(sample, dna_or_rna)
+						sample_valid = tso500.sample_is_valid(sample)
 
 						sample_obj = Sample.objects.get(sample_id = sample)
 
@@ -1546,8 +1538,8 @@ class Command(BaseCommand):
 						sample_analysis_obj.results_valid = sample_valid
 						sample_analysis_obj.save()
 
-					run_complete = tso500.run_is_complete(dna_or_rna)
-					run_valid = tso500.run_is_valid(dna_or_rna)
+					run_complete = tso500.run_is_complete()
+					run_valid = tso500.run_is_valid()
 
 					if run_analysis.results_completed == False and run_complete == True:
 
@@ -1555,7 +1547,7 @@ class Command(BaseCommand):
 
 							logger.info (f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							#logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
 							fastqc_dict = tso500.get_fastqc_data()
 							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
 							
@@ -1588,15 +1580,6 @@ class Command(BaseCommand):
 					run_analysis.results_valid = run_valid
 
 					run_analysis.save()
-
-
-
-
-
-
-
-
-
 
 				# message slack
 				if settings.MESSAGE_SLACK:

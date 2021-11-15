@@ -1,0 +1,69 @@
+{% extends 'auto_qc/base.html' %}
+{% load static %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+
+<br>
+
+{% crispy form %}
+<br>
+
+{% if results %}
+
+<table id="samples" class="table table-hover table-bordered">
+
+  <thead>
+	<tr>
+	  <th>ID</th>
+	  <th>Sample</th>
+	  <th>Run</th>
+	  <th>Worksheet</th>
+	  <th>Pipeline</th>
+	  <th>Analysis</th>
+	</tr>
+  </thead>
+
+  <tbody>
+	{% for sample in results %}
+	<tr>
+		<td> {{sample.pk}} </td>
+		<td> {{sample.sample.sample_id}} </td>
+		<td> {{sample.run.run_id}} </td>
+		<td> {{sample.worksheet.worksheet_id}} </td>
+		<td> {{sample.pipeline.pipeline_id}} </td>
+		<td> {{sample.analysis_type.analysis_type_id}} </td>
+
+	</tr>
+
+	{% endfor %}
+  </tbody>
+
+
+</table>
+
+
+
+{% endif %}
+
+
+<!-- JAVASCRIPT -->
+<script>
+$(document).ready(function(){
+
+	// Inititialise DataTable
+	var table = $('#samples').DataTable({
+		"paging":   true,
+		"ordering": true,
+		"info":     false,
+		"pageLength": 25,
+		"searching": true,
+		"aaSorting": [],
+	});
+
+
+});
+</script>
+
+
+{% endblock %}

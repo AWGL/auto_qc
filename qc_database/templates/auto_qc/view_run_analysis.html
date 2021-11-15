@@ -529,18 +529,13 @@
 
 
 			{% if sample_analysis.get_percent_ntc_tso500 < 10 %}
-				<td class="table-success"> {{sample_analysis.get_percent_ntc_tso500}} </td>
+				<td class="table-success"> {{sample_analysis.get_percent_ntc_tso500}}% </td>
 			{% else %}
-				<td class="table-danger"> {{sample_analysis.get_percent_ntc_tso500}} </td>
+				<td class="table-danger"> {{sample_analysis.get_percent_ntc_tso500}}% </td>
 
 			{% endif %}
 
 		{% endif %}
-
-
-
-
-
 
 		{% if 'fusion_alignment' in checks_to_do %}
 
