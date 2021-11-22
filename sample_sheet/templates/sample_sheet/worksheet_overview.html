@@ -1,0 +1,58 @@
+{% load crispy_forms_tags %}
+
+<div class="container" id="overview">
+  <table class="table table-sm table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Position</th>
+        <th scope="col">Sample</th>
+        <th scope="col">Referral</th>
+        <th scope="col">Sex</th>
+        <th scope="col" style="background-color: lightgrey; border-left: 2px solid">Notes</th>
+        <th scope="col" style="background-color: lightgrey;"></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for pos, sample in sample_data.items %}
+      <tr>
+        <td>{{ pos }}</td>
+        <td>{{ sample.sample }}</td>
+        <td>{{ sample.referral }}</td>
+        <td>{{ sample.sex }}</td>
+        <td style="background-color: lightgrey; border-left: 2px solid">{{ sample.notes }}</td>
+        <td style="text-align:right; background-color: lightgrey;" data-bs-toggle="modal" data-bs-target="#edit-sample-notes-{{ pos }}">
+        <button class="btn btn-light btn-sm">
+          <span class="fa fa-edit"></span>
+        </button>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
+
+
+<!--------------------------------------------------------------------------------------- 
+    Modals
+---------------------------------------------------------------------------------------->
+  
+<!-- edit sample notes -->
+{% for pos, sample in sample_data.items %}
+<div class="modal fade" id="edit-sample-notes-{{ pos }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+        <h5>Edit worksheet sample notes| {{ sample.sample }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        {% crispy sample.notesform %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+

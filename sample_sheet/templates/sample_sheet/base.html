@@ -1,0 +1,136 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+    	<!-- Required meta tags -->
+    	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    	<meta charset="utf-8">
+    	<meta http-equiv="X-UA-Compatible" content="IE-edge">
+    	<meta name="viewport" content="width=device-width, initial-scale=1">
+    	<title>Samplesheet Generator App</title>
+
+		<link rel="stylesheet" type="text/css" href="{% static "bootstrap-4.1.3/css/bootstrap.min.css" %}"/>
+
+		<!--Datatables and plugins packaged into one file-->
+		<link rel="stylesheet" type="text/css" href="{% static "DataTables/datatables.min.css" %}"/>
+		<link rel="stylesheet" type="text/css" href="{% static "fontawesome-5.9.0/css/all.css" %}"/>
+		<script src="{% static "DataTables/datatables.min.js" %}"></script>
+		<script src="{% static "popper.js-1.14.3/popper.min.js" %}"></script>
+		<script src="{% static "bootstrap-4.1.3/js/bootstrap.min.js" %}"></script>
+		<script src="{% static "fontawesome-5.9.0/js/all.js" %}"></script>
+
+    	<!-- custom css -->
+    	<style>
+    		/*navbar*/
+    		.navbar-custom {
+    			background-color: #ff7a33;
+    		}
+    		.navbar-custom .navbar-brand,
+    		.navbar-custom .navbar-text,
+    		.navbar-custom .nav-link {
+    			color: white;
+    		}
+    		.navbar-custom .navbar-brand {
+    			font-size: 30px;
+    		}
+    		/*footer*/
+    		html {
+    			position: relative;
+    			min-height: 100%;
+    		}
+    		body {
+    			margin-bottom: 60px;
+    		}
+
+    		.footer {
+    			position: absolute;
+    			bottom: 0;
+    			width: 100%;
+    			height: 60px;
+    		}
+
+    		/*centre text vertically in table rows*/
+    		td {
+    			vertical-align: middle;
+    			word-wrap: break-word;
+    		}
+
+    		/*homepage buttons*/
+    		.buttons1 {
+    			background-color: #ffa23f;
+    		}
+
+    		/* colouring for section tabs */
+			.section-button {
+			background-color: #ffa23f !important;
+			color: white;
+			font-size: 18px;
+			}
+			.section-button.active {
+			background-color: white !important;
+			color: black;
+			font-size: 20px;
+			}
+
+			/*datatables*/
+			.page-item.active .page-link {
+				background-color: lightgrey; !important;
+				color: black !important;
+				border: 1px solid darkgrey;
+			}
+			.page-link {
+				/*color: red !important;*/
+			}
+
+			/*forms*/
+			.asteriskField {
+				display: none;
+			}
+
+    	</style>
+	</head>
+
+	<body>
+		<nav class="navbar navbar-expand-lg navbar-custom">
+			<div class="container-fluid">
+		    	<a class="navbar-brand" href="{% url 'home' %}">Samplesheet Generator App</a>
+		    	<span class="navbar-brand"></span>
+			    <ul class="navbar-nav">
+			    	<li class="nav-item" style="text-align: right">
+			    		<a href="/"><button type="button" class="btn btn-outline-light me-2">AutoQC</button></a>
+			        </li>
+			    </ul>
+			</div>
+		</nav>
+
+		<!-- block -->
+		{% block content %}
+		{% endblock %}
+
+
+
+
+	</body>
+	<footer class="footer">
+		<nav class="navbar navbar-expand-lg navbar-light bg-light border-top border-2">
+			<div class="container-fluid">
+		    	<ul class="navbar-nav">
+		        	<li class="nav-item" style="text-align: left">
+		        		<a class="nav-link"  href="/admin"><span class="fa fa-cogs" style="width:  30px;color: grey"></span>Admin</a>
+		        	</li>
+		      	</ul>
+		      	<ul class="navbar-nav">
+		        	<li class="nav-item" style="text-align: center">
+		        		<a class="nav-link"  href="{% url 'indexsets' %}"><span class="fa fa-info-circle" style="width:  20px;color: grey"></span>Indexes</a>
+		        	</li>
+		      	</ul>
+		      	<ul class="navbar-nav">
+		        	<li class="nav-item" style="text-align: right">
+		        		<a class="nav-link"  href="mailto: bioinformatics.team@wales.nhs.uk"><span class="fa fa-envelope" style="width:  30px;color: grey"></span>Email Bioinformatics</a>
+		        	</li>
+		      	</ul>
+			</div>
+		</nav>
+	</footer>
+</html>

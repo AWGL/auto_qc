@@ -1,0 +1,66 @@
+{% extends 'sample_sheet/base.html' %}
+{% load static %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+
+<nav class="navbar navbar-custom">
+    <a href="{% url 'home' %}"><button type="button" class="w-100 btn btn-outline-light position-relative start-50"><span class="fa fa-arrow-alt-circle-left" style="width:  30px;color: white"></span>Back to Services</button></a>
+</nav>
+<br>
+<br>
+<div class="container">
+
+	<div class="row">
+		<h3><center>Upload a shire query .csv download formatted as below.</center></h3>
+		<p><center>If the formatting is not correct then the data will not be uploaded.</center></p>
+
+	</div>
+	<br>
+	<br>
+	<div class="row">
+
+		{% crispy form %}
+
+	</div>
+	<br>
+	{% if error %}
+	    <div class="alert alert-danger col-lg-2-8">
+		    <center>{{ error }}</center>
+		  </div>
+	{% endif %}
+
+	{% if success %}
+		  <div class="alert alert-success col-lg-2-8">
+		    <center>{{ success }} <a href="{% url 'view_worksheet_samples' assay|lower worksheet_id %}">view here</a></center>
+	    </div>
+
+  {% endif %}
+
+
+	<br>
+	<br>
+	<div class="row">
+		<h5>Example shire query:</h5>
+		<br>
+		<div class="card-body rounded" style="background-color: lightgrey">
+			<p>LABNO,POSITION,WORKSHEET,TEST,COMMENTS,UPDATEDDATE,REASON_FOR_REFERRAL,FIRSTNAME,LASTNAME,SEX</p>
+			<p>21M55544,1,21-1975,TSO500DNA panel,,01-Oct-21,Lung,Harry,Potter,M</p>
+			<p>21M55746,2,21-1975,TSO500DNA panel,,01-Oct-21,Lung,Ron,Weasley,M</p>
+			<p>21M24747,3,21-1975,TSO500DNA panel,,01-Oct-21,NTRK,Bellatrix,Lestrange,F</p>
+			<p>21M24748,4,21-1975,TSO500DNA panel,,01-Oct-21,Lung,Petunia,Dursely,F</p>
+			<p>21M24749,5,21-1975,TSO500DNA panel,,01-Oct-21,Melanoma,Draco,Malfoy,M</p>
+	</div>
+	</div>
+</div>
+
+
+
+<!-- Java script to diable button upon clicking -->
+<script>
+$("#upload-form").on("submit", function() {
+    $(this).prop("disabled", true);
+});
+</script>
+
+{% endblock %}

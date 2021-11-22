@@ -1,0 +1,4 @@
+<option value="">---------</option>
+{% for index in index_list %}
+<option value="{{ index.pk }}">{{ index.index1.index_well }}, {{ index.index1 }}, {{ index.index2 }}</option>
+{% endfor %}

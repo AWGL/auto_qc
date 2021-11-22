@@ -1,0 +1,79 @@
+{% extends 'sample_sheet/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<nav class="navbar navbar-custom">
+    <a href="{% url 'home' %}"><button type="button" class="w-100 btn btn-outline-light position-relative start-50"><span class="fa fa-arrow-alt-circle-left" style="width:  30px;color: white"></span>Back to Services</button></a>
+</nav>
+
+
+
+
+
+<div class="container">
+
+	<br>
+	<br>
+
+	<div class="row">
+		<h3><center>{{ assay }} Worksheets</center></h3>
+	</div>
+
+	<br>
+
+	<div class="row col-8 position-relative start-50 translate-middle-x">
+		<table id="worksheet_table" class ="table table-hover table-bordered" style="width: 100%">
+			<thead class="buttons1" style="color: white;">
+				<tr>
+					<th scope="col">Worksheet ID</th>
+					<th scope="col">Upload Date</th>
+					<th scope="col">Status</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for ws in worksheet_list %}
+				<tr>
+					<td>
+						<a class="btn btn-info buttons1 btn-outline-light" href="{% url 'view_worksheet_samples' assay.assay_slug ws.worksheet_id %}" role="button">
+	                		<span class="fa fa-search"></span>
+	              		</a>
+	              		&ensp;
+	              		{{ ws.worksheet_id }}
+	              	</td>
+					<td>{{ ws.upload_date|date:'d-m-Y' }}</td>
+					<td> {{ ws.status }} </td>
+				</tr>
+				{% endfor %}
+			</tbody>
+
+
+		</table>
+	</div>
+</div>
+
+
+
+<!-- JAVASCRIPT -->
+<script>
+	$(document).ready(function(){
+		var table = $('#worksheet_table').DataTable({
+			"paging": true,
+			"ordering": true,
+			"stripe": true,
+			"info": false,
+			"pageLength": 25,
+			"aaSorting": [],
+			"searching": true,
+			 language: {
+                searchPlaceholder: "Search worksheet ID",
+                search: "",
+            },
+            initComplete: function () {
+                $('.dataTables_filter input[type="search"]').css({ 'width': '100%', 'display': 'inline-block' });
+            }
+		})
+	});
+</script>
+
+{% endblock %}

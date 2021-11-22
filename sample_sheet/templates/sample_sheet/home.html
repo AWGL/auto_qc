@@ -1,0 +1,75 @@
+{% extends 'sample_sheet/base.html' %}
+{% load static %}
+
+{% block content %}
+
+
+
+<br>
+<br>
+
+<h2><center>Select a service from the options below or <a style="color: orange" href="{% url 'upload' %}">create a new samplesheet</a></center></h2>
+<br>
+
+<div class="container">
+	<div class="row">
+		<div class="col">
+			<h3><u>Constitutional:</u></h3>
+			<div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
+				<div class="col">
+					<div class="card-body">
+            			<a href="{% url 'view_worksheets' 'trusightone' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">TruSight One</button></a>
+          			</div>
+        			<div class="card-body">
+            			<a href="{% url 'view_worksheets' 'trusightcancer' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">TruSight Cancer</button></a>
+          			</div>
+      			</div>
+      			<div class="col">
+					<div class="card-body">
+        				<a href="{% url 'view_worksheets' 'fh' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">FH</button></a>
+        			</div>
+    			</div>
+    			<div class="col">
+    				<div class="card-body">
+            			<a href="{% url 'view_worksheets' 'wings' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">WINGS</button></a>
+        			</div>
+    			</div>
+			</div>
+		</div>
+	</div>
+	<br>
+	<br>
+	<div class="row">
+		<div class="col">
+			<h3><u>Cancer:</u></h3>
+			<div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
+				<div class="col">
+					<div class="card-body">
+            			<a href="{% url 'view_worksheets' 'tso500dna' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">TSO500 DNA</button></a>
+          			</div>
+        			<div class="card-body">
+            			<a href="{% url 'view_worksheets' 'tso500rna' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">TSO500 RNA</button></a>
+          			</div>
+      			</div>
+    			<div class="col">
+					<div class="card-body">
+        				<a href="{% url 'view_worksheets' 'crm' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">CRM</button></a>
+        			</div>
+        			<div class="card-body">
+        				<a href="{% url 'view_worksheets' 'brca' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">BRCA</button></a>
+        			</div>
+    			</div>
+    			<div class="col">
+					<div class="card-body">
+        				<a href="{% url 'view_worksheets' 'myeloid' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">Myeloid</button></a>
+        			</div>
+
+    			</div>
+			</div>
+		</div>
+	</div>
+
+</div>
+
+
+{% endblock %}
