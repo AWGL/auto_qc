@@ -39,7 +39,7 @@ class Command(BaseCommand):
 
 
         ## import header from file (reads as a list of lines)
-        with open(f'samplesheet_headers/{assay}_header.csv', newline='') as header_file:
+        with open(f'sample_sheet/samplesheet_headers/{assay}_header.csv', newline='') as header_file:
             samplesheet_header = header_file.readlines()
 
 

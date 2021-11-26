@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from core.models import Index, IndexSet, IndexToIndexSet
+from sample_sheet.models import Index, IndexSet, IndexToIndexSet
 
 import csv
 
