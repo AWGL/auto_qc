@@ -78,7 +78,7 @@ pipelines:
     max_relatedness_unrelated: 0.02
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
-    sample_expected_files: ['*.bam',
+    sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
                   '*.insert-stats.tab']
     sample_not_expected_files: []
@@ -107,7 +107,7 @@ pipelines:
     max_relatedness_unrelated: 0.02
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
-    sample_expected_files: ['*.bam',
+    sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
                   '*.insert-stats.tab']
     sample_not_expected_files: []
@@ -159,5 +159,52 @@ pipelines:
     run_expected_files: []
     run_not_expected_files: []
     post_sample_files: []
+
+  DragenGE-master-NonocusWES38:
+    results_dir:  '/mnt/wren_results/results/'
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity, coverage, relatedness]
+    min_q30_score: 0.75
+    contamination_cutoff: 0.05
+    ntc_contamination_cutoff: 10
+    min_sensitivity: 0.95
+    min_fastq_size: 1000000
+    min_variants: 8000
+    max_variants: 15000
+    min_coverage: 0.925
+    min_relatedness_parents: 0.2
+    max_relatedness_unrelated: 0.04
+    max_relatedness_between_parents: 0.04
+    max_child_parent_relatedness: 0.4
+    sample_expected_files: []
+    sample_not_expected_files: []
+    run_expected_files: []
+    run_not_expected_files: []
+    post_sample_files: []
+
+
+  TSO500-master-DNA:
+    results_dir:  '/mnt/wren_results/results/'
+    min_q30_score: 0.8
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, ntc_contamination_TSO500]
+    min_fastq_size: 0
+    sample_completed_files: ['*variants.tsv', '*_coverage.json']
+    sample_valid_files: ['DNA_QC_combined.txt']
+    run_completed_files: ['contamination-*.csv']
+    run_expected_files: ['DNA_QC_combined.txt','completed_samples.txt' ]
+    metrics_file: ['DNA_QC_combined.txt']
+
+
+  TSO500-master-RNA:
+    results_dir:  '/mnt/wren_results/results/'
+    min_q30_score: 0.8
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, reads_tso500]
+    min_fastq_size: 0
+    sample_completed_files: ['*_fusion_check.csv']
+    run_completed_files: ['contamination-*.csv']
+    run_expected_files: ['RNA_QC_combined.txt', 'contamination-*.csv' ,'completed_samples.txt']
+    metrics_file: ['RNA_QC_combined.txt']
+
 
 

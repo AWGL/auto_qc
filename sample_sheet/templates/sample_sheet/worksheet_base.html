@@ -1,0 +1,174 @@
+{% extends 'sample_sheet/base.html' %}
+{% load static %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+
+<nav class="navbar navbar-custom">
+    <a href="{% url 'view_worksheets' worksheet_info.assay_slug %}"><button type="button" class="w-100 btn btn-outline-light position-relative start-50"><span class="fa fa-arrow-alt-circle-left" style="width:  30px;color: white"></span>Back to Worksheets</button></a>
+</nav>
+
+<div class="container">
+    <br>
+    <div class="row">
+        <div class="col-6">
+            <br>
+            <br>
+            <h3>{{ worksheet_info.assay_name }} Worksheet {{ worksheet_info.worksheet_id }}</h3>
+            <br>
+            <br>
+        </div>
+        <div class="col-6 rounded-3">
+            <div class="row rounded-3" style="background-color: #ffa23f">
+                <table class="table" style="width: 100%; color: white;">
+                    <thead>
+                        <th scope="col">Check</th>
+                        <th scope="col">Status</th>
+                    </thead>
+                    <tr>
+                        <td>Clinical Scientists</td>
+                        <td style="font-size: 25px">{{ worksheet_checks.clin_sci.status_html | safe }}</td>
+                    </tr>
+                    <tr>
+                        <td>Technical Team</td>
+                        <td style="font-size: 25px">{{ worksheet_checks.tech_team.status_html | safe }}</td>
+                    </tr>
+                </table>
+            </div>
+            <br>
+            <div class="row justify-content-center">
+                <div class="col-5">
+                    {% if worksheet_checks.clin_sci.overall == 'complete' and worksheet_checks.tech_team.overall == 'complete' %}
+                    <button data-bs-toggle="modal" data-bs-target="#download-samplesheet" class="btn btn-success" style="background-color: #28b463 !important;">
+                      <span class="fa fa-file-download" style="width: 30px; color: white;"></span>
+                      Download samplesheet
+                    </button>
+
+                    {% else %}
+                    <button data-bs-toggle="modal" data-bs-target="#download-samplesheet" class="btn btn-danger disabled">
+                      <span class="fa fa-file-download" style="width: 30px; color: white;"></span>
+                      Download samplesheet
+                    </button>
+
+                    {% endif %}
+                </div>
+            </div>
+            <br>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+  <ul class="nav nav-tabs nav-justified">
+
+      <a class="nav-link section-button active" href="#overview" data-target="overview">Overview
+      </a>
+
+      <a class="nav-link section-button" href="#clinsci" data-target="clin-sci">
+        {{ worksheet_checks.clin_sci.status_html | safe }} Clinical scientist checks
+      </a>
+
+      <a class="nav-link section-button" href="#techteam" data-target="tech-team">
+        {{ worksheet_checks.tech_team.status_html | safe }} Tech team checks
+      </a>
+
+  </ul>
+  <br>
+</div>
+
+<!-- load in each section from template -->
+{% include 'sample_sheet/worksheet_overview.html' %}
+{% include 'sample_sheet/worksheet_clinsci.html' %}
+{% include 'sample_sheet/worksheet_techteam.html' %}
+
+
+<!--------------------------------------------------------------------------------------- 
+    Modal
+---------------------------------------------------------------------------------------->
+
+<!-- download samplesheet -->
+<div class="modal fade" id="download-samplesheet" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+        <h5>Download worksheet</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h5><center>Select another completed worksheet if applicable</center></h5>
+
+        {% crispy download_form %}
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!--------------------------------------------------------------------------------------- 
+    Javascript
+---------------------------------------------------------------------------------------->
+<script>
+
+    // function to clear all sections
+    function clear_sections(sections) {
+        var i;
+        for (i=0; i<sections.length; i++) {
+            $(sections[i]).hide();
+        };
+    };
+
+
+    // function to show specific section
+    function show_section(target, sections) {
+        // clear all sections content
+        clear_sections(sections);
+        // get button for section
+        for (i=0; i<$('.section-button').length; i++) {
+            var temp = '#' + $('.section-button')[i].dataset.target;
+            if ( target == temp ) {
+                var section_button = $('.section-button')[i];
+            };
+        };
+        // clear active class from all, then add to current button
+        $('.section-button').removeClass('active');
+        $(section_button).addClass('active');
+        // add section content
+        $(target).fadeIn(200);
+    };
+
+
+    // get a list of section buttons
+    var i; var sections_list = [];
+    for (i=0; i<$('.section-button').length; i++) {
+        sections_list.push('#' + $('.section-button')[i].dataset.target);
+    };
+
+
+    // page loadup - load section after hash otherwise load overview
+    clear_sections(sections_list);
+    if ( sections_list.includes(window.location.hash)) {
+        show_section(window.location.hash, sections_list);
+    } else {
+        $("#overview").fadeIn(200)
+    };
+
+
+    // handler for section button click
+    $('.section-button').click(function() {
+        var target = '#' + $(this).data('target');
+        show_section(target, sections_list);
+    });
+
+
+    // function for popover //
+    // var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    // var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    //   return new bootstrap.Tooltip(tooltipTriggerEl)
+    // })
+
+
+</script>
+
+{% endblock %}

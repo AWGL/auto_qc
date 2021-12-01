@@ -59,6 +59,7 @@
 	{% endif %}
 
 
+
 	{% if 'variant_check' in checks_to_do %}
 
 	<tr>
@@ -105,6 +106,7 @@
 
 	{% endif %}
 
+
 	{% if 'fusion_alignment' in checks_to_do %}
 
 	<tr>
@@ -115,6 +117,8 @@
 
 	{% endif %}
 
+
+	
 	{% if 'relatedness' in checks_to_do %}
 
 	<tr>
@@ -142,8 +146,6 @@
 	</tr>
 
 	{% endif %}
-
-
 
 
 	{% if run_analysis.watching == False %}
@@ -327,11 +329,17 @@
 	  	<th>FASTQC</th>
 	  {% endif %}
 
+	  {% if 'reads_tso500' in checks_to_do %}
+
+		<th> Reads </th>
+
+      {% endif %}
+
 	  {% if 'coverage' in checks_to_do %}
 	  	<th> Pct > 20x</th>
 	  {% endif %}
 
-	  {% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" %}
+	  {% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" and run_analysis.pipeline.pipeline_id != "TSO500-master" %}
 
 	  <th>Total Reads</th>
 	  <th>Total Variants</th>
@@ -359,12 +367,20 @@
 
 	  {% endif %}
 
-
 	  {% if 'ntc_contamination' in checks_to_do %}
 
 	  <th>Passes NTC Contamination</th>
 
 	  {% endif %}
+
+
+	{% if 'ntc_contamination_TSO500' in checks_to_do %}
+
+
+		<th> NTC Contamination</th>
+
+
+	{% endif %}
 
 
 	  {% if 'sex_match' in checks_to_do %}
@@ -393,7 +409,7 @@
 			<td class="table-dark"> {{sample_analysis.get_region_coverage_over_20}} </td>
 			{% endif %}
 
-			{% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" %}
+			{% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" and run_analysis.pipeline.pipeline_id != "TSO500-master" %}
 
 			<td class="table-dark"> {{sample_analysis.get_total_reads}} </td>
 			<td class="table-dark"> {{sample_analysis.get_variant_count}} </td>
@@ -430,6 +446,20 @@
 			{% endif %}
 
 
+			{% if 'reads_tso500' in checks_to_do %}
+			<td class="table-dark">{{sample_analysis.get_reads_tso500}} </td>
+			{% endif %}
+
+
+			{% if 'ntc_contamination_TSO500' in checks_to_do %}
+
+				<td class="table-dark">N/A</td>
+
+			{% endif %}
+
+
+
+
 		{% else %}
 
 
@@ -446,6 +476,19 @@
 		{% endif %}
 
 
+
+		{% if 'reads_tso500' in checks_to_do %}
+		{% if sample_analysis.passes_reads_tso500 == True %}
+			<td class="table-success"> {{sample_analysis.get_reads_tso500}} </td>
+		{% else %}
+			<td class="table-warning"> {{sample_analysis.get_reads_tso500}} </td>
+		{% endif %}
+		{% endif %}
+
+
+
+
+
 		{% if 'coverage' in checks_to_do %}
 
 			{% if sample_analysis.passes_region_coverage_over_20 == True %}
@@ -456,7 +499,7 @@
 			
 		{% endif %}
 
-		{% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" %}
+		{% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" and run_analysis.pipeline.pipeline_id != "TSO500-master" %}
 
 		<td> {{sample_analysis.get_total_reads}} </td>
 
@@ -479,6 +522,18 @@
 		{% else %}
 			<td class="table-danger"> {{sample_analysis.get_contamination}} </td>
 		{% endif %}
+		{% endif %}
+
+
+		{% if 'ntc_contamination_TSO500' in checks_to_do %}
+
+
+			{% if sample_analysis.get_percent_ntc_tso500 < 10 %}
+				<td class="table-success"> {{sample_analysis.get_percent_ntc_tso500}}% </td>
+			{% else %}
+				<td class="table-danger"> {{sample_analysis.get_percent_ntc_tso500}}% </td>
+
+			{% endif %}
 
 		{% endif %}
 

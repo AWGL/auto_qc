@@ -1,0 +1,226 @@
+{% load crispy_forms_tags %}
+
+
+<div class="container" id="clin-sci">
+  <div class="row">
+
+    <div class="col-8 border-right border-2 border-dark">
+
+      <h5></h5>
+      <table class="table table-sm table-hover">
+        <thead> 
+          <tr>
+            <th scope="col">Position</th>
+            <th scope="col">Sample</th>
+            <th scope="col">Referral</th>
+            <th scope="col">Sex</th>
+
+            <!-- only display family and affected information if wings -->
+            {% if worksheet_info.assay_name == "WINGS" %}
+            <th scope="col">Family ID</th>
+            <th scope="col">Family Position</th>
+            <th scope="col">Affected</th>
+            {% endif %}
+
+            <th scope="col"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for pos, sample in sample_data.items %}
+          <tr>
+            <td>{{ pos }}
+            <td>{{ sample.sample }}</td>
+            <td>{{ sample.referral }}</td>
+            <td>{{ sample.sex }}</td>
+
+            <!-- only display family and affected information if wings -->
+            {% if worksheet_info.assay_name == "WINGS" %}
+            
+              {% if sample.familyid %}
+              <td>{{ sample.familyid }}</td>
+              {% else %}
+              <td>-</td>
+              {% endif %}
+
+              {% if sample.familypos %}
+              <td>{{ sample.familypos}}</td>
+              {% else %}
+              <td>-</td>
+              {% endif %}
+
+              {% if sample.affected %}
+              <td>Yes</td>
+              {% else %}
+              <td>-</td>
+              {% endif %}
+
+            {% endif %}
+
+            <!-- if signed off then remove buttons -->
+            {% if worksheet_info.clinsci_signoff_complete %}
+            <td></td>
+            {% else %}
+            <td style="text-align:right" data-bs-toggle="modal" data-bs-target="#edit-sample-{{ pos }}">
+              <button class="btn btn-light btn-sm">
+                <span class="fa fa-edit"></span>
+              </button>
+            </td>           
+            {% endif %}
+
+          </tr>
+          {% endfor %}
+
+        </tbody>
+      </table>
+      {% if worksheet_info.clinsci_signoff_complete %}
+      <!-- do not display button if signoff is done -->
+
+      {% elif worksheet_info.assay_name == "WINGS" %}
+      <!-- create family form only if wings worksheet -->
+      <br>
+      <div class="row justify-content-center">
+        <div class = "col-3">
+          <button data-bs-toggle="modal" data-bs-target="#create-family" class="btn buttons1 btn-sm" style="color: white;">
+            <span class="fa fa-users" style="width: 20px; color: white;"></span>
+            Create family
+          </button>
+        </div>
+        <div class = "col-3">
+          <button data-bs-toggle="modal" data-bs-target="#clear-family" class="btn btn-danger btn-sm">
+            <span class="fa fa-users-slash" style="width: 20px; color: white;"></span>
+            Clear family
+          </button>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <div class='col-4'>
+      <!-- sign off/check table -->
+      <table class="table table-sm">
+        <tbody>
+          <tr>
+            <td><h5>Sign off and checks</h5></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Autochecks
+            </td>
+            <td style="font-size: 20px">{{ worksheet_checks.clin_sci.autochecks|safe }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+
+      <!-- if not signed off, show sign off button and manual check box -->
+      {% if worksheet_info.clinsci_signoff_name == None %}
+
+      {% crispy clinsci_signoff_form %}
+
+      <!-- if signed off then show sign off info and a link to modal to reopen sheet -->
+      {% else %}
+
+      <table class="table table-sm">
+        <tbody>
+          <tr>
+            <td>Sign off user</td>
+            <td>{{ worksheet_info.clinsci_signoff_name }}</td>
+          </tr>
+          <tr>
+            <td>Sign off datetime</td>
+            <td>{{ worksheet_info.clinsci_signoff_datetime }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="row justify-content-center">
+        <div class = "col-8">
+        <button data-bs-toggle="modal" data-bs-target="#reopen-clinsci-worksheet" class="btn btn-danger">
+          <span class="fa fa-unlock-alt" style="width: 30px; color: white;"></span>
+          Reopen worksheet
+        </button>
+        </div>
+      </div>
+
+    {% endif %}
+
+    </div>
+
+  </div>
+</div>
+
+<!--------------------------------------------------------------------------------------- 
+    Modals
+---------------------------------------------------------------------------------------->
+
+<!-- create family -->
+<div class="modal fade" id="create-family" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+        <h5>Create a family</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h5><center>Select a family ID and parents/proband sample IDs</center></h5>
+
+        {% crispy create_family_form %}
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- remove family data -->
+<div class="modal fade" id="clear-family" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+        <h5>Clear family information</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h5><center>Warning: This will remove all family data from this worksheet.</center></h5>
+
+        {% crispy clear_family_form %}
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- edit sample details -->
+{% for pos, sample in sample_data.items %}
+<div class="modal fade" id="edit-sample-{{ pos }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+        <h5>Edit worksheet sample details | {{ sample.sample }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        {% crispy sample.detailsform %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- reopen clinsci worksheet -->
+<div class="modal fade" id="reopen-clinsci-worksheet" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+        <h5>Reopen worksheet</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h5><center>Warning: This will remove all data of the last sign off process</center></h5>
+
+        {% crispy clinsci_reopen_form %}
+
+      </div>
+    </div>
+  </div>
+</div>

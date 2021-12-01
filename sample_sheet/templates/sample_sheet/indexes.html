@@ -1,0 +1,51 @@
+{% extends 'sample_sheet/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<nav class="navbar navbar-custom">
+    <a href="{% url 'indexsets' %}"><button type="button" class="w-100 btn btn-outline-light position-relative start-50"><span class="fa fa-arrow-alt-circle-left" style="width:  30px;color: white"></span>Back to Index Sets</button></a>
+</nav>
+
+<div class="container">
+
+	<br>
+	
+	<div class="row">
+		<h3><center>{{ name }} indexes</center></h3>
+	</div>
+		<br>
+	<div class="row">
+
+    	<table class="table table-striped table-bordered" style="width:100%">
+    	<thead>
+          	<tr>
+	            <th scope="col">Position</th>
+	            <th scope="col">Index 1 ID</th>
+	            <th scope="col">Index 1 sequence</th>
+	            <th scope="col">Index 2 ID</th>
+	            <th scope="col">Index 2 sequence</th>
+          	</tr>
+        </thead>
+
+        <tbody>
+	          {% for index in indexes %}
+	        <tr>
+	            <td>{{ index.pos }}</td>
+	            <td>{{ index.index1_name }}</td>
+	            <td>{{ index.index1_seq }}</td>
+	            <td>{{ index.index2_name }}</td>
+	            <td>{{ index.index2_seq }}</td>
+	        </tr>
+	        {% endfor %}
+        </tbody>
+    	</table>
+	</div>
+	<br>
+	<br>
+</div>
+
+
+
+
+{% endblock %}

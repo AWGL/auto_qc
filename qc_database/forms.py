@@ -76,6 +76,29 @@ class SensitivityForm(ModelForm):
 		)
 
 
+class SearchForm(forms.Form):
+	"""
+	Form for searching
+	"""
+
+	search = forms.CharField(widget=forms.Textarea(attrs={'rows':1}))
+	search_type = forms.ChoiceField(choices =(('Sample', 'Sample'), ('Worksheet', 'Worksheet')))
+
+	def __init__(self, *args, **kwargs):
+		
+		super(SearchForm, self).__init__(*args, **kwargs)
+		self.helper = FormHelper()
+		self.helper.form_id = 'search-form'
+		self.helper.label_class = 'col-lg-2'
+		self.helper.field_class = 'col-lg-8'
+		self.helper.form_method = 'post'
+		self.helper.add_input(Submit('reset-form', 'Search', css_class='btn-success'))
+		self.helper.form_class = 'form-horizontal'
+		self.helper.layout = Layout(
+			Field('search', title=False),
+			Field('search_type', title=False),
+		)
+
 class KpiDateForm(forms.Form):
 	"""
 	Form to input two dates, used to pull KPI data for NGS runs between the dates

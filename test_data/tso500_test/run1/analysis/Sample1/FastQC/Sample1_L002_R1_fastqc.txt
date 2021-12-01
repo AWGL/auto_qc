@@ -1,0 +1,11 @@
+PASS	Basic Statistics	Sample1_S21_L002_R1_001.fastq.gz
+PASS	Per base sequence quality	Sample1_S21_L002_R1_001.fastq.gz
+PASS	Per tile sequence quality	Sample1_S21_L002_R1_001.fastq.gz
+PASS	Per sequence quality scores	Sample1_S21_L002_R1_001.fastq.gz
+WARN	Per base sequence content	Sample1_S21_L002_R1_001.fastq.gz
+WARN	Per sequence GC content	Sample1_S21_L002_R1_001.fastq.gz
+PASS	Per base N content	Sample1_S21_L002_R1_001.fastq.gz
+WARN	Sequence Length Distribution	Sample1_S21_L002_R1_001.fastq.gz
+FAIL	Sequence Duplication Levels	Sample1_S21_L002_R1_001.fastq.gz
+WARN	Overrepresented sequences	Sample1_S21_L002_R1_001.fastq.gz
+PASS	Adapter Content	Sample1_S21_L002_R1_001.fastq.gz

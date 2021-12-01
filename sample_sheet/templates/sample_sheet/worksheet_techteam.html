@@ -1,0 +1,278 @@
+{% load crispy_forms_tags %}
+
+
+<div class="container" id="tech-team">
+  <div class="row">
+    <!-- sample table -->
+    <div class="col-8 border-right border-thick">
+        <h5></h5>
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th class="col-1">Pos</th>
+              <th class="col-2">Sample</th>
+              <th class="col-2">Index well</th>
+              <th class="col-2">i7 index</th>
+              <th class="col-2">i5 index</th>
+              <th class="col-1">Pool?</th>
+              {% if worksheet_info.techteam_signoff_complete or worksheet_info.index_set == None %}
+              <th></th>
+              {% else %}
+              <th class="col-2" style="text-align:right">Edit</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for pos, sample in sample_data.items %}
+            <tr>
+              <td>{{ pos }}</td>
+              <td>{{ sample.sample }}</td>
+              <td>
+                {% if sample.index1 %}
+                  {{ sample.index1.index_well }}
+                {% else %}
+                  <span class="badge rounded-pill bg-danger">Not set</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if sample.index1 %}
+                  {{ sample.index1.index_name }}
+                {% else %}
+                  <span class="badge rounded-pill bg-danger">Not set</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if sample.index2 %}
+                  {{ sample.index2.index_name }}
+                {% else %}
+                  <span class="badge rounded-pill bg-danger">Not set</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if sample.pool == 'Y' %}
+                <span class="fa fa-check" style="width:20px;color:green"></span>
+                {% elif sample.pool == 'N1' %}
+                <span class="fa fa-times" style="width:20px;color:red"></span>
+                <span class="badge rounded-pill bg-secondary">skip index</span>
+                {% elif sample.pool == 'N2' %}
+                <span class="fa fa-times" style="width:20px;color:red"></span>
+                <span class="badge rounded-pill bg-secondary">include index</span>
+                {% endif %}
+              </td>
+              <td style="text-align:right">
+                {% if sample.edited %}
+                <span class="badge rounded-pill bg-danger">
+                  <span class="fa fa-wrench"></span>
+                </span>
+                {% endif %}
+
+                {% if worksheet_info.techteam_signoff_complete or worksheet_info.index_set == None %}
+                <!-- do not display buttons if signoff is done or if sequencer hasn't been selected-->
+
+                {% else %}
+                <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#edit_indexes-{{ pos }}">
+                  <span class="fa fa-edit"></span>
+                </button>
+
+                {% endif %}
+
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+      {% if worksheet_info.techteam_signoff_complete or worksheet_info.index_set == None %}
+      <!-- do not display button if signoff is done or sequencer is not selected-->
+
+      {% else %}
+      <!-- reset indexes form -->
+      <br>
+      <div class="row justify-content-center">
+        <div class = "col-3">
+          <button data-bs-toggle="modal" data-bs-target="#reset-indexes" class="btn btn-danger btn-sm">
+            <span class="fa fa-undo-alt" style="width: 20px; color: white;"></span>
+            Reset indexes
+          </button>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+
+
+    <!-- settings and check tables -->
+    <div class="col-4">
+      <!-- settings table -->
+      <table class="table table-sm">
+        <tbody>
+          <tr>
+            <td><h5>Settings</h5></td>
+            {% if worksheet_info.techteam_signoff_complete %}
+            <!-- do not display buttons if signoff is done-->
+            <td></td>
+            {% else %}
+            <td style="text-align:right">     
+              <button class="btn btn-info btn-sm btn-outline-light buttons1" data-bs-toggle="modal" data-bs-target="#edit_settings">
+                <span class="fa fa-edit" style="width:20px;color:white"></span>
+                Edit
+              </button>
+            </td>
+            {% endif %}
+          </tr>
+            <td>Assay</td>
+            <td>{{ worksheet_info.assay_name }}</td>
+          </tr>
+          <tr>
+            <td>Index set</td>
+            <td>{{ worksheet_info.index_set }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+      <!-- sign off/check table -->
+      <table class="table table-sm">
+        <tbody>
+          <tr>
+            <td><h5>Sign off and checks</h5></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Autochecks</td>
+            <td style="font-size: 20px">{{ worksheet_checks.tech_team.autochecks|safe }}</td>
+          </tr>
+          </tbody>
+      </table>
+      <br>
+
+      <!-- if not signed off, show sign off button and manual check box -->
+      {% if worksheet_info.techteam_signoff_name == None %}
+
+      {% crispy techteam_signoff_form %}
+
+      <!-- if signed off then show sign off info and a link to modal to reopen sheet -->
+      {% else %}
+
+      <table class="table table-sm">
+        <tbody>
+          <tr>
+            <td>Sign off user</td>
+            <td>{{ worksheet_info.techteam_signoff_name }}</td>
+          </tr>
+          <tr>
+            <td>Sign off datetime</td>
+            <td>{{ worksheet_info.techteam_signoff_datetime }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="row justify-content-center">
+        <div class = "col-8">
+          <button data-bs-toggle="modal" data-bs-target="#reopen-techteam-worksheet" class="btn btn-danger">
+            <span class="fa fa-unlock-alt" style="width: 30px; color: white;"></span>
+            Reopen worksheet
+          </button>
+        </div>
+      </div>
+      <br>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+
+<!--------------------------------------------------------------------------------------- 
+    Modals
+---------------------------------------------------------------------------------------->
+
+<!-- edit sequencing settings -->
+<div class="modal fade" id="edit_settings" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+        <h5>Edit sequencing settings</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post" id="tech-settings-form" data-index-url="{% url 'ajax_load_indexes' %}">
+        {% crispy tech_settings_form %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- java to allow AJAX to reload just the index drop down from the form -->
+<script>
+  $("#id_index_set").change(function () {
+    var url = $("#tech-settings-form").attr("data-index-url");  // get the url of the `load_indexes` view
+    var index_set = $(this).val();  // get the selected index_set from the HTML input
+
+    $.ajax({                       // initialize an AJAX request
+      url: url,                    // set the url of the request (= localhost:8000/hr/ajax/load-indexes/)
+      data: {
+        'index_set': index_set      // add the index_set to the GET parameters
+      },
+      success: function (data) {   // `data` is the return of the `load_indexes` view function
+        $("#id_index").html(data);  // replace the contents of the index input with the data that came from the server
+      }
+    });
+
+  });
+</script>
+
+
+  
+<!-- edit index settings -->
+{% for pos, sample in sample_data.items %}
+<div class="modal fade" id="edit_indexes-{{ pos }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+        <h5>Edit sequencing settings | {{ sample.sample }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        {% crispy sample.indexform %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- reset indexes worksheet -->
+<div class="modal fade" id="reset-indexes" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+        <h5>Reset indexes</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h5><center>Warning: This will remove all index data from this worksheet</center></h5>
+
+        {% crispy reset_index_form %}
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- reopen techteam worksheet -->
+<div class="modal fade" id="reopen-techteam-worksheet" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+        <h5>Reopen worksheet</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h5><center>Warning: This will remove all data of the last sign off process</center></h5>
+
+        {% crispy techteam_reopen_form %}
+
+      </div>
+    </div>
+  </div>
+</div>
