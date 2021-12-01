@@ -77,7 +77,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -85,9 +85,9 @@ DATABASES = {
     }
 }
 
-
-
 """
+
+
 DB_PASSWORD_FILE = '/export/home/webapps/password.txt'
 with open(DB_PASSWORD_FILE) as f:
     db_password = f.readline().strip()
@@ -103,7 +103,7 @@ DATABASES = {
         'PORT': '',
     }
 }
-"""
+
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
