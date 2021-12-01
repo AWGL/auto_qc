@@ -268,11 +268,11 @@
 </table>
 
 
-{% if run_analysis.analysis_type.analysis_type_id == 'IlluminaTruSightOne' %}
+{% if 'sensitivity' in checks_to_do %}
 
 <h5> Sensitivity </h5>
 
-<table id="run_analysis" class="table table-hover table-bordered table-sm">
+<table id="sensitivity" class="table table-hover table-bordered table-sm">
 
   <thead>
 	<tr>
@@ -311,6 +311,44 @@
 </table>
 
 {% endif %}
+
+
+{% if 'relatedness' in checks_to_do %}
+
+<h5> Relatedness </h5>
+
+<table id="relatedness" class="table table-hover table-bordered table-sm">
+
+  <thead>
+	<tr>
+	  <th>Relatedness Pass</th>
+	  <th>Relatedness Comment</th>
+	 </tr>
+
+	</thead>
+
+	<tbody>
+
+		{% if run_analysis.passes_relatedness.0 == True %}
+
+		<td class="table-success"> {{run_analysis.passes_relatedness.0}} </td>
+		<td class="table-success"> {{run_analysis.passes_relatedness.1 }}</td>
+
+		{% else %}
+
+
+		<td class="table-danger"> {{run_analysis.passes_relatedness.0}} </td>
+		<td class="table-danger"> {{run_analysis.passes_relatedness.1 }} : Contact Bioinformatics</td>
+
+		{% endif %}
+
+
+	</tbody>
+</table>
+
+{% endif %}
+
+
 
 {% if run_analysis.analysis_type.analysis_type_id != "NIPT" %}
 

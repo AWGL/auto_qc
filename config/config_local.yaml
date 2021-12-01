@@ -487,7 +487,7 @@ pipelines:
 
   DragenGE-master-IlluminaTruSightOne:
     results_dir:  '/media/joseph/Storage/data/dragen_results'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity, coverage]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity, coverage, relatedness]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
@@ -496,11 +496,21 @@ pipelines:
     min_variants: 8000
     max_variants: 15000
     min_coverage: 0.90
+    min_relatedness_parents: 0.2
+    max_relatedness_unrelated: 0.04
+    max_relatedness_between_parents: 0.04
+    max_child_parent_relatedness: 0.4
     sample_expected_files: []
     sample_not_expected_files: []
     run_expected_files: []
     run_not_expected_files: []
     post_sample_files: []
+    sample_expected_files: []
+    sample_not_expected_files: []
+    run_expected_files: []
+    run_not_expected_files: []
+    post_sample_files: []
+
 
 
   SomaticAmplicon-master-NGHS-101X:
