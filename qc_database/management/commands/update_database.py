@@ -938,6 +938,15 @@ class Command(BaseCommand):
 							variant_count = dragen_ge.get_variant_count_metrics()
 							management_utils.add_variant_count_metrics(variant_count, run_analysis)
 
+							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
+							parsed_relatedness, parsed_relatedness_comment = dragen_ge.get_relatedness_metrics(run_analysis.min_relatedness_parents,
+																												run_analysis.max_relatedness_unrelated,
+																												run_analysis.max_relatedness_between_parents,
+																												run_analysis.max_child_parent_relatedness)
+
+							management_utils.add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_analysis)
+
+
 							send_to_slack = True
 
 						else:
@@ -968,9 +977,21 @@ class Command(BaseCommand):
 							variant_calling_metrics_dict = dragen_ge.get_variant_calling_metrics()
 							management_utils.add_dragen_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
 
+							logger.info (f'Putting sensitivity metrics into db for run {run_analysis.run.run_id}')
+							sensitivity_metrics = dragen_ge.get_sensitivity()
+							management_utils.add_sensitivity_metrics(sensitivity_metrics, run_analysis)
+
 							logger.info (f'Adding variant count metrics into db for run {run_analysis.run.run_id}')
 							variant_count = dragen_ge.get_variant_count_metrics()
 							management_utils.add_variant_count_metrics(variant_count, run_analysis)
+
+							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
+							parsed_relatedness, parsed_relatedness_comment = dragen_ge.get_relatedness_metrics(run_analysis.min_relatedness_parents,
+																												run_analysis.max_relatedness_unrelated,
+																												run_analysis.max_relatedness_between_parents,
+																												run_analysis.max_child_parent_relatedness)
+
+							management_utils.add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_analysis)
 
 
 							send_to_slack = True

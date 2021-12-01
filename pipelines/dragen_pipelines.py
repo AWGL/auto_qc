@@ -201,6 +201,26 @@ class DragenGE:
 		return sample_variant_count_dict
 
 
+	def get_relatedness_metrics(self, min_relatedness_parents, max_relatedness_unrelated, max_relatedness_between_parents, max_child_parent_relatedness):
+
+		results_path = Path(self.results_dir)
+
+		ped_file = results_path.glob(f'post_processing/results/ped/{self.run_id}.ped')
+
+		ped_file = list(ped_file)[0]
+	
+		relatedness_file = results_path.glob(f'post_processing/results/relatedness/{self.run_id}.relatedness2')
+
+		relatedness_file = list(relatedness_file)[0]
+
+		parsed_relatedness, parsed_relatedness_comment = relatedness2.relatedness_test(ped_file, relatedness_file,
+																					 min_relatedness_parents,
+																					 max_relatedness_unrelated,
+																					 max_relatedness_between_parents,
+																					 max_child_parent_relatedness)
+		return parsed_relatedness, parsed_relatedness_comment
+
+
 class DragenWGS:
 
 	def __init__(self,
@@ -448,9 +468,6 @@ class DragenWGS:
 																					 max_child_parent_relatedness)
 		return parsed_relatedness, parsed_relatedness_comment
 
-
-
-	
 	def get_alignment_metrics(self):
 		
 		results_path = Path(self.results_dir)
