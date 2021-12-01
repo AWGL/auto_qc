@@ -13,7 +13,7 @@ from datetime import datetime
 
 @transaction.atomic
 @login_required
-def home(request):
+def home_auto_qc(request):
 	"""
 	Return a list of active run analysis objects
 
@@ -41,8 +41,6 @@ def view_run_analysis(request, pk):
 	).order_by('worksheet', 'sample')
 
 	relatedness = RelatednessQuality.objects.filter(run_analysis = run_analysis)
-
-	print(relatedness)
 
 	run_level_qualities = InteropRunQuality.objects.filter(run = run_analysis.run)
 
@@ -109,7 +107,7 @@ def view_run_analysis(request, pk):
 						f'QC link:         http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
 				)
 
-				return redirect('home')
+				return redirect('home_auto_qc')
 
 		# if the user resets the run analysis to be watched
 		elif 'reset-form' in request.POST:
@@ -122,7 +120,7 @@ def view_run_analysis(request, pk):
 			run_analysis.signoff_date = None
 			run_analysis.save()
 
-			return redirect('home')
+			return redirect('home_auto_qc')
 
 		elif 'sensitivity-form' in request.POST:
 
@@ -181,7 +179,7 @@ def signup(request):
 			user.is_active = False
 			user.save()
 
-			return redirect('home')
+			return redirect('home_auto_qc')
 
 		else:
 

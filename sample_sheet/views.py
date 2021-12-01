@@ -17,7 +17,7 @@ from .forms import TechSettingsForm, DownloadSamplesheetButton, EditIndexForm, u
 ########## home page ################
 @transaction.atomic
 @login_required
-def home(request):
+def home_samplesheet(request):
 	return render(request, 'sample_sheet/home.html')
 
 ############## upload ################

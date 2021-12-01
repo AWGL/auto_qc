@@ -3,7 +3,7 @@ from . import views
 from django.contrib.auth import views as auth_view
 
 urlpatterns = [
-	path('', views.home, name='home'),
+	path('', views.home_samplesheet, name='home_samplesheet'),
 	path('upload', views.upload, name='upload'),
 	path('indexsets', views.index_sets, name='indexsets'),
 	path('indexsets/<str:index_set_name>/', views.index_detail, name='indexdetail'),
