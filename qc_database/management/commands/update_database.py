@@ -129,9 +129,7 @@ class Command(BaseCommand):
 
 					else:
 
-						panel = sample_sheet_data[sample]['panel']
-						panel = 'TSO500_' + panel
-					
+						panel = sample_sheet_data[sample]['panel']					
 
 					sex = sample_sheet_data[sample].get('sex', None)
 
@@ -471,7 +469,8 @@ class Command(BaseCommand):
 
 						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
 																		run = run_analysis.run,
-																		pipeline = run_analysis.pipeline)
+																		pipeline = run_analysis.pipeline,
+																		analysis_type = run_analysis.analysis_type)
 
 						if sample_analysis_obj.results_completed == False and sample_complete == True:
 
@@ -773,7 +772,8 @@ class Command(BaseCommand):
 
 						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
 																		run = run_analysis.run,
-																		pipeline = run_analysis.pipeline)
+																		pipeline = run_analysis.pipeline,
+																		analysis_type = run_analysis.analysis_type)
 
 						if sample_analysis_obj.results_completed == False and sample_complete == True:
 
@@ -895,7 +895,8 @@ class Command(BaseCommand):
 
 						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
 																		run = run_analysis.run,
-																		pipeline = run_analysis.pipeline)
+																		pipeline = run_analysis.pipeline,
+																		analysis_type = run_analysis.analysis_type)
 
 
 						sample_analysis_obj.results_completed = True
@@ -1446,7 +1447,8 @@ class Command(BaseCommand):
 
 						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
 																		run = run_analysis.run,
-																		pipeline = run_analysis.pipeline)
+																		pipeline = run_analysis.pipeline,
+																		analysis_type = run_analysis.analysis_type)
 
 						if sample_analysis_obj.results_completed == False and sample_complete == True:
 
@@ -1556,7 +1558,7 @@ class Command(BaseCommand):
 						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
 																		run = run_analysis.run,
 																		pipeline = run_analysis.pipeline,
-																		analysis_type_id=dna_or_rna)
+																		analysis_type_id=run_analysis.analysis_type)
 
 						if sample_analysis_obj.results_completed == False and sample_complete == True:
 

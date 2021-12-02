@@ -76,6 +76,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
+
 """
 DATABASES = {
     'default': {
@@ -85,6 +86,7 @@ DATABASES = {
 }
 
 """
+
 
 DB_PASSWORD_FILE = '/export/home/webapps/password.txt'
 with open(DB_PASSWORD_FILE) as f:
