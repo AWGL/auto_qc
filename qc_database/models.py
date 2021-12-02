@@ -958,19 +958,18 @@ class SampleAnalysis(models.Model):
 
 	def passes_percent_ntc_tso500(self):
 
-			
 		try:
+			
 			percent_ntc = self.get_percent_ntc_tso500()
+
 			if percent_ntc < 10:
 
 				return True
 		except:
+
 			return None
 
 		return False
-
-
-
 
 
 	def get_contamination_fusion(self):
