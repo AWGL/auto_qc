@@ -488,10 +488,20 @@ def add_sensitivity_metrics(sensitivity_metrics, run_analysis_obj):
 	Add sensitivity data for a run
 
 	"""
-	run_analysis_obj.sensitivity = float(sensitivity_metrics['sensitivity'])
-	run_analysis_obj.sensitivity_lower_ci = float(sensitivity_metrics['sensitivity_lower_ci'])
-	run_analysis_obj.sensitivity_higher_ci = float(sensitivity_metrics['sensitivity_higher_ci'])
-	run_analysis_obj.sensitivity_user = User.objects.get(pk=1)
+
+	if sensitivity_metrics['sensitivity'] is None:
+
+		run_analysis_obj.sensitivity = None
+		run_analysis_obj.sensitivity_lower_ci = None
+		run_analysis_obj.sensitivity_higher_ci = None
+		run_analysis_obj.sensitivity_user = User.objects.get(pk=1)
+
+	else:
+
+		run_analysis_obj.sensitivity = float(sensitivity_metrics['sensitivity'])
+		run_analysis_obj.sensitivity_lower_ci = float(sensitivity_metrics['sensitivity_lower_ci'])
+		run_analysis_obj.sensitivity_higher_ci = float(sensitivity_metrics['sensitivity_higher_ci'])
+		run_analysis_obj.sensitivity_user = User.objects.get(pk=1)
 
 	run_analysis_obj.save()
 
