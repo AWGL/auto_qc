@@ -175,7 +175,13 @@ class DragenGE:
 
 		sensitivity_file = results_path.glob(f'post_processing/results/sensitivity/{self.run_id}*_sensitivity.txt')
 		
-		sensitivity_file = list(sensitivity_file)[0]
+		sensitivity_file = list(sensitivity_file)
+
+		if len(sensitivity_file) == 0:
+
+			return {'sensitivity': None, 'sensitivity_lower_ci': None, 'sensitivity_higher_ci': None}
+
+		sensitivity_file = sensitivity_file[0]
 		
 		parsed_sensitivity_file = parsers.parse_sensitivity_file(sensitivity_file)
 
