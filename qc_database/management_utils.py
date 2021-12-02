@@ -108,7 +108,8 @@ def add_fastqc_data(fastqc_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 
 		sample_data = fastqc_dict[key]
 
@@ -139,7 +140,8 @@ def add_hs_metrics(hs_metrics_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 
 		existing_data = SampleHsMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 			
@@ -176,7 +178,8 @@ def add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 
 		existing_data = SampleDepthofCoverageMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 
@@ -205,7 +208,8 @@ def add_duplication_metrics(duplication_metrics_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 		
 		existing_data = DuplicationMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 		
