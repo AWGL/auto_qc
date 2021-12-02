@@ -125,10 +125,12 @@ class Command(BaseCommand):
 					if pipeline == 'TSO500':
 
 						panel = sample_sheet_data[sample]['Sample_Type']
+						panel = 'TSO500_' + panel
 
 					else:
 
 						panel = sample_sheet_data[sample]['panel']
+						panel = 'TSO500_' + panel
 					
 
 					sex = sample_sheet_data[sample].get('sex', None)
@@ -1403,11 +1405,19 @@ class Command(BaseCommand):
 					dna_or_rna="RNA"
 					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
 
+					print(run_config_key)
+
 					if run_config_key not in config_dict['pipelines']:
 
 						tso500 = TSO500_pipeline.TSO500_RNA(results_dir = run_data_dir,
 															sample_names = sample_ids,
-															run_id = run_analysis.run.run_id
+															sample_valid_files=None,
+															run_id = run_analysis.run.run_id,
+															sample_completed_files = ['*_fusion_check.csv'],
+															run_completed_files = ['contamination-*.csv'],
+															run_expected_files = ['RNA_QC_combined.txt', 'contamination-*.csv' ,'completed_samples.txt'],
+															metrics_file = ['RNA_QC_combined.txt']
+
 															)
 					else:
 
@@ -1500,6 +1510,7 @@ class Command(BaseCommand):
 
 				# TS500 DNA
 				elif 'TSO500' in run_analysis.pipeline.pipeline_id and 'DNA' in run_analysis.analysis_type.analysis_type_id:
+
 					run_id=run_analysis.run.run_id
 					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
 					dna_or_rna=run_analysis.analysis_type.analysis_type_id
@@ -1508,7 +1519,13 @@ class Command(BaseCommand):
 
 						tso500 = TSO500_pipeline.TSO500_DNA(results_dir = run_data_dir,
 															sample_names = sample_ids,
-															run_id = run_analysis.run.run_id
+															run_id = run_analysis.run.run_id,
+															sample_completed_files=['*variants.tsv', '*_coverage.json'],
+															sample_valid_files= ['DNA_QC_combined.txt'],
+															run_completed_files = ['contamination-*.csv'],
+															run_expected_files = ['DNA_QC_combined.txt','completed_samples.txt'],
+															metrics_file =['DNA_QC_combined.txt']
+
 															)
 					else:
 

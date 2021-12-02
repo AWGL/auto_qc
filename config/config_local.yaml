@@ -574,7 +574,7 @@ pipelines:
     run_not_expected_files: []
 
 
-  TSO500-master-DNA:
+  TSO500-master-TSO500_DNA:
     results_dir: '/media/joseph/Storage/data/results/'
     min_q30_score: 0.8
     ntc_contamination_cutoff: 10
@@ -587,7 +587,7 @@ pipelines:
     metrics_file: ['DNA_QC_combined.txt']
 
 
-  TSO500-master-RNA:
+  TSO500-master-TSO500_RNA:
     results_dir: '/media/joseph/Storage/data/results/'
     min_q30_score: 0.8
     ntc_contamination_cutoff: 10
