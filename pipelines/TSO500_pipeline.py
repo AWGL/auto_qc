@@ -89,8 +89,13 @@ class TSO500_DNA():
 		results_path = results_dir_path.joinpath(self.run_id)
 
 		found_file = results_path.glob(self.metrics_file[0])
+		
+		try:
+			found_file = list(found_file)[0]
 
-		found_file = list(found_file)[0]
+		except:
+
+			return False
 
 		dna_metrics_data = pd.read_csv(found_file, sep='\t')
 
