@@ -397,7 +397,6 @@ class RunAnalysis(models.Model):
 
 			for sample_object in new_samples_list:
 
-
 				if "NTC" not in sample_object.sample_id:
 
 					if sample_object.passes_percent_ntc_tso500() != True:
@@ -411,7 +410,7 @@ class RunAnalysis(models.Model):
 
 				if sample.passes_reads_tso500() != True:
 
-					reasons_to_fail.append('NTC Contamination Fail')
+					reasons_to_fail.append('TSO500 Read Fail')
 
 		if 'sex_match' in checks_to_do:
 
@@ -959,7 +958,7 @@ class SampleAnalysis(models.Model):
 	def passes_percent_ntc_tso500(self):
 
 		try:
-			
+
 			percent_ntc = self.get_percent_ntc_tso500()
 
 			if percent_ntc < 10:

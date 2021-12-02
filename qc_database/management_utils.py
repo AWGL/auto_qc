@@ -240,7 +240,8 @@ def add_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 
 
 		existing_data = ContaminationMetrics.objects.filter(sample_analysis= sample_analysis_obj)
@@ -274,7 +275,8 @@ def add_sex_metrics(qc_metrics_dict, run_analysis_obj, sex_key):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 		
 		existing_data = CalculatedSexMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 		
@@ -302,7 +304,8 @@ def add_alignment_metrics(alignment_metrics_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 
 		for metric in alignment_metrics_dict[key]:
 
@@ -340,7 +343,8 @@ def add_dragen_alignment_metrics(alignment_metrics_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 
 		existing_data = DragenAlignmentMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 
@@ -375,7 +379,8 @@ def add_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 		
 		existing_data = VariantCallingMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 		
@@ -408,7 +413,8 @@ def add_insert_metrics(insert_metrics_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 		
 		existing_data = InsertMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 		
@@ -439,7 +445,8 @@ def add_variant_count_metrics(variant_count_metrics_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 		
 		existing_data = VCFVariantCount.objects.filter(sample_analysis= sample_analysis_obj)
 		
@@ -464,7 +471,8 @@ def add_dragen_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 		
 		existing_data = DragenVariantCallingMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 		
@@ -520,7 +528,8 @@ def add_dragen_wgs_coverage_metrics(dragen_wgs_coverage_metrics, run_analysis_ob
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 		
 		existing_data = DragenWGSCoverageMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 		
@@ -554,7 +563,8 @@ def add_dragen_exonic_coverage_metrics(dragen_exonic_coverage_metrics, run_analy
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 		
 		existing_data = DragenRegionCoverageMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 		
@@ -589,7 +599,8 @@ def add_dragen_ploidy_metrics(dragen_ploidy_metrics, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 		
 		existing_data = DragenPloidyMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 		
@@ -609,16 +620,6 @@ def add_dragen_ploidy_metrics(dragen_ploidy_metrics, run_analysis_obj):
 			new_dragen_ploidy_metrics_obj.save()
 
 
-
-
-
-
-
-
-
-
-
-
 def add_fusion_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
 	"""
 	Add data from fusion contamination file to database
@@ -633,7 +634,8 @@ def add_fusion_contamination_metrics(contamination_metrics_dict, run_analysis_ob
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 		
 		existing_data = FusionContamination.objects.filter(sample_analysis= sample_analysis_obj)
 		
@@ -661,7 +663,8 @@ def add_fusion_alignment_metrics(alignment_metrics_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 		
 		existing_data = FusionAlignmentMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 		
@@ -689,8 +692,9 @@ def add_custom_coverage_metrics(coverage_metrics_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
-		
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
+
 		existing_data = CustomCoverageMetrics.objects.filter(sample_analysis= sample_analysis_obj)
 		
 		if len(existing_data) < 1:
@@ -719,9 +723,6 @@ def add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_
 
 		 new_relatedness_obj.save()
 
-
-
-
 def add_tso500_reads(reads_dict, run_analysis_obj):
 
 	pipeline = run_analysis_obj.pipeline
@@ -733,7 +734,8 @@ def add_tso500_reads(reads_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 		
 		existing_data = Tso500Reads.objects.filter(sample_analysis= sample_analysis_obj)
 		
@@ -759,7 +761,8 @@ def add_tso500_ntc_contamination(ntc_contamination_dict, run_analysis_obj):
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline)
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
 		
 		existing_data = Tso500Reads.objects.filter(sample_analysis= sample_analysis_obj)
 		
