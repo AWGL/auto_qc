@@ -48,7 +48,7 @@ class TechSettingsForm(forms.Form):
 
 class EditIndexForm(forms.Form):
     pos = forms.IntegerField(min_value=1)
-    pool = forms.ChoiceField(choices=SampleToWorksheet.POOL_CHOICES)
+    # pool = forms.ChoiceField(choices=SampleToWorksheet.POOL_CHOICES)
     i7_index = forms.ModelChoiceField(queryset=Index.objects.filter(i7_or_i5='i7'))
     i5_index = forms.ModelChoiceField(queryset=Index.objects.filter(i7_or_i5='i5'))
 
@@ -60,7 +60,7 @@ class EditIndexForm(forms.Form):
         self.fields['pos'].initial = self.sample_index_obj.pos
         self.fields['i7_index'].initial = self.sample_index_obj.index1
         self.fields['i5_index'].initial = self.sample_index_obj.index2
-        self.fields['pool'].initial = self.sample_index_obj.pool
+        # self.fields['pool'].initial = self.sample_index_obj.pool
         self.helper.form_id = 'index-settings-form'
         self.helper.form_method = 'POST'
         self.helper.add_input(
@@ -69,7 +69,7 @@ class EditIndexForm(forms.Form):
         self.helper.layout = Layout(
             Hidden('sample_index_obj', self.sample_index_obj.id),
             Hidden('pos', self.sample_index_obj.pos),
-            Field('pool'),
+            # Field('pool'),
             Field('i7_index'),
             Field('i5_index'),
             HTML('<br>'),
