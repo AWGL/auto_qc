@@ -218,44 +218,6 @@ def import_worksheet_data(filepath):
     return True, message, ws, assay_name
 
 
-def import_indexes_combined(filepath, index_set_object):
-    """
-    input:
-      filepath: path to a file containing vendor index sequences
-      index_set_object: a django object of the vendor index set being added
-
-    output:
-      indexes and index-vendor index set relations will be imported to the database
-    """
-    with open(filepath) as f:
-        csv_file = csv.reader(f, delimiter='\t')
-        for n, line in enumerate(csv_file):
-            index_name = line[0]
-            i7_sequence = line[1]
-            i5_sequence = line[2]
-
-            # add i7 index
-            i7_obj = Index.objects.create(
-                index_name = index_name,
-                sequence = i7_sequence,
-                i7_or_i5 = 'i7'
-            )
-
-            # add i5 index
-            i5_obj = Index.objects.create(
-                index_name = index_name,
-                sequence = i5_sequence,
-                i7_or_i5 = 'i5'
-            )
-
-            # make m2m relationships
-            index_to_index_set_obj = IndexToIndexSet.objects.create(
-                index1 = i7_obj,
-                index2 = i5_obj,
-                index_set = index_set_object,
-                index_pos = n + 1,
-            )
-
 
 def generate_ss_data_dict(worksheet, position_offset=0):
 
