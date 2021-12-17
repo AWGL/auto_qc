@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
-import pandas as pd
 import csv
+
+import pandas as pd
+import numpy as np
+
 
 """
 relatedness.py
@@ -187,8 +190,16 @@ def relatedness_test(ped, relatedness_file, min_relatedness_parents, max_related
 			if other_sample not in same_family and other_sample != sample_id:
 							
 				other_sample_relatedness = get_relatedness(relatedness_df, sample_id, other_sample)
+				
+				if 'NTC' in other_sample  or 'NTC' in sample_id:
 
-				if other_sample_relatedness is not None:
+					pass
+				
+				elif np.isnan(other_sample_relatedness):
+
+					fails.append(f'Could not retrieve relatedness between {sample_id} and {other_sample}')
+
+				elif other_sample_relatedness is not None:
 				
 					if other_sample_relatedness > max_relatedness_unrelated:
 					

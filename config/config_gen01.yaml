@@ -212,7 +212,7 @@ pipelines:
     sample_completed_files: ['*variants.tsv', '*_coverage.json']
     sample_valid_files: ['DNA_QC_combined.txt']
     run_completed_files: ['contamination-*.csv']
-    run_expected_files: ['DNA_QC_combined.txt','completed_samples.txt' ]
+    run_expected_files: ['DNA_QC_combined.txt','completed_samples.txt']
     metrics_file: ['DNA_QC_combined.txt']
 
 
