@@ -76,7 +76,6 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
 """
 DATABASES = {
     'default': {
@@ -86,7 +85,6 @@ DATABASES = {
 }
 
 """
-
 
 DB_PASSWORD_FILE = '/export/home/webapps/password.txt'
 with open(DB_PASSWORD_FILE) as f:
@@ -142,7 +140,7 @@ STATICFILES_DIRS = [
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-LOGIN_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = 'home_auto_qc'
 LOGIN_URL = '/login/'
 
 
