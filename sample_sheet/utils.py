@@ -29,7 +29,8 @@ def import_worksheet_data(filepath):
                         'haem NGS' : 'Myeloid',
                         'TruSight Cancer' : 'TruSightCancer',
                         'TruSight One CES panel' : 'TruSightOne',
-                        'FH NGS Panel v1' : 'FH'
+                        'FH NGS Panel v1' : 'FH',
+                        'WES' : 'WES',
     }
 
 
@@ -82,7 +83,7 @@ def import_worksheet_data(filepath):
     print(f'assay type is: {assay_type}')
 
     ## check is dependent on assay type. Don't check for overwritten values below
-    if assay_translate_dict[assay_type] not in ['Myeloid','TruSightOne','TruSightCancer', 'FH']:
+    if assay_translate_dict[assay_type] not in ['Myeloid','TruSightOne','TruSightCancer', 'FH', 'WES']:
 
         # get list of referral types from models
         expected_referral_list = list(ReferralType.objects.all().values_list('shire_name', flat = True))
@@ -163,6 +164,12 @@ def import_worksheet_data(filepath):
                 elif assay_name == 'FH':
                     referral_name = 'fh'
                     shire_referral_name = 'FH' # N/A
+
+                ## overwrite all wes referral types on DB
+                elif assay_name == 'WES':
+                    print('wes found')
+                    referral_name = 'wes'
+                    shire_referral_name = 'WES' # N/A
 
                 ## no overwrite, default to lowercase no blankspace
                 else:
