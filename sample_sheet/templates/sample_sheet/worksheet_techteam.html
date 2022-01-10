@@ -120,6 +120,10 @@
             </td>
             {% endif %}
           </tr>
+            <td>Sequencer</td>
+            <td>{{ worksheet_info.sequencer }}</td>
+          </tr>            
+          </tr>
             <td>Assay</td>
             <td>{{ worksheet_info.assay_name }}</td>
           </tr>
@@ -194,6 +198,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
+        <h5><center> Please select an option to all dropdowns </center></h5>
         <form method="post" id="tech-settings-form" data-index-url="{% url 'ajax_load_indexes' %}">
         {% crispy tech_settings_form %}
         </form>

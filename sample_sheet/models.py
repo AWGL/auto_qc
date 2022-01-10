@@ -126,10 +126,17 @@ class Worksheet(models.Model):
     An individual worksheet from Shire e.g. 20-123. Represents a collection of
     samples for a run, a run may be one worksheet or multiple combined worksheets
     """
-
+    SEQ_CHOICES = [
+        ('NextSeq', 'NextSeq'),
+        ('MiSeq', 'MiSeq'),
+        ('HiSeq', 'HiSeq'),
+        ('NovaSeq', 'NovaSeq'),
+    ]
+    
     worksheet_id = models.CharField(max_length=20, primary_key=True)
     worksheet_test = models.ForeignKey('Assay', on_delete=models.PROTECT)
     index_set = models.ForeignKey('IndexSet', on_delete=models.SET_NULL, related_name='worksheet_index_set', blank=True, null=True)
+    sequencer = models.CharField(max_length=20, choices=SEQ_CHOICES, default=None, null=True, blank=True)
     clinsci_manual_check = models.BooleanField(default = False)
     clinsci_signoff_name = models.ForeignKey('auth.user', on_delete=models.SET_NULL, related_name='clinsci_user', blank=True, null=True)
     clinsci_signoff_datetime = models.DateTimeField(blank=True, null=True)
