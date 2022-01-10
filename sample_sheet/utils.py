@@ -268,9 +268,7 @@ def generate_ss_data_dict(worksheet, position_offset=0):
             export_dict[adjusted_position]['index2'] = ''
             export_dict[adjusted_position]['I5_Index_ID'] = ''
 
-        # TODO sample_well field is different for TSO500
-        # TODO sample type is specific to TSO500, uses index position on plate so need to query indextoindexset
-
+        
 
     return export_dict
 
