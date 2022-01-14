@@ -246,6 +246,7 @@ class TSO500_RNA():
 		self.sample_valid_files = sample_valid_files
 		self.sample_names = sample_names
 
+
 	def run_is_complete(self):
 		"""
 		Has the RNA part of the pipeline completed run level?
@@ -253,6 +254,7 @@ class TSO500_RNA():
 		Looks for all files in self.run_completed_files
 
 		"""
+		print(self.run_completed_files)
 
 		results_dir_path = Path(self.results_dir)
 		results_path = results_dir_path.joinpath(self.run_id)
@@ -262,14 +264,16 @@ class TSO500_RNA():
 
 		for file in self.run_completed_files:
 			found_file = results_path.glob(file)
+			for output_file in found_file:
 
-			found_file_list.append(found_file)
+				found_file_list.append(output_file)
 
-		if len(list(found_file_list)) >= 1:
+		if len(found_file_list) >= 1:
 
 			return True
 	
 		return False
+
 
 
 	def run_is_valid(self):
