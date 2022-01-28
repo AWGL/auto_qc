@@ -14,7 +14,7 @@
               <th class="col-2">Index well</th>
               <th class="col-2">i7 index</th>
               <th class="col-2">i5 index</th>
-              <th class="col-1">Pool?</th>
+              <!-- <th class="col-1">Pool?</th> -->
               {% if worksheet_info.techteam_signoff_complete or worksheet_info.index_set == None %}
               <th></th>
               {% else %}
@@ -48,7 +48,7 @@
                   <span class="badge rounded-pill bg-danger">Not set</span>
                 {% endif %}
               </td>
-              <td>
+<!--               <td>
                 {% if sample.pool == 'Y' %}
                 <span class="fa fa-check" style="width:20px;color:green"></span>
                 {% elif sample.pool == 'N1' %}
@@ -58,7 +58,7 @@
                 <span class="fa fa-times" style="width:20px;color:red"></span>
                 <span class="badge rounded-pill bg-secondary">include index</span>
                 {% endif %}
-              </td>
+              </td> -->
               <td style="text-align:right">
                 {% if sample.edited %}
                 <span class="badge rounded-pill bg-danger">
@@ -119,6 +119,10 @@
               </button>
             </td>
             {% endif %}
+          </tr>
+            <td>Sequencer</td>
+            <td>{{ worksheet_info.sequencer }}</td>
+          </tr>            
           </tr>
             <td>Assay</td>
             <td>{{ worksheet_info.assay_name }}</td>
@@ -194,6 +198,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
+        <h5><center> Please select an option to all dropdowns </center></h5>
         <form method="post" id="tech-settings-form" data-index-url="{% url 'ajax_load_indexes' %}">
         {% crispy tech_settings_form %}
         </form>

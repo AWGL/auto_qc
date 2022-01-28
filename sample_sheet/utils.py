@@ -29,7 +29,8 @@ def import_worksheet_data(filepath):
                         'haem NGS' : 'Myeloid',
                         'TruSight Cancer' : 'TruSightCancer',
                         'TruSight One CES panel' : 'TruSightOne',
-                        'FH NGS Panel v1' : 'FH'
+                        'FH NGS Panel v1' : 'FH',
+                        'WES' : 'WES',
     }
 
 
@@ -82,7 +83,7 @@ def import_worksheet_data(filepath):
     print(f'assay type is: {assay_type}')
 
     ## check is dependent on assay type. Don't check for overwritten values below
-    if assay_translate_dict[assay_type] not in ['Myeloid','TruSightOne','TruSightCancer']:
+    if assay_translate_dict[assay_type] not in ['Myeloid','TruSightOne','TruSightCancer', 'FH', 'WES']:
 
         # get list of referral types from models
         expected_referral_list = list(ReferralType.objects.all().values_list('shire_name', flat = True))
@@ -164,6 +165,12 @@ def import_worksheet_data(filepath):
                     referral_name = 'fh'
                     shire_referral_name = 'FH' # N/A
 
+                ## overwrite all wes referral types on DB
+                elif assay_name == 'WES':
+                    print('wes found')
+                    referral_name = 'wes'
+                    shire_referral_name = 'WES' # N/A
+
                 ## no overwrite, default to lowercase no blankspace
                 else:
                     referral_name = referral_formatted
@@ -218,44 +225,6 @@ def import_worksheet_data(filepath):
     return True, message, ws, assay_name
 
 
-def import_indexes_combined(filepath, index_set_object):
-    """
-    input:
-      filepath: path to a file containing vendor index sequences
-      index_set_object: a django object of the vendor index set being added
-
-    output:
-      indexes and index-vendor index set relations will be imported to the database
-    """
-    with open(filepath) as f:
-        csv_file = csv.reader(f, delimiter='\t')
-        for n, line in enumerate(csv_file):
-            index_name = line[0]
-            i7_sequence = line[1]
-            i5_sequence = line[2]
-
-            # add i7 index
-            i7_obj = Index.objects.create(
-                index_name = index_name,
-                sequence = i7_sequence,
-                i7_or_i5 = 'i7'
-            )
-
-            # add i5 index
-            i5_obj = Index.objects.create(
-                index_name = index_name,
-                sequence = i5_sequence,
-                i7_or_i5 = 'i5'
-            )
-
-            # make m2m relationships
-            index_to_index_set_obj = IndexToIndexSet.objects.create(
-                index1 = i7_obj,
-                index2 = i5_obj,
-                index_set = index_set_object,
-                index_pos = n + 1,
-            )
-
 
 def generate_ss_data_dict(worksheet, position_offset=0):
 
@@ -299,9 +268,7 @@ def generate_ss_data_dict(worksheet, position_offset=0):
             export_dict[adjusted_position]['index2'] = ''
             export_dict[adjusted_position]['I5_Index_ID'] = ''
 
-        # TODO sample_well field is different for TSO500
-        # TODO sample type is specific to TSO500, uses index position on plate so need to query indextoindexset
-
+        
 
     return export_dict
 

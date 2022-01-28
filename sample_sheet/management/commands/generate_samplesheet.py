@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from ...utils import generate_ss_data_dict, combine_ss_data_dict
+from ...models import Worksheet
 
 from datetime import date
 
@@ -34,7 +35,8 @@ class Command(BaseCommand):
                         'TruSightCancer' : 'pipelineName=germline_enrichment_nextflow;pipelineVersion=master;panel=IlluminaTruSightCancer;sex=2;',
                         'TruSightOne' : 'pipelineName=DragenGE;pipelineVersion=master;panel=IlluminaTruSightOne;',
                         'BRCA' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=NGHS-102X;',
-                        'CRM' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=NGHS-101X;'
+                        'CRM' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=NGHS-101X;',
+                        'WES' : 'pipelineName=DragenGE;pipelineVersion=development;panel=NonocusWES38;'
         }
 
 
@@ -87,8 +89,8 @@ class Command(BaseCommand):
         familydict = {}
         for pos, values in ss_data_dict.items():
 
-            ## if wings assay as only one that uses family ATM
-            if assay == "WINGS":
+            ## if wings or WES assays as only ones that uses family at the moment
+            if assay in ["WINGS","WES"]:
 
                 ## if familyid is populated
                 if values['Familyid']:
@@ -267,10 +269,66 @@ class Command(BaseCommand):
                     description_field = f'{description_dict[assay]}referral={values["Referral"]}'
 
 
+            elif assay == 'WES':
+
+                ## check sequencer type of primary worksheet, create app_id 
+                worksheet_obj = Worksheet.objects.get(worksheet_id = worksheets[0])
+                sequencer_type = worksheet_obj.sequencer
+
+                if sequencer_type == 'NextSeq':
+                    app_id = 'NextSeqFASTQOnly'
+                    override_id = 'Y145;I8U9;I8;Y145'
+                elif sequencer_type == "NovaSeq":
+                    app_id = 'NovaSeqFASTQOnly'
+                    override_id = 'Y151;I8U9;I8;Y151'
+                else:
+                    app_id = 'WARNING INVALID SEQUENCER SELECTED'
+                    override_id = 'WARNING INVALID SEQUENCER SELECTED'
+
+                ## format sex part. no semicolon in case its on a singleton/NTC
+                if values['Sex'] == 'Male':
+                    sex_desc = 'sex=1'
+                elif values['Sex'] == 'Female':
+                    sex_desc = 'sex=2'
+                else:
+                    sex_desc = 'sex=0'
+
+                ## if familyid is populated then generate paternal/maternal ids from familydict
+                if values['Familyid']:
+                    familyid = values['Familyid']
+                    
+                    ## if proband then add data: family, maternal, paternal
+                    if values['FamilyPos'] == 'Proband':
+                        paternal = familydict[familyid]['paternalid']
+                        maternal = familydict[familyid]['maternalid']
+
+                        fam_desc = f';familyId={familyid};paternalId={paternal};maternalId={maternal};'
+
+                    ##
+                    else:
+                        fam_desc = f';familyId={familyid};'
+
+                    ## format phenotype/affected part. no semicolon needed as at the end of the description.
+                    ## only present in the event of a family id
+                    if values['Affected']:
+                        affected_desc = 'phenotype=2'
+                    else:
+                        affected_desc = 'phenotype=1'
+
+                else:
+                    ## fixes bug where if singleton processed after a family member it kept fam_desc and affected value
+                    fam_desc = ''
+                    affected_desc = ''
+
+
+                ## build description field for WINGS
+                description_field = f'{description_dict[assay]}{sex_desc}{fam_desc}{affected_desc}'
+
+
 
             ## have a capture to create a warning description field if not picked up as an assay
             else:
-                description_field = 'Description not defined'
+                description_field = 'WARNING: Description not defined'
 
 
             ## add to export list for each sample
@@ -304,5 +362,11 @@ class Command(BaseCommand):
             if "DDMMYYYY" in line:
                 download_date = date.today().strftime('%d/%m/%Y')
                 line = line.replace("DDMMYYYY", download_date)
+
+            ## WES specific: replace appid and override id with specifics based off sequencer type
+            if "APP_ID" in line:
+                line = line.replace("APP_ID",app_id)
+            if "OVERRIDE_ID" in line:
+                line = line.replace("OVERRIDE_ID", override_id)
 
             self.stdout.write(line)

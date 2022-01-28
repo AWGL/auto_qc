@@ -16,7 +16,7 @@
             <th scope="col">Sex</th>
 
             <!-- only display family and affected information if wings -->
-            {% if worksheet_info.assay_name == "WINGS" %}
+            {% if worksheet_info.assay_name in "WINGS WES" %}
             <th scope="col">Family ID</th>
             <th scope="col">Family Position</th>
             <th scope="col">Affected</th>
@@ -35,7 +35,7 @@
             <td>{{ sample.sex }}</td>
 
             <!-- only display family and affected information if wings -->
-            {% if worksheet_info.assay_name == "WINGS" %}
+            {% if worksheet_info.assay_name in "WINGS WES" %}
             
               {% if sample.familyid %}
               <td>{{ sample.familyid }}</td>
@@ -76,7 +76,7 @@
       {% if worksheet_info.clinsci_signoff_complete %}
       <!-- do not display button if signoff is done -->
 
-      {% elif worksheet_info.assay_name == "WINGS" %}
+      {% elif worksheet_info.assay_name in "WINGS WES" %}
       <!-- create family form only if wings worksheet -->
       <br>
       <div class="row justify-content-center">

@@ -294,6 +294,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 		'worksheet_info': {
 			'worksheet_id': worksheet_obj.worksheet_id,
 			'index_set': worksheet_obj.index_set,
+			'sequencer': worksheet_obj.sequencer,
 			'assay_name': assay.assay_name,
 			'assay_slug': assay.assay_slug,
 			'clinsci_signoff_name': worksheet_obj.clinsci_signoff_name,
@@ -342,10 +343,11 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 				cleaned_data = tech_settings_form.cleaned_data
 
 				## only update data if all parts of form filled in
-				if cleaned_data['index_set'] and cleaned_data['index']:
+				if cleaned_data['index_set'] and cleaned_data['index'] and cleaned_data['sequencer']:
 
 					## update worksheet info
 					worksheet_obj.index_set = cleaned_data['index_set']
+					worksheet_obj.sequencer = cleaned_data['sequencer']
 
 					## Add index to each sample
 					samples = SampleToWorksheet.objects.filter(worksheet_id = worksheet_id).order_by('pos')
@@ -376,6 +378,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					# reload context
 					worksheet_obj = Worksheet.objects.get(worksheet_id = worksheet_id)
 					context['worksheet_info']['index_set'] = worksheet_obj.index_set
+					context['worksheet_info']['sequencer'] = worksheet_obj.sequencer					
 					context['sample_data'] = get_sample_info(worksheet_obj)
 					context['tech_settings_form'] = TechSettingsForm(worksheet_obj=worksheet_obj)
 
