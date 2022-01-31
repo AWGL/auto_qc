@@ -46,23 +46,7 @@ class IndexSet(models.Model):
 
     def get_vendor_index_set(self):
         "Get a queryset of all indexes in this set"
-        return IndexToIndexSet.objects.filter(index_set=self).order_by('index_set')
-
-    def get_custom_index_set(self):
-        "Get a queryset of all indexes in this set"
-        # get queryset containing all indexes in set
-        indexes = IndexToIndexSet.objects.filter(index_set=self).order_by('index_pos')
-
-        # format as dict
-        index_dict = {}
-        for i in indexes:
-            index_dict[str(i.index_pos)] = {
-                'index1': i.index1, 
-                'index2': i.index2
-            }
-
-        # TODO handle reverse comp?
-        return index_dict
+        return IndexToIndexSet.objects.filter(index_set=self).order_by('index_pos')
 
     def __str__(self):
         return self.set_name
