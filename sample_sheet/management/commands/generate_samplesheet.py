@@ -36,7 +36,7 @@ class Command(BaseCommand):
                         'TruSightOne' : 'pipelineName=DragenGE;pipelineVersion=master;panel=IlluminaTruSightOne;',
                         'BRCA' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=NGHS-102X;',
                         'CRM' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=NGHS-101X;',
-                        'WES' : 'pipelineName=DragenGE;pipelineVersion=development;panel=NonocusWES38;'
+                        'WES' : 'pipelineName=DragenGE;pipelineVersion=master;panel=NonocusWES38;'
         }
 
 
@@ -284,6 +284,14 @@ class Command(BaseCommand):
                 else:
                     app_id = 'WARNING INVALID SEQUENCER SELECTED'
                     override_id = 'WARNING INVALID SEQUENCER SELECTED'
+
+                ## change position to well identifier
+                changed_values = values
+                changed_values['Sample_Well'] = values['Index_Well']
+
+                ## update main dict
+                ss_data_dict[pos].update(changed_values)
+
 
                 ## format sex part. no semicolon in case its on a singleton/NTC
                 if values['Sex'] == 'Male':
