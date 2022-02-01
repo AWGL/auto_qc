@@ -164,7 +164,7 @@ pipelines:
     results_dir:  '/mnt/wren_results/results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity, coverage, relatedness]
     min_q30_score: 0.75
-    contamination_cutoff: 0.05
+    contamination_cutoff: 0.10
     ntc_contamination_cutoff: 10
     min_sensitivity: 0.95
     min_fastq_size: 1000000
@@ -185,7 +185,7 @@ pipelines:
     results_dir:  '/mnt/wren_results/results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity, coverage, relatedness]
     min_q30_score: 0.75
-    contamination_cutoff: 0.05
+    contamination_cutoff: 0.10
     ntc_contamination_cutoff: 10
     min_sensitivity: 0.95
     min_fastq_size: 1000000
