@@ -168,8 +168,8 @@ pipelines:
     ntc_contamination_cutoff: 10
     min_sensitivity: 0.95
     min_fastq_size: 1000000
-    min_variants: 30000
-    max_variants: 37000
+    min_variants: 40000
+    max_variants: 50000
     min_coverage: 0.925
     min_relatedness_parents: 0.2
     max_relatedness_unrelated: 0.04
@@ -189,8 +189,8 @@ pipelines:
     ntc_contamination_cutoff: 10
     min_sensitivity: 0.95
     min_fastq_size: 1000000
-    min_variants: 30000
-    max_variants: 37000
+    min_variants: 40000
+    max_variants: 50000
     min_coverage: 0.925
     min_relatedness_parents: 0.2
     max_relatedness_unrelated: 0.04
