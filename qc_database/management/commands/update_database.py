@@ -178,14 +178,27 @@ class Command(BaseCommand):
 
 					run_config_key = pipeline_obj.pipeline_id + '-' + analysis_type_obj.analysis_type_id
 
-					try:
-
+					
+					try: 
+						
 						min_q30_score = config_dict['pipelines'][run_config_key]['min_q30_score']
 
 					except:
 
 						min_q30_score = 0.8
-
+					
+					#If statement to allow the MinQ30 to be dependent on sequencer for WES. This overrides the setting within the config file. 
+					else:
+						if str(analysis_type_obj.analysis_type_id) == "NonocusWES38":
+							
+							if str(run_obj.instrument) == 'NB551415' or str(run_obj.instrument) == 'NB551319':
+					
+								min_q30_score = 0.75
+		
+							elif str(run_obj.instrument) == 'A00748':
+			
+								min_q30_score = 0.85
+					
 
 					try:
 
