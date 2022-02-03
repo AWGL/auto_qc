@@ -552,14 +552,29 @@
 		{% endif %}
 
 		{% if 'contamination' in checks_to_do %}
+		
+		  {% if run_analysis.analysis_type.analysis_type_id != "NonocusWES38" %}
 
-		{% if sample_analysis.get_contamination == 'NA' %}
+		    {% if sample_analysis.get_contamination == 'NA' %}
 			<td> {{sample_analysis.get_contamination}} </td>
-		{% elif sample_analysis.get_contamination < sample_analysis.contamination_cutoff %}
+		    {% elif sample_analysis.get_contamination < sample_analysis.contamination_cutoff %}
 			<td class="table-success"> {{sample_analysis.get_contamination}} </td>
-		{% else %}
+		    {% else %}
 			<td class="table-danger"> {{sample_analysis.get_contamination}} </td>
-		{% endif %}
+		    {% endif %}
+		
+		  {% else %}
+		    {% if sample_analysis.get_contamination == 'NA' %}
+			<td> {{sample_analysis.get_contamination}} </td>
+		    {% elif sample_analysis.get_contamination < 0.05 %}
+			<td class="table-success"> {{sample_analysis.get_contamination}} </td>
+		    {% elif sample_analysis.get_contamination < 0.1 and sample_analysis.get_contamination >= 0.05 %}
+		        <td class="table-warning"> {{sample_analysis.get_contamination}} </td>
+		    {% else %}
+			<td class="table-danger"> {{sample_analysis.get_contamination}} </td>
+		    {% endif %}
+		
+		  {% endif %}
 		{% endif %}
 
 
