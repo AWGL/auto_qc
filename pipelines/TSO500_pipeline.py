@@ -384,7 +384,7 @@ class TSO500_RNA():
 
 					if pd.isna(reads):
 
-						reads = 0
+						reads = None
 
 					reads_dict[sample] = reads
 
