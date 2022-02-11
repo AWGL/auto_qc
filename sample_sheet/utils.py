@@ -18,6 +18,9 @@ def import_worksheet_data(filepath):
         - fails and triggers exception in view code
     """
 
+    # change to True if want verbose output and where upload is failing/completing
+    debug_notes = False
+
     ## sort/translate via hardcoded dict (shire test: assay instance - see model data)
     ## Add more here when adding assays/tests
     assay_translate_dict = {
@@ -38,19 +41,22 @@ def import_worksheet_data(filepath):
     ## this returns a dictionary per sample as a list of dicts.
     ## input file must be saved using MS excel as commadelimited.csv (not utf-8 csv)
     shire_query = list(csv.DictReader(filepath))
-    print('full shire query is:')
-    print(shire_query)
+    if debug_notes:
+        print('full shire query is:')
+        print(shire_query)
 
     ## LOGIC CHECK for formatting to prevent partial failures/uploads
     ## check all columns are present and correctly named
     if list(dict.keys(shire_query[0])) != ['LABNO', 'POSITION', 'WORKSHEET', 'TEST', 'COMMENTS', 'UPDATEDDATE', 'REASON_FOR_REFERRAL', 'FIRSTNAME', 'LASTNAME', 'SEX']:
         message = 'Worksheet not uploaded. Column formatting is not as expected, please check the input file'
-        print(message)
+        if debug_notes:
+            print(message)
         worksheet = ''
         assay = ''
         return False, message, worksheet, assay
     else:
-        print('column formatting checked: OK')
+        if debug_notes:
+            print('column formatting checked: OK')
 
 
     # make dictionary sorted by worksheet
@@ -80,7 +86,8 @@ def import_worksheet_data(filepath):
     ## LOGIC CHECK for formatting to prevent partial failures/uploads
     ## pull assay type from first sampleline in uploaded file dict
     assay_type = shire_query[0]['TEST']
-    print(f'assay type is: {assay_type}')
+    if debug_notes:
+        print(f'assay type is: {assay_type}')
 
     ## check is dependent on assay type. Don't check for overwritten values below
     if assay_translate_dict[assay_type] not in ['Myeloid','TruSightOne','TruSightCancer', 'FH', 'WES']:
@@ -95,15 +102,18 @@ def import_worksheet_data(filepath):
 
 
                 if item['REASON_FOR_REFERRAL'] not in expected_referral_list:
-                    print(item['REASON_FOR_REFERRAL'])
+                    if debug_notes:
+                        print(item['REASON_FOR_REFERRAL'])
                     message = 'Worksheet not uploaded. Unexpected referral type found, please check the input file'
-                    print(message)
+                    if debug_notes:
+                        print(message)
                     worksheet = ''
                     assay = ''
                     return False, message, worksheet, assay
 
                 else:
-                    print('Referral types check: OK')
+                    if debug_notes:
+                        print('Referral types check: OK')
 
 
 
@@ -115,13 +125,15 @@ def import_worksheet_data(filepath):
     if ws in worksheet_list:
 
         message = f'Worksheet not uploaded as the worksheet ID {ws} already exists in database'
-        print(message)
+        if debug_notes:
+            print(message)
         worksheet = ''
         assay = ''
         return False, message, worksheet, assay
 
     else:
-        print('worksheet is not already on database')
+        if debug_notes:
+            print('worksheet is not already on database')
 
     
     ## upload data
@@ -133,14 +145,17 @@ def import_worksheet_data(filepath):
             worksheet_id = ws,
             worksheet_test = assay
         )
-        print(worksheet_obj, created)
+        if debug_notes:
+            print(worksheet_obj, created)
 
         for sample in samples:
-            print(sample)
+            if debug_notes:
+                print(sample)
 
             ## create lowercase no blank referral
             referral_formatted = sample['REASON_FOR_REFERRAL'].lower().replace(' ', '')
-            print(referral_formatted)
+            if debug_notes:
+                print(referral_formatted)
 
             ## add overwrite for some of the referral types
             ## rewrite myeloid NGS referral from shire to just be myeloid on DB
@@ -167,7 +182,8 @@ def import_worksheet_data(filepath):
 
                 ## overwrite all wes referral types on DB
                 elif assay_name == 'WES':
-                    print('wes found')
+                    if debug_notes:
+                        print('wes found')
                     referral_name = 'wes'
                     shire_referral_name = 'WES' # N/A
 
@@ -186,7 +202,8 @@ def import_worksheet_data(filepath):
                 name = referral_name, 
                 shire_name = shire_referral_name
             )
-            print(referral_obj, created)
+            if debug_notes:
+                print(referral_obj, created)
 
 
             ## handle unknown or missing sex
@@ -199,14 +216,16 @@ def import_worksheet_data(filepath):
                     sex = '0'
             except:
                 sex='0'
-            print('sex handled')
+            if debug_notes:
+                print('sex handled')
 
             ## get or create sample object
             sample_obj, created = Sample.objects.get_or_create(
                 sampleid = sample['LABNO'],
                 sex = sex
                 )
-            print(sample_obj, created)
+            if debug_notes:
+                print(sample_obj, created)
 
 
             ## get or create sample to worksheet link object
@@ -216,7 +235,8 @@ def import_worksheet_data(filepath):
                 worksheet = worksheet_obj,
                 pos = sample['POSITION']
             )
-            print(sample_ws_obj, created)
+            if debug_notes:
+                print(sample_ws_obj, created)
 
 
         # all import script ran ok, create blank message
