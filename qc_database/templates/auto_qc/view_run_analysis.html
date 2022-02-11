@@ -759,6 +759,8 @@
 
 	<br>
 
+	{% if perms.qc_database.add_runanalysis %}
+
 	{% if run_analysis.watching == True %}
 	
 	{% crispy form %}
@@ -770,8 +772,17 @@
 
 	{% endif %}
 
+
+	{% else %}
+	Please Contact Bioinformatics Department if you need to sign off this run.
+
+	{% endif %}
+
+
 </div>
 </center>
+
+
 
 
 
