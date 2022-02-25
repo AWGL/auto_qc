@@ -26,11 +26,11 @@
                         <th scope="col">Status</th>
                     </thead>
                     <tr>
-                        <td>Clinical Scientists</td>
+                        <td>Clinical</td>
                         <td style="font-size: 25px">{{ worksheet_checks.clin_sci.status_html | safe }}</td>
                     </tr>
                     <tr>
-                        <td>Technical Team</td>
+                        <td>Technical</td>
                         <td style="font-size: 25px">{{ worksheet_checks.tech_team.status_html | safe }}</td>
                     </tr>
                 </table>
@@ -65,11 +65,11 @@
       </a>
 
       <a class="nav-link section-button" href="#clinsci" data-target="clin-sci">
-        {{ worksheet_checks.clin_sci.status_html | safe }} Clinical scientist checks
+        {{ worksheet_checks.clin_sci.status_html | safe }} Clinical checks
       </a>
 
       <a class="nav-link section-button" href="#techteam" data-target="tech-team">
-        {{ worksheet_checks.tech_team.status_html | safe }} Tech team checks
+        {{ worksheet_checks.tech_team.status_html | safe }} Technical checks
       </a>
 
   </ul>

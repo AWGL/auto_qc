@@ -1,4 +1,5 @@
 import csv
+import numpy
 
 from django.shortcuts import get_object_or_404
 from sample_sheet.models import *
@@ -57,6 +58,24 @@ def import_worksheet_data(filepath):
     else:
         if debug_notes:
             print('column formatting checked: OK')
+
+    # logic check to fail if duplicate samples found, create unique list and compare lengths
+    sampleid_list = []
+    for item in shire_query:
+        sampleid_list.append(item['LABNO'])
+
+    unique_sampleID = numpy.unique(sampleid_list)
+
+    if len(unique_sampleID) != len(sampleid_list):
+        message = 'Worksheet not uploaded. Duplicate sampleId found, please check the input file'
+        if debug_notes:
+            print(message)
+        worksheet = ''
+        assay = ''
+        return False, message, worksheet, assay
+    else:
+        if debug_notes:
+            print('all samples unique: OK')
 
 
     # make dictionary sorted by worksheet
