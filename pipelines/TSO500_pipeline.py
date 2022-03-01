@@ -5,6 +5,8 @@ import re
 import os
 from pipelines import parsers
 import pandas as pd
+import decimal
+from decimal import Decimal
 
 class TSO500_DNA():
 	"""
@@ -175,7 +177,11 @@ class TSO500_DNA():
 
 					else:
 
-						ntc_contamination_dict[sample] = ((ntc_reads/sample_reads)*100)
+						ntc_contamination = ((ntc_reads/sample_reads)*100)
+						decimal.getcontext().rounding=decimal.ROUND_DOWN
+						ntc_contamination_dict[sample]=(Decimal(ntc_contamination).quantize(Decimal('1')))
+
+
 
 		return ntc_contamination_dict
 	
