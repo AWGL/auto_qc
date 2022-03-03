@@ -22,7 +22,7 @@ class Command(BaseCommand):
         parser.add_argument('--index_tsv', nargs=1, type=str, required=True, help='path to tsv file of indexes to upload')
 
 
-
+    @transaction.atomic
     def handle(self, *args, **options):
 
         ## only affect models if whole script runs OK
