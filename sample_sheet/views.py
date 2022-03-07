@@ -389,7 +389,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 
 		## if index edit form is submitted
-		if 'pool' in request.POST:
+		if 'i7_index' in request.POST:
 
 			# get sample worksheet object of the sample that was submitted
 			sample_ws_obj = SampleToWorksheet.objects.get(id=request.POST['sample_index_obj'])
@@ -400,9 +400,9 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 				cleaned_data = edit_form.cleaned_data
 				edited = False
 
-				if cleaned_data['pool'] != sample_ws_obj.pool:
-					sample_ws_obj.pool = cleaned_data['pool']
-					edited = True
+				# if cleaned_data['pool'] != sample_ws_obj.pool:
+				# 	sample_ws_obj.pool = cleaned_data['pool']
+				# 	edited = True
 
 				if cleaned_data['i7_index'] != sample_ws_obj.index1:
 					sample_ws_obj.index1 = cleaned_data['i7_index']
@@ -418,8 +418,8 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					sample_ws_obj.save()
 
 				## check to see if any indexes have been skipped
-				if cleaned_data['pool'] == "N1":
-					print('index is skipped somewhere')
+				# if cleaned_data['pool'] == "N1":
+				# 	print('index is skipped somewhere')
 
 					## trigger function to reload indexes
 
