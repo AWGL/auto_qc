@@ -32,7 +32,7 @@ class Command(BaseCommand):
                         'TSO500DNA' : 'pipelineName=TSO500;pipelineVersion=master;',
                         'Myeloid' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=TruSightMyeloid;',
                         'FH' : 'pipelineName=germline_enrichment_nextflow;pipelineVersion=master;panel=AgilentOGTFH;',
-                        'TruSightCancer' : 'pipelineName=germline_enrichment_nextflow;pipelineVersion=master;panel=IlluminaTruSightCancer;sex=2;',
+                        'TruSightCancer' : 'pipelineName=germline_enrichment_nextflow;pipelineVersion=master;panel=IlluminaTruSightCancer;',
                         'TruSightOne' : 'pipelineName=DragenGE;pipelineVersion=master;panel=IlluminaTruSightOne;',
                         'BRCA' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=NGHS-102X;',
                         'CRM' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=NGHS-101X;',
@@ -231,7 +231,15 @@ class Command(BaseCommand):
             ## if TSC then description field plus order
             elif assay == 'TruSightCancer':
 
-                description_field = f'{description_dict[assay]}order={pos}'
+                ## format sex part. no semicolon in case its on a singleton/NTC
+                if values['Sex'] == 'Male':
+                    sex_desc = 'sex=1'
+                elif values['Sex'] == 'Female':
+                    sex_desc = 'sex=2'
+                else:
+                    sex_desc = 'sex=0'
+
+                description_field = f'{description_dict[assay]}{sex_desc};order={pos}'
 
 
             ## if TS1 then create description field plus sex
