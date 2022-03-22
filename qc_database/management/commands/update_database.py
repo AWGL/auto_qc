@@ -195,7 +195,7 @@ class Command(BaseCommand):
 					
 								min_q30_score = 0.75
 		
-							elif str(run_obj.instrument) == 'A00748':
+							elif str(run_obj.instrument) == 'A00748' or str(run_obj.instrument) == 'A01771':
 			
 								min_q30_score = 0.85
 					
