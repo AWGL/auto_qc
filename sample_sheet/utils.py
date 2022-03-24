@@ -34,7 +34,7 @@ def import_worksheet_data(filepath):
                         'TruSight Cancer' : 'TruSightCancer',
                         'TruSight One CES panel' : 'TruSightOne',
                         'FH NGS Panel v1' : 'FH',
-                        'WES' : 'WES',
+                        'Nonacus WES' : 'WES',
     }
 
 
