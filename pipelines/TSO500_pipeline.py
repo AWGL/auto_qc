@@ -3,8 +3,10 @@ from pathlib import Path
 import glob
 import re
 import os
-from pipelines import parsers
 import pandas as pd
+import decimal
+
+from pipelines import parsers
 
 class TSO500_DNA():
 	"""
@@ -27,7 +29,6 @@ class TSO500_DNA():
 		"""
 		Looks for files in self.run_completed_files
 
-		I
 		"""
 
 		results_dir_path = Path(self.results_dir)
@@ -175,7 +176,11 @@ class TSO500_DNA():
 
 					else:
 
-						ntc_contamination_dict[sample] = ((ntc_reads/sample_reads)*100)
+						ntc_contamination = ((ntc_reads/sample_reads)*100)
+						decimal.getcontext().rounding=decimal.ROUND_DOWN
+						ntc_contamination_dict[sample]=(decimal.Decimal(ntc_contamination).quantize(decimal.Decimal('1')))
+
+
 
 		return ntc_contamination_dict
 	
