@@ -7,13 +7,10 @@
 
 ### Justification 
 
-< explain reasons for following minor update process as oppose to major update process
-  that requires a full verification and validation >
+< explain reasons for following minor update process and not a full validation or verification for changes made >
   
-  
-  
-_________________________________________________________________________________________________
 
+_________________________________________________________________________________________________________________________________________
 
 
 ## Testing
@@ -27,9 +24,13 @@ ________________________________________________________________________________
 < provide file path of test data >
 
 
-
+___________________________________________________________________________________________________________________________________________
+## Checklist
+- [ ] are all relevant doccuments updated e.g. SOP, ReadME, Pull request 
+- [ ] is the test data easily accesible? 
 - [ ] Has the changes been code reviewed? 
 
 
 
-#### Name:                              Date:
+#### Name:
+#### Date:
