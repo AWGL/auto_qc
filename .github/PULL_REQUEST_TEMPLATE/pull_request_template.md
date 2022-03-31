@@ -10,7 +10,9 @@
 < explain reasons for following minor update process as oppose to major update process
   that requires a full verification and validation >
   
-### Testing
+_________________________________________________________________________________________________
+  
+## Testing
 
 ### Description :
 
@@ -20,10 +22,8 @@
 
 < provide file path of test data >
 
-[] Has the changes been code reviewed? 
 
 
+- [ ] Has the changes been code reviewed? 
 
-#### Name 
-
-#### Date
+#### Name                       #### Date
