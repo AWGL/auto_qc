@@ -48,7 +48,7 @@ class EditIndexForm(forms.Form):
     pos = forms.IntegerField(min_value=1)
     # pool = forms.ChoiceField(choices=SampleToWorksheet.POOL_CHOICES)
     i7_index = forms.ModelChoiceField(queryset=Index.objects.filter(i7_or_i5='i7'))
-    i5_index = forms.ModelChoiceField(queryset=Index.objects.filter(i7_or_i5='i5'))
+    i5_index = forms.ModelChoiceField(queryset=Index.objects.filter(i7_or_i5='i5'), required = False)
 
 
     def __init__(self, *args, **kwargs):
