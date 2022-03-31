@@ -455,6 +455,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 					## overwrite worksheet obj with null for index set and sequencer
 					worksheet_obj.index_set = None
+					worksheet_obj.sequencer = None
 					worksheet_obj.save()
 
 					## iterate through samples and change all relevant pieces to blank or default
@@ -466,6 +467,8 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 					## reload context for ws
 					context['worksheet_info']['index_set'] = worksheet_obj.index_set
+					context['worksheet_info']['sequencer'] = worksheet_obj.sequencer
+					
 					
 					## reload context for sample
 					context['sample_data'] = get_sample_info(worksheet_obj)
