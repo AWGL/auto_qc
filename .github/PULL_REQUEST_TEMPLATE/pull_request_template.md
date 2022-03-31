@@ -1,26 +1,22 @@
 # Minor Software Update 
 
-### Name 
-
-### Date
-
-## Description 
+### Description 
 
 < describe changes made and reasons for change > 
 
 
-## Justification 
+### Justification 
 
 < explain reasons for following minor update process as oppose to major update process
   that requires a full verification and validation >
   
-## Testing
+### Testing
 
-## Description :
+### Description :
 
 < provide information about the testing carried out and the outcome of the test >
 
-## Data Location:
+### Data Location:
 
 < provide file path of test data >
 
@@ -28,3 +24,6 @@
 
 
 
+#### Name 
+
+#### Date
