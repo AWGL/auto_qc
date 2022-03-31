@@ -1,8 +1,8 @@
 # Minor Software Update 
 
-## Name 
+### Name 
 
-## Date
+### Date
 
 ## Description 
 
@@ -16,9 +16,13 @@
   
 ## Testing
 
-Description :  < provide information about the testing carried out and the outcome of the test >
+## Description :
 
-Data Location: < provide file path of test data >
+< provide information about the testing carried out and the outcome of the test >
+
+## Data Location:
+
+< provide file path of test data >
 
 [] Has the changes been code reviewed? 
 
