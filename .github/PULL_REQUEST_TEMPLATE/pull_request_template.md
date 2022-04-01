@@ -26,6 +26,7 @@ ________________________________________________________________________________
 
 ___________________________________________________________________________________________________________________________________________
 ## Checklist
+< Place an X in the appropriate boxes >
 - [ ] Are all relevant doccuments updated e.g. SOP, ReadME, Pull request 
 - [ ] Is the test data easily accesible? 
 - [ ] Has the changes been code reviewed? 
