@@ -16,14 +16,20 @@
 	</div>
 		<br>
 	<div class="row">
-
     	<table class="table table-striped table-bordered" style="width:100%">
     	<thead>
-          	<tr>
+    		<tr>
+    			{% if well_input == True %}
+	            <th scope="col">Plate Well</th>
+
+	            {% else %}
 	            <th scope="col">Position</th>
-	            <th scope="col">Index 1 ID</th>
+
+	            {% endif %}
+
+	            <th scope="col">Index 1 ID (i7)</th>
 	            <th scope="col">Index 1 sequence</th>
-	            <th scope="col">Index 2 ID</th>
+	            <th scope="col">Index 2 ID (i5)</th>
 	            <th scope="col">Index 2 sequence</th>
           	</tr>
         </thead>
@@ -31,7 +37,14 @@
         <tbody>
 	          {% for index in indexes %}
 	        <tr>
+	        	{% if well_input == True %}
+	        	<td>{{ index.well }}</td>
+
+	        	{% else %}
 	            <td>{{ index.pos }}</td>
+
+	            {% endif %}
+	            
 	            <td>{{ index.index1_name }}</td>
 	            <td>{{ index.index1_seq }}</td>
 	            <td>{{ index.index2_name }}</td>
