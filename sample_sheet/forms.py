@@ -349,6 +349,9 @@ class DownloadSamplesheetButton(forms.Form):
     additional_worksheet = ModelChoiceField(queryset=Worksheet.objects.filter(clinsci_signoff_complete = True, techteam_signoff_complete = True).order_by('-worksheet_id'), required=False, label="Available worksheets")
 
     def __init__(self, *args, **kwargs):
+        # get if coupled worksheets required or not
+        self.coupled_worksheets = kwargs.pop('coupled_worksheets')
+
         # get variable from view - whether or not all checks are complete
         self.checks_complete = kwargs.pop('checks_complete')
 
@@ -365,26 +368,52 @@ class DownloadSamplesheetButton(forms.Form):
             message_class = 'danger disabled'
 
         # make layout
-        self.helper.layout = Layout(
-            Div(
-                Field('additional_worksheet'),
+        # if coupled worksheets = True, add additional worksheet
+        if self.coupled_worksheets:
+            self.helper.layout = Layout(
                 Div(
+                    Field('additional_worksheet'),
                     Div(
-                        HTML(f'{message}'),
-                        css_class='col-8'
-                    ),
-                    Div(
-                        StrictButton(
-                            '<span class="fa fa-file-download" style="width:20px"></span>Download', 
-                            css_class=f'btn btn-{message_class} btn-sm w-100',
-                            type='submit', 
-                            name='download-samplesheet'
+                        Div(
+                            HTML(f'{message}'),
+                            css_class='col-8'
                         ),
-                        css_class='col-4'
-                    ),
-                    css_class='row'
-                ), 
-                css_class=f'container alert alert-{message_class}'
+                        Div(
+                            StrictButton(
+                                '<span class="fa fa-file-download" style="width:20px"></span>Download', 
+                                css_class=f'btn btn-{message_class} btn-sm w-100',
+                                type='submit', 
+                                name='download-samplesheet'
+                            ),
+                            css_class='col-4'
+                        ),
+                        css_class='row'
+                    ), 
+                    css_class=f'container alert alert-{message_class}'
+                )
             )
-        )
+
+        # hide additional worksheet field if coupled_worksheets = False
+        else:
+            self.helper.layout = Layout(
+                Div(
+                    Hidden('additional_worksheet', ''),
+                    Div(
+                        Div(
+                            HTML(f'{message}'),
+                            css_class='col-8'
+                        ),
+                        Div(
+                            StrictButton(
+                                '<span class="fa fa-file-download" style="width:20px"></span>Download', 
+                                css_class=f'btn btn-{message_class} btn-sm w-100',
+                                type='submit', 
+                                name='download-samplesheet'
+                            ),
+                            css_class='col-4'
+                        ), 
+                    css_class=f'container alert alert-{message_class} row'
+                    )
+                )
+            )
 
