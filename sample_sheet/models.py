@@ -6,7 +6,7 @@ class Assay (models.Model):
 	assay_slug = models.CharField(max_length=20, primary_key=True)
 	assay_name = models.CharField(max_length=20)
 	enable_coupled_worksheets = models.BooleanField(default=False, null=True, blank=True)
-	coupled_worksheet_assay = models.ManyToManyField('Assay')
+	coupled_worksheet_assay = models.OneToOneField('Assay', on_delete=models.SET_NULL, null = True, blank = True)
 
 	def __str__(self):
 		return self.assay_name

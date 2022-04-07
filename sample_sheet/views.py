@@ -294,9 +294,9 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 	## get correct download button, depending on status
 	if clinsci_check_status['clinsci_checks_overall'] == 'complete' and techteam_check_status['techteam_checks_overall'] == 'complete': 
-		download_form = DownloadSamplesheetButton(checks_complete=True, coupled_worksheets=assay.enable_coupled_worksheets)
+		download_form = DownloadSamplesheetButton(checks_complete=True, assay_obj=assay)
 	else:
-		download_form = DownloadSamplesheetButton(checks_complete=False, coupled_worksheets=assay.enable_coupled_worksheets)
+		download_form = DownloadSamplesheetButton(checks_complete=False, assay_obj=assay)
 
 
 	## add to context dict for template
@@ -622,10 +622,10 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 					# download form. clinsci status has been reloaded so need to see if download is ok now
 					if clinsci_check_status['clinsci_checks_overall'] == 'complete' and techteam_check_status['techteam_checks_overall'] == 'complete': 
-						download_form = DownloadSamplesheetButton(checks_complete=True, coupled_worksheets=assay.enable_coupled_worksheets)
+						download_form = DownloadSamplesheetButton(checks_complete=True, assay_obj=assay)
 
 					else:
-						download_form = DownloadSamplesheetButton(checks_complete=False, coupled_worksheets=assay.enable_coupled_worksheets)
+						download_form = DownloadSamplesheetButton(checks_complete=False, assay_obj=assay)
 
 					context['download_form'] = download_form
 
@@ -658,10 +658,10 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 					# download form. clinsci status has been reloaded so need to see if download is ok now
 					if clinsci_check_status['clinsci_checks_overall'] == 'complete' and techteam_check_status['techteam_checks_overall'] == 'complete': 
-						download_form = DownloadSamplesheetButton(checks_complete=True, coupled_worksheets=assay.enable_coupled_worksheets)
+						download_form = DownloadSamplesheetButton(checks_complete=True, assay_obj=assay)
 
 					else:
-						download_form = DownloadSamplesheetButton(checks_complete=False, coupled_worksheets=assay.enable_coupled_worksheets)
+						download_form = DownloadSamplesheetButton(checks_complete=False, assay_obj=assay)
 
 					context['download_form'] = download_form
 
@@ -699,10 +699,10 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 					# download form. techteam status has been reloaded so need to see if download is ok now
 					if clinsci_check_status['clinsci_checks_overall'] == 'complete' and techteam_check_status['techteam_checks_overall'] == 'complete': 
-						download_form = DownloadSamplesheetButton(checks_complete=True, coupled_worksheets=assay.enable_coupled_worksheets)
+						download_form = DownloadSamplesheetButton(checks_complete=True, assay_obj=assay)
 
 					else:
-						download_form = DownloadSamplesheetButton(checks_complete=False, coupled_worksheets=assay.enable_coupled_worksheets)
+						download_form = DownloadSamplesheetButton(checks_complete=False, assay_obj=assay)
 
 					context['download_form'] = download_form
 
@@ -735,17 +735,17 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 					# download form. techteam status has been reloaded so need to see if download is ok now
 					if clinsci_check_status['clinsci_checks_overall'] == 'complete' and techteam_check_status['techteam_checks_overall'] == 'complete': 
-						download_form = DownloadSamplesheetButton(checks_complete=True, coupled_worksheets=assay.enable_coupled_worksheets)
+						download_form = DownloadSamplesheetButton(checks_complete=True, assay_obj=assay)
 
 					else:
-						download_form = DownloadSamplesheetButton(checks_complete=False, coupled_worksheets=assay.enable_coupled_worksheets)
+						download_form = DownloadSamplesheetButton(checks_complete=False, assay_obj=assay)
 
 					context['download_form'] = download_form
 
 
 		## if download samplesheet button is pressed
 		if 'download-samplesheet' in request.POST:
-			download_button = DownloadSamplesheetButton(request.POST, checks_complete=True, coupled_worksheets=assay.enable_coupled_worksheets)
+			download_button = DownloadSamplesheetButton(request.POST, checks_complete=True, assay_obj=assay)
 			if download_button.is_valid():
 				cleaned_data = download_button.cleaned_data
 
