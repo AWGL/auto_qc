@@ -612,8 +612,11 @@ class SampleAnalysis(models.Model):
 	def passes_contamination(self):
 
 		try:
+
 			contamination = self.get_contamination()
+
 		except:
+			
 			return None
 
 		if contamination > self.contamination_cutoff:
@@ -662,8 +665,11 @@ class SampleAnalysis(models.Model):
 	def get_reads_tso500(self):
 
 		try:
+
 			tso500_reads = Tso500Reads.objects.filter(sample_analysis = self)
+
 		except:
+
 			return None
 
 		if len(tso500_reads) != 1:
@@ -671,6 +677,7 @@ class SampleAnalysis(models.Model):
 			return None
 
 		else:
+
 			return tso500_reads[0].total_on_target_reads
 
 	def passes_reads_tso500(self):
