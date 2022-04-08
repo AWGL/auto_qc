@@ -87,10 +87,18 @@ def index_detail(request, index_set_name):
 	index_set_query = IndexSet.objects.get(set_name=index_set_name)
 
 	index_list = []
-	for index in index_set_query.get_vendor_index_set():
+	for count, index in enumerate(index_set_query.get_vendor_index_set(),1):
+		# for first position/well, see if both the same eg: 1.
+		if count == 1:
+			if str(index.index_pos) != str(index.index1.index_well):
+				well_input = True
+			else:
+				well_input = False
+
 		if index.index2:
 			temp_dict = {
 				'pos': index.index_pos,
+				'well': index.index1.index_well,
 				'index1_name': index.index1.index_name,
 				'index1_seq': index.index1.sequence,
 				'index2_name': index.index2.index_name,
@@ -101,6 +109,7 @@ def index_detail(request, index_set_name):
 		else:
 			temp_dict = {
 				'pos': index.index_pos,
+				'well': index.index1.index_well,
 				'index1_name': index.index1.index_name,
 				'index1_seq': index.index1.sequence,
 				'index2_name': '-',
@@ -110,7 +119,8 @@ def index_detail(request, index_set_name):
 
 	context = {
 		'name': index_set_query.set_name,
-		'indexes': index_list
+		'indexes': index_list,
+		'well_input': well_input,
 	}
 	return render(request, 'sample_sheet/indexes.html', context)
 

@@ -53,11 +53,14 @@ class EditIndexForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.sample_index_obj = kwargs.pop('sample_index_obj')
+        print(self.sample_index_obj.worksheet.index_set)
         super(EditIndexForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.fields['pos'].initial = self.sample_index_obj.pos
         self.fields['i7_index'].initial = self.sample_index_obj.index1
         self.fields['i5_index'].initial = self.sample_index_obj.index2
+        # index_options = IndexToIndexSet.objects.filter(index_set= self.sample_index_obj.worksheet.index_set).values_list('index1', 'index1_id')
+        # self.fields['i7_index'].choices = index_options
         # self.fields['pool'].initial = self.sample_index_obj.pool
         self.helper.form_id = 'index-settings-form'
         self.helper.form_method = 'POST'
@@ -147,9 +150,9 @@ class CreateFamilyForm(forms.Form):
         )
         self.helper.layout = Layout(
             Field('familyid'),
+            Field('probandid'),
             Field('fatherid'),
             Field('motherid'),
-            Field('probandid'),
         )
 
 
