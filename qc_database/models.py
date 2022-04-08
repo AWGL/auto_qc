@@ -228,13 +228,23 @@ class RunAnalysis(models.Model):
 		return True
 
 	def get_ntc_sample(self, worksheet):
+		"""
+		Get the NTC sample
+		"""
+		# DragenWGS NTC may be split across two assays e.g. WGS and FastWGS
+		if 'DragenWGS' in self.pipeline.pipeline_id:
 
-		samples = SampleAnalysis.objects.filter(run = self.run,
+			samples = SampleAnalysis.objects.filter(run = self.run,
+												pipeline = self.pipeline,
+												worksheet = worksheet
+												)
+		else:
+
+			samples = SampleAnalysis.objects.filter(run = self.run,
 												pipeline = self.pipeline,
 												analysis_type = self.analysis_type,
 												worksheet = worksheet
 												)
-
 		ntc_samples = []
 
 		for sample in samples:
@@ -643,14 +653,9 @@ class SampleAnalysis(models.Model):
 
 				return 'Cannot count reads for sample.'
 
-			if ntc_reads == None:
-
-				return False
-
 			if (ntc_reads * self.ntc_contamination_cutoff) > total_reads:
 
 				return False
-
 
 		return True
 
