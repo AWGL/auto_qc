@@ -27,7 +27,7 @@ class Command(BaseCommand):
 
         ## hardcoded description column dictionary. added to and edited before writing csv file
         description_dict = {
-                        'WINGS' : 'pipelineName=DragenWGS;pipelineVersion=master;panel=NexteraDNAFlex;',
+                        'WINGS' : 'pipelineName=DragenWGS;pipelineVersion=master;panel=WGS;',
                         'TSO500RNA' : 'pipelineName=TSO500;pipelineVersion=master;',
                         'TSO500DNA' : 'pipelineName=TSO500;pipelineVersion=master;',
                         'Myeloid' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=TruSightMyeloid;',
