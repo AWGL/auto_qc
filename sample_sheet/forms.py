@@ -48,7 +48,7 @@ class EditIndexForm(forms.Form):
     pos = forms.IntegerField(min_value=1)
     # pool = forms.ChoiceField(choices=SampleToWorksheet.POOL_CHOICES)
     i7_index = forms.ModelChoiceField(queryset=Index.objects.filter(i7_or_i5='i7'))
-    i5_index = forms.ModelChoiceField(queryset=Index.objects.filter(i7_or_i5='i5'))
+    i5_index = forms.ModelChoiceField(queryset=Index.objects.filter(i7_or_i5='i5'), required = False)
 
 
     def __init__(self, *args, **kwargs):
@@ -349,12 +349,27 @@ class DownloadSamplesheetButton(forms.Form):
     additional_worksheet = ModelChoiceField(queryset=Worksheet.objects.filter(clinsci_signoff_complete = True, techteam_signoff_complete = True).order_by('-worksheet_id'), required=False, label="Available worksheets")
 
     def __init__(self, *args, **kwargs):
+        # get if coupled worksheets required or not
+        self.assay_obj = kwargs.pop('assay_obj')
+        print(self.assay_obj.coupled_worksheet_assay)
+        self.coupled_worksheets = self.assay_obj.enable_coupled_worksheets
+
         # get variable from view - whether or not all checks are complete
         self.checks_complete = kwargs.pop('checks_complete')
 
         super(DownloadSamplesheetButton, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = 'POST'
+
+        # get assay to couple if coupled worksheets is True
+        if self.coupled_worksheets:
+            coupled_worksheet_assay = self.assay_obj.coupled_worksheet_assay
+
+            # create and overwrite form choices
+            worksheet_choices = list(Worksheet.objects.filter(worksheet_test = coupled_worksheet_assay, clinsci_signoff_complete = True, techteam_signoff_complete = True).order_by('-worksheet_id').values_list('worksheet_id','worksheet_id'))
+            worksheet_choices_incnull = [('','')] + worksheet_choices
+            self.fields['additional_worksheet'].choices = worksheet_choices_incnull
+            self.fields['additional_worksheet'].initial = None
 
         # render form differently depending on whether or not the checks are complete
         if self.checks_complete:
@@ -365,26 +380,52 @@ class DownloadSamplesheetButton(forms.Form):
             message_class = 'danger disabled'
 
         # make layout
-        self.helper.layout = Layout(
-            Div(
-                Field('additional_worksheet'),
+        # if coupled worksheets = True, add additional worksheet
+        if self.coupled_worksheets:
+            self.helper.layout = Layout(
                 Div(
+                    Field('additional_worksheet'),
                     Div(
-                        HTML(f'{message}'),
-                        css_class='col-8'
-                    ),
-                    Div(
-                        StrictButton(
-                            '<span class="fa fa-file-download" style="width:20px"></span>Download', 
-                            css_class=f'btn btn-{message_class} btn-sm w-100',
-                            type='submit', 
-                            name='download-samplesheet'
+                        Div(
+                            HTML(f'{message}'),
+                            css_class='col-8'
                         ),
-                        css_class='col-4'
-                    ),
-                    css_class='row'
-                ), 
-                css_class=f'container alert alert-{message_class}'
+                        Div(
+                            StrictButton(
+                                '<span class="fa fa-file-download" style="width:20px"></span>Download', 
+                                css_class=f'btn btn-{message_class} btn-sm w-100',
+                                type='submit', 
+                                name='download-samplesheet'
+                            ),
+                            css_class='col-4'
+                        ),
+                        css_class='row'
+                    ), 
+                    css_class=f'container alert alert-{message_class}'
+                )
             )
-        )
+
+        # hide additional worksheet field if coupled_worksheets = False
+        else:
+            self.helper.layout = Layout(
+                Div(
+                    Hidden('additional_worksheet', ''),
+                    Div(
+                        Div(
+                            HTML(f'{message}'),
+                            css_class='col-8'
+                        ),
+                        Div(
+                            StrictButton(
+                                '<span class="fa fa-file-download" style="width:20px"></span>Download', 
+                                css_class=f'btn btn-{message_class} btn-sm w-100',
+                                type='submit', 
+                                name='download-samplesheet'
+                            ),
+                            css_class='col-4'
+                        ), 
+                    css_class=f'container alert alert-{message_class} row'
+                    )
+                )
+            )
 

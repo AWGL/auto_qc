@@ -295,127 +295,6 @@ pipelines:
                                 ]
     run_not_expected_files: []
 
-
-  DragenGE-1.0.0-IlluminaTruSightOne:
-    results_dir: '/media/joseph/Storage/data/dragen_results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity]
-    min_q30_score: 0.75
-    contamination_cutoff: 0.025
-    ntc_contamination_cutoff: 10
-    min_sensitivity: 0.95
-    min_fastq_size: 1000000
-    min_variants: 8000
-    max_variants: 15000
-    sample_expected_files: ['*.bam',
-                  '*.mapping_metrics.csv',
-                  '*.insert-stats.tab']
-    sample_not_expected_files: []
-    run_expected_files: ['*.hard-filtered.vcf.gz',
-                  '*.vc_metrics.csv',
-                   'results/relatedness/*.relatedness2',
-                   'results/sensitivity/*_sensitivity.txt',
-                   'results/database_vcf/*.roi.filtered.database.vcf',
-                   'results/annotated_vcf/*.roi.filtered.norm.anno.vcf.gz']
-    run_not_expected_files: []
-    post_sample_files: ['results/contamination/*{sample}_contamination.selfSM',
-                  'results/calculated_sex/*{sample}_calculated_sex.txt',
-                  'results/coverage/*{sample}_depth_of_coverage.gz',
-                  'results/coverage/*{sample}_gaps.bed']
-   
-  DragenGE-1.1.0-IlluminaTruSightOne:
-    results_dir: '/media/joseph/Storage/data/dragen_results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, sensitivity]
-    min_q30_score: 0.75
-    contamination_cutoff: 0.025
-    ntc_contamination_cutoff: 10
-    min_sensitivity: 0.95
-    min_fastq_size: 1000000
-    min_variants: 8000
-    max_variants: 15000
-    sample_expected_files: ['*.bam',
-                  '*.mapping_metrics.csv',
-                  '*.insert-stats.tab']
-    sample_not_expected_files: []
-    run_expected_files: ['*.hard-filtered.vcf.gz',
-                  '*.vc_metrics.csv',
-                   'results/relatedness/*.relatedness2',
-                   'results/sensitivity/*_sensitivity.txt',
-                   'results/database_vcf/*.roi.filtered.database.vcf',
-                   'results/annotated_vcf/*.roi.filtered.norm.anno.vcf.gz']
-    run_not_expected_files: []
-    post_sample_files: ['results/contamination/*{sample}_contamination.selfSM',
-                  'results/calculated_sex/*{sample}_calculated_sex.txt',
-                  'results/coverage/*{sample}_depth_of_coverage.gz',
-                  'results/coverage/*{sample}_gaps.bed']
-
-  DragenWGS-0.0.1-NexteraDNAFlex:
-    results_dir: '/media/joseph/Storage/data/dragen_results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage]
-    min_q30_score: 0.75
-    contamination_cutoff: 0.025
-    ntc_contamination_cutoff: 10
-    min_fastq_size: 1000000
-    min_variants: 4775905
-    max_variants: 5003809
-    min_titv: 2.0
-    max_titv: 2.1
-    min_coverage: 90
-    sample_expected_files: ['*.bam',
-                  '*.mapping_metrics.csv',
-                  '*.insert-stats.tab']
-    sample_not_expected_files: []
-    run_expected_files: ['*.hard-filtered.vcf.gz',
-                  '*.vc_metrics.csv',
-                 'results/relatedness/*.relatedness2',
-                 'results/annotated_vcf/*.norm.anno.vcf.gz'
-               ]
-    run_not_expected_files: []
-    post_sample_files: []
-
-  DragenWGS-1.0.0-NexteraDNAFlex:
-    results_dir:  '/media/joseph/Storage/data/dragen_results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage]
-    min_q30_score: 0.75
-    contamination_cutoff: 0.025
-    ntc_contamination_cutoff: 10
-    min_fastq_size: 1000000
-    min_variants: 4775905
-    max_variants: 5003809
-    min_titv: 2.0
-    max_titv: 2.1
-    min_coverage: 90
-    sample_expected_files: ['*.bam',
-                  '*.mapping_metrics.csv',
-                  '*.insert-stats.tab']
-    sample_not_expected_files: []
-    run_expected_files: ['*.hard-filtered.vcf.gz',
-                  '*.vc_metrics.csv',
-                 'results/relatedness/*.relatedness2',
-                 'results/annotated_vcf/*.norm.anno.vcf.gz'
-               ]
-    run_not_expected_files: []
-    post_sample_files: []
-
-  SomaticFusion-0.0.4-RocheSTFusion:
-    results_dir:  '/media/joseph/Storage/data/results/'
-    qc_checks: [pct_q30, fastqc, fusion_contamination, fusion_alignment]
-    min_q30_score: 0.75
-    min_fusion_aligned_reads_unique: 38000
-    sample_expected_files: ['*Aligned_out.bam',
-                          '*_DepthOfCoverage.sample_summary',
-                          'fusionReport/*_fusionReport.txt',
-                          '*_fusions_adapted.tsv',
-                          'STAR-Fusion/star-fusion.fusion_predictions.abridged.coding_effect.tsv',
-                          'RMATS/SE.MATS.JC.txt',
-                          '*_RMATS_Report.tsv',
-                          'Results/STAR_Fusion/*fusion_report_NTRK3.txt',
-                          'Results/arriba/*fusion_report_NTRK3_arriba.txt',
-                          'Results/arriba_discarded/*fusion_report_NTRK3_arriba_discarded.txt'
-                           ]
-    sample_not_expected_files: []
-    run_expected_files: ['contamination.csv', 'combined_QC.txt', '*-aligned_reads.csv', 'samples_list.txt' ]
-    run_not_expected_files: []
-
   DragenWGS-master-NexteraDNAFlex:
     results_dir: '/media/joseph/Storage/data/dragen_results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness]
@@ -445,7 +324,7 @@ pipelines:
     run_not_expected_files: []
     post_sample_files: []
 
-  DragenWGS-master-IlluminaPCRFree:
+  DragenWGS-master-WGS:
     results_dir: '/media/joseph/Storage/data/dragen_results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness]
     min_q30_score: 0.75
@@ -473,6 +352,36 @@ pipelines:
                ]
     run_not_expected_files: []
     post_sample_files: []
+
+  DragenWGS-master-FastWGS:
+    results_dir: '/media/joseph/Storage/data/dragen_results/'
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness]
+    min_q30_score: 0.75
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 1000000
+    min_variants: 4775905
+    max_variants: 5003809
+    min_titv: 2.0
+    max_titv: 2.1
+    min_coverage: 90
+    min_relatedness_parents: 0.2
+    max_relatedness_unrelated: 0.02
+    max_relatedness_between_parents: 0.02
+    max_child_parent_relatedness: 0.4
+    sample_expected_files: ['*.bam',
+                  '*.mapping_metrics.csv',
+                  '*.insert-stats.tab']
+    sample_not_expected_files: []
+    run_expected_files: ['*.hard-filtered.vcf.gz',
+                  '*.vc_metrics.csv',
+                 'post_processing/results/relatedness/*.relatedness2',
+                 'post_processing/results/annotated_vcf/*.norm.anno.vcf.gz',
+                 'post_processing/results/database_config/*_config.csv',
+               ]
+    run_not_expected_files: []
+    post_sample_files: []
+
 
   germline_enrichment_nextflow-master-AgilentOGTFH:
     results_dir:  '/media/joseph/Storage/data/results/'

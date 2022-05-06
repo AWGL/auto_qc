@@ -177,12 +177,12 @@ def relatedness_test(ped, relatedness_file, min_relatedness_parents, max_related
 			
 			if relatedness_status:
 				
-				fails.append(f'sample {sample_id} invalid relatedness to parent {parent_id}.')
+				fails.append(f'sample {sample_id} invalid relatedness to parent {parent_id}. Do not pass this run unless you have valid explanation!')
 
 			#check parent is not a sample not in relatedness
 			if parent_id not in same_family and same_family is not False and parent_id not in [0,'0']:
 
-				fails.append(f'sample {sample_id} invalid relatedness to parent {parent_id}.')
+				fails.append(f'sample {sample_id} invalid relatedness to parent {parent_id}. Do not pass this run unless you have valid explanation!')
 				
 		# check for duplicate samples i.e. samples not in same family which have > max_relatedness_unrelated
 		for other_sample in sample_dict:
