@@ -530,10 +530,13 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 						## make sure values all unique
 						hpo_id_list = numpy.unique(hpo_id_list)
 
+						## remove blank instances in case of careless comma use
+						hpo_id_list= list(filter(None, hpo_id_list))
+
 						## check all HPO ids are valid HPO IDs
 						for  value in hpo_id_list:
 							if value not in settings.HPO_TERMS_DICT.keys():
-								print('invalid HPO ID {value} found in input, will not update field')
+								print(f'invalid HPO ID {value} found in input, will not update field')
 								incorrect_HPO = True
 								break
 							else:
