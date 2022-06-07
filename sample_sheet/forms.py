@@ -53,7 +53,6 @@ class EditIndexForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.sample_index_obj = kwargs.pop('sample_index_obj')
-        print(self.sample_index_obj.worksheet.index_set)
         super(EditIndexForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.fields['pos'].initial = self.sample_index_obj.pos
@@ -103,6 +102,7 @@ class EditSampleDetailsForm(forms.Form):
     pos = forms.IntegerField(min_value=1)
     referral_type = forms.ModelChoiceField(queryset=ReferralType.objects.all(), label="Referral Type")
     gender = forms.ChoiceField(choices=Sample.SEX_CHOICES, label="Gender")
+    hpo_ids = forms.CharField(widget=forms.Textarea(attrs={'rows': 3}), label = "HPO IDs (seperated with a comma)", required=False)
 
     def __init__(self, *args, **kwargs):
         self.sample_details_obj = kwargs.pop('sample_details_obj')
@@ -111,6 +111,7 @@ class EditSampleDetailsForm(forms.Form):
         self.fields['pos'].initial = self.sample_details_obj.pos
         self.fields['gender'].initial = self.sample_details_obj.sample.sex
         self.fields['referral_type'].initial = self.sample_details_obj.referral
+        self.fields['hpo_ids'].initial = self.sample_details_obj.hpo_ids
         referral_choices = ReferralType.objects.filter(assay = self.sample_details_obj.worksheet.worksheet_test).order_by('name').values_list('name', 'name')
         self.fields['referral_type'].choices = (*referral_choices,)
         self.helper.form_id = 'sample-details-form'
@@ -118,12 +119,25 @@ class EditSampleDetailsForm(forms.Form):
         self.helper.add_input(
             Submit('submit', 'Update', css_class='btn btn-outline-light w-25 buttons1')
         )
-        self.helper.layout = Layout(
-            Hidden('sample_details_obj', self.sample_details_obj.id),
-            Hidden('pos', self.sample_details_obj.pos),
-            Field('referral_type'),
-            Field('gender'),
-        )
+        # if wes or wgs then show hpo option
+        if str(self.sample_details_obj.worksheet.worksheet_test) in (['WGS','WES']):
+
+            self.helper.layout = Layout(
+                Hidden('sample_details_obj', self.sample_details_obj.id),
+                Hidden('pos', self.sample_details_obj.pos),
+                Field('referral_type'),
+                Field('hpo_ids'),
+                Field('gender'),
+            )
+
+        else:
+            self.helper.layout = Layout(
+                Hidden('sample_details_obj', self.sample_details_obj.id),
+                Hidden('pos', self.sample_details_obj.pos),
+                Field('referral_type'),
+                Hidden('hpo_ids', None),
+                Field('gender'),
+            )
 
 
 class CreateFamilyForm(forms.Form):
@@ -201,7 +215,7 @@ class ClinSciSignoffForm(forms.Form):
                     ),
                 Div(
                     ButtonHolder(
-                        Submit('submit', 'Sign Off', css_class='btn btn-success w-25')
+                        Submit('submit', 'Sign Off', css_class='btn btn-success w-50')
                         ),
                         style="text-align: center"
                     )
@@ -351,7 +365,6 @@ class DownloadSamplesheetButton(forms.Form):
     def __init__(self, *args, **kwargs):
         # get if coupled worksheets required or not
         self.assay_obj = kwargs.pop('assay_obj')
-        print(self.assay_obj.coupled_worksheet_assay)
         self.coupled_worksheets = self.assay_obj.enable_coupled_worksheets
 
         # get variable from view - whether or not all checks are complete
@@ -429,3 +442,28 @@ class DownloadSamplesheetButton(forms.Form):
                 )
             )
 
+
+class AdvancedDownloadForm(forms.Form):
+
+    advanced_download_text = forms.CharField(widget=forms.Textarea(attrs={'rows':6}), label = "Worksheet ID list")
+
+    def __init__(self, *args, **kwargs):
+        self.worksheet_obj = kwargs.pop('worksheet_obj')
+
+        super(AdvancedDownloadForm, self).__init__(*args, **kwargs)
+        self.fields['advanced_download_text'].initial = f"{self.worksheet_obj.worksheet_id},"
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Div(
+
+                    Div(
+                        Field('advanced_download_text'),
+                    ),
+                    Div(
+                        ButtonHolder(
+                            Submit('submit', 'Submit', css_class='btn-outline-light buttons1')
+                        ),
+                        style="text-align: right"
+                    ),
+            ))

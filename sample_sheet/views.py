@@ -1,6 +1,7 @@
 from io import StringIO, TextIOWrapper
 from datetime import datetime
 from itertools import cycle, islice
+import numpy
 
 
 from django.shortcuts import render, get_object_or_404
@@ -12,7 +13,8 @@ from django.forms import formset_factory
 from django.contrib.messages import get_messages
 from sample_sheet.utils import import_worksheet_data
 from sample_sheet.models import Assay, IndexSet, Worksheet, SampleToWorksheet, IndexToIndexSet, Index, Sample
-from .forms import TechSettingsForm, DownloadSamplesheetButton, EditIndexForm, uploadQuery, EditSampleNotesForm, ClinSciSignoffForm, ClinSciOpenWorksheetForm, TechteamSignoffForm, TechteamOpenWorksheetForm, EditSampleDetailsForm, ResetIndexForm, CreateFamilyForm, ClearFamilyForm
+from .forms import TechSettingsForm, DownloadSamplesheetButton, EditIndexForm, uploadQuery, EditSampleNotesForm, ClinSciSignoffForm, ClinSciOpenWorksheetForm, TechteamSignoffForm, TechteamOpenWorksheetForm, EditSampleDetailsForm, ResetIndexForm, CreateFamilyForm, ClearFamilyForm, AdvancedDownloadForm
+from django.conf import settings
 
 ########## home page ################
 @transaction.atomic
@@ -336,6 +338,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 		'reset_index_form' : ResetIndexForm(worksheet_obj=worksheet_obj),
 		'create_family_form' : CreateFamilyForm(worksheet_obj=worksheet_obj),
 		'clear_family_form' : ClearFamilyForm(worksheet_obj=worksheet_obj),
+		'advanced_download_form' : AdvancedDownloadForm(worksheet_obj=worksheet_obj),
 	}
 
 
@@ -504,15 +507,46 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 			if edit_details.is_valid():
 				cleaned_data = edit_details.cleaned_data
 
-				# edit notes if changed
+				## edit referral if changed
 				if cleaned_data['referral_type'] != sample_ws_obj.referral:
 					sample_ws_obj.referral = cleaned_data['referral_type']
 					sample_ws_obj.save()
 
-				# if sample sex has changed then change and save the worksheet.sample instance
+				## if sample sex has changed then change and save the worksheet.sample instance
 				if cleaned_data['gender'] != sample_ws_obj.sample.sex:
 					sample_ws_obj.sample.sex = cleaned_data['gender']
 					sample_ws_obj.sample.save()
+
+				## if hpo ids have changed then update
+				if cleaned_data['hpo_ids'] != sample_ws_obj.hpo_ids:
+
+					# check if new submitted info is blank, then default to None value instead
+					if cleaned_data['hpo_ids'] == '':
+						sample_ws_obj.hpo_ids = None
+					else:
+						# if hpo terms are not blank, check valid then update with no space capital version
+						hpo_id_list = cleaned_data['hpo_ids'].replace(' ','').upper().split(',')
+
+						## make sure values all unique
+						hpo_id_list = numpy.unique(hpo_id_list)
+
+						## check all HPO ids are valid HPO IDs
+						for  value in hpo_id_list:
+							if value not in settings.HPO_TERMS_DICT.keys():
+								print('invalid HPO ID {value} found in input, will not update field')
+								incorrect_HPO = True
+								break
+							else:
+								incorrect_HPO = False
+
+						## if incorrect HPO is false, populate field with joined list else do nothing
+						if not incorrect_HPO:
+							sample_ws_obj.hpo_ids = ','.join(hpo_id_list)
+						else:
+							pass
+							# sample_ws_obj.hpo_ids = None
+						
+					sample_ws_obj.save()
 
 				#reload context
 				worksheet_obj = Worksheet.objects.get(worksheet_id = worksheet_id)
@@ -567,8 +601,6 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 		## if clear family form submitted
 		if 'clear_family_check' in request.POST:
-			print(request.POST)
-			print('clear family form submitted')
 			clear_family_form = ClearFamilyForm(request.POST, worksheet_obj=worksheet_obj)
 
 			if clear_family_form.is_valid():
@@ -773,6 +805,48 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 				response = HttpResponse(out, content_type='text/csv')
 				response['Content-Disposition'] = 'attachment; filename="SampleSheet.csv"'
 				return response
+
+
+		## if advanced fownload form is used
+		if 'advanced_download_text' in request.POST:
+			advanced_download_form = AdvancedDownloadForm(request.POST, worksheet_obj=worksheet_obj)
+			if advanced_download_form.is_valid():
+				cleaned_data = advanced_download_form.cleaned_data
+
+				worksheet_list = cleaned_data['advanced_download_text'].replace(' ','').split(',')
+				print(worksheet_list)
+
+				## create empty assay and checked list
+				assay_list = []
+				checked_ws_list = []
+
+				## check that worksheets in list exist and are all completed worksheets
+				for wsid in worksheet_list:
+					print(wsid)
+					## check exists by querying for wsid
+					try:
+						worksheet_obj2 = Worksheet.objects.get(worksheet_id = wsid)
+						if worksheet_obj2.techteam_signoff_complete and worksheet_obj2.clinsci_signoff_complete:
+							checked_ws_list.append(worksheet_obj2.worksheet_id)
+							assay_list.append(worksheet_obj2.assay_name)
+						else:
+							print(f'worksheet {wsid} not signed off')
+					except:
+						print(f'worksheet {wsid} does not exist')
+						pass
+
+				if len(checked_ws_list) == len(worksheet_list):
+					# run generate_samplesheet management command and save output as variable
+					buffer = StringIO()
+					# TODO - add option to reverse complement or not
+					call_command('generate_samplesheet', '--worksheets', checked_ws_list, '--assays', assay_list, stdout=buffer)
+					out = buffer.getvalue()
+					buffer.close()
+
+					# return csv file for download
+					response = HttpResponse(out, content_type='text/csv')
+					response['Content-Disposition'] = 'attachment; filename="SampleSheet.csv"'
+					return response
 
 
 	return render(request, 'sample_sheet/worksheet_base.html', context)
