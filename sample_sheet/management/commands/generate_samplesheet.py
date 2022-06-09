@@ -140,7 +140,12 @@ class Command(BaseCommand):
 
 
                 #generate referral data
-                referral_desc = f';referral={values["Referral"]}'
+                if values["Referral"].startswith('wgs~'):
+                    referral_formatted = values["Referral"].replace('wgs~','')
+                else:
+                    referral_formatted = values["Referral"]
+
+                referral_desc = f';referral={referral_formatted}'
 
                 # generate hpo data
                 if values['hpo_ids'] != None:
