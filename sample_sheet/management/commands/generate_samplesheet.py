@@ -27,7 +27,7 @@ class Command(BaseCommand):
 
         ## hardcoded description column dictionary. added to and edited before writing csv file
         description_dict = {
-                        'WINGS' : 'pipelineName=DragenWGS;pipelineVersion=master;panel=WGS;',
+                        'WGS' : 'pipelineName=DragenWGS;pipelineVersion=master;panel=WGS;',
                         'TSO500RNA' : 'pipelineName=TSO500;pipelineVersion=master;',
                         'TSO500DNA' : 'pipelineName=TSO500;pipelineVersion=master;',
                         'Myeloid' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=TruSightMyeloid;',
@@ -90,7 +90,7 @@ class Command(BaseCommand):
         for pos, values in ss_data_dict.items():
 
             ## if wings or WES assays as only ones that uses family at the moment
-            if assay in ["WINGS","WES"]:
+            if assay in ["WGS","WES"]:
 
                 ## if familyid is populated
                 if values['Familyid']:
@@ -128,7 +128,7 @@ class Command(BaseCommand):
 
             ## generate description field
             ## if wings generate sex and family info then add to description field
-            if assay == "WINGS":
+            if assay == "WGS":
 
                 ## format sex part. no semicolon in case its on a singleton/NTC
                 if values['Sex'] == 'Male':
@@ -138,27 +138,49 @@ class Command(BaseCommand):
                 else:
                     sex_desc = 'sex=0'
 
+
+                #generate referral data
+                referral_desc = f';referral={values["Referral"]}'
+
+                # generate hpo data
+                if values['hpo_ids'] != None:
+                    hpo_formatted = values['hpo_ids'].replace(',','|')
+                    hpo_desc = f';hpoId={hpo_formatted}'
+                else:
+                    hpo_desc = ';hpoId=null'
+
                 ## if familyid is populated then generate paternal/maternal ids from familydict
                 if values['Familyid']:
-                    familyid = values['Familyid']
+                    familyid = values["Familyid"]
+                    fam_desc = f';familyId={familyid}'
                     
                     ## if proband then add data: family, maternal, paternal
                     if values['FamilyPos'] == 'Proband':
-                        paternal = familydict[familyid]['paternalid']
-                        maternal = familydict[familyid]['maternalid']
 
-                        fam_desc = f';familyId={familyid};paternalId={paternal};maternalId={maternal};'
+                        # try get paternal info and add to family desc
+                        try:
+                            paternal = familydict[familyid]['paternalid']
+                            fam_desc += f';paternalId={paternal}'
+                        except:
+                            pass
+                        
+                        # try to get maternal and add to family desc
+                        try:
+                            maternal = familydict[familyid]['maternalid']
+                            fam_desc += f';maternalId={maternal}'
+                        except:
+                            pass
 
-                    ##
+                    ## if not proband only inclue family ID
                     else:
-                        fam_desc = f';familyId={familyid};'
+                        fam_desc = f';familyId={familyid}'
 
                     ## format phenotype/affected part. no semicolon needed as at the end of the description.
                     ## only present in the event of a family id
                     if values['Affected']:
-                        affected_desc = 'phenotype=2'
+                        affected_desc = ';phenotype=2'
                     else:
-                        affected_desc = 'phenotype=1'
+                        affected_desc = ';phenotype=1'
 
                 else:
                     ## fixes bug where if singleton processed after a family member it kept fam_desc and affected value
@@ -167,7 +189,7 @@ class Command(BaseCommand):
 
 
                 ## build description field for WINGS
-                description_field = f'{description_dict[assay]}{sex_desc}{fam_desc}{affected_desc}'
+                description_field = f'{description_dict[assay]}{sex_desc}{referral_desc}{hpo_desc}{fam_desc}{affected_desc}'
 
 
             ## if TSO500RNA or DNA is main assay, add DNA/RNA field to dict for relevant samples. Then deal with description field
@@ -315,14 +337,24 @@ class Command(BaseCommand):
                     
                     ## if proband then add data: family, maternal, paternal
                     if values['FamilyPos'] == 'Proband':
-                        paternal = familydict[familyid]['paternalid']
-                        maternal = familydict[familyid]['maternalid']
 
-                        fam_desc = f';familyId={familyid};paternalId={paternal};maternalId={maternal};'
+                        # try get paternal info and add to family desc
+                        try:
+                            paternal = familydict[familyid]['paternalid']
+                            fam_desc += f';paternalId={paternal}'
+                        except:
+                            pass
+                        
+                        # try to get maternal and add to family desc
+                        try:
+                            maternal = familydict[familyid]['maternalid']
+                            fam_desc += f';maternalId={maternal}'
+                        except:
+                            pass
 
-                    ##
+                    ## if not proband only inclue family ID
                     else:
-                        fam_desc = f';familyId={familyid};'
+                        fam_desc = f';familyId={familyid}'
 
                     ## format phenotype/affected part. no semicolon needed as at the end of the description.
                     ## only present in the event of a family id

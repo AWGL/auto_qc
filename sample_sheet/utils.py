@@ -4,6 +4,7 @@ import numpy
 from django.shortcuts import get_object_or_404
 from sample_sheet.models import *
 
+
 def import_worksheet_data(filepath):
     """
     input:
@@ -20,14 +21,15 @@ def import_worksheet_data(filepath):
     """
 
     # change to True if want verbose output and where upload is failing/completing
-    debug_notes = False
+    debug_notes = True
 
     ## sort/translate via hardcoded dict (shire test: assay instance - see model data)
     ## Add more here when adding assays/tests
     assay_translate_dict = {
                         'TSO500RNA panel' : 'TSO500RNA',
                         'TSO500DNA panel' : 'TSO500DNA',
-                        'WGS - Nextera DNA Flex' : 'WINGS',
+                        'WGS - Nextera DNA Flex' : 'WGS',
+                        'WGS – Illumina PCR Free' : 'WGS',
                         'CRM panel' : 'CRM',
                         'BRCA panel' : 'BRCA',
                         'haem NGS' : 'Myeloid',
@@ -107,9 +109,11 @@ def import_worksheet_data(filepath):
     assay_type = shire_query[0]['TEST']
     if debug_notes:
         print(f'assay type is: {assay_type}')
+        print(f'translated assay type is: {assay_translate_dict[assay_type]}')
 
     ## check is dependent on assay type. Don't check for overwritten values below
-    if assay_translate_dict[assay_type] not in ['Myeloid','TruSightOne','TruSightCancer', 'FH', 'WES']:
+    if assay_translate_dict[assay_type] not in ['Myeloid','TruSightOne','TruSightCancer', 'FH', 'WES', 'WGS']:
+        print('checking referral')
 
         # get list of referral types from models
         expected_referral_list = list(ReferralType.objects.all().values_list('shire_name', flat = True))
@@ -180,6 +184,39 @@ def import_worksheet_data(filepath):
             ## rewrite myeloid NGS referral from shire to just be myeloid on DB
             if referral_formatted == 'myeloidngs':
                 referral_name = 'myeloid'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            # rewrite wgs and wes referral types to match downstream webapp database
+            elif referral_formatted == 'panelwgsid':
+                referral_name = 'wgs~intellectual_disability'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'panelwgscongenanom':
+                referral_name = 'wgs~paediatric_disorders_green'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'panelwesclefting':
+                referral_name = 'wes~clefting'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'panelwescongenanom':
+                referral_name = 'wes~paediatric_disorders_green'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'panelwesid':
+                referral_name = 'wes~intellectual_disability'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'panelwesrasopathies':
+                referral_name = 'wes~rasopathies'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'panelwesseveremicrocephaly':
+                referral_name = 'wes~severe_microcephaly'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'panelwesskeletalsysplasias':
+                referral_name = 'wes~skeletal_dysplasia'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
             ## add ws level overwrite for some assays (except NTC)
@@ -292,6 +329,7 @@ def generate_ss_data_dict(worksheet, position_offset=0):
                             'Sample_Project' : '',
                             'Sex' : values['sex'],
                             'Referral' : values['referral'],
+                            'hpo_ids' : values['hpo_ids'],
                             'Familyid' : values['familyid'],
                             'Affected' : values['affected'],
                             'FamilyPos' : values['familypos'],
