@@ -334,6 +334,7 @@ class Command(BaseCommand):
                 ## if familyid is populated then generate paternal/maternal ids from familydict
                 if values['Familyid']:
                     familyid = values['Familyid']
+                    fam_desc = f';familyId={familyid}'
                     
                     ## if proband then add data: family, maternal, paternal
                     if values['FamilyPos'] == 'Proband':
@@ -359,9 +360,9 @@ class Command(BaseCommand):
                     ## format phenotype/affected part. no semicolon needed as at the end of the description.
                     ## only present in the event of a family id
                     if values['Affected']:
-                        affected_desc = 'phenotype=2'
+                        affected_desc = ';phenotype=2'
                     else:
-                        affected_desc = 'phenotype=1'
+                        affected_desc = ';phenotype=1'
 
                 else:
                     ## fixes bug where if singleton processed after a family member it kept fam_desc and affected value
