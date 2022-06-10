@@ -816,7 +816,12 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 			if advanced_download_form.is_valid():
 				cleaned_data = advanced_download_form.cleaned_data
 
+				## remove whitespace and split into comma seperated list
 				worksheet_list = cleaned_data['advanced_download_text'].replace(' ','').split(',')
+
+				## remove blank instances in case of careless comma use
+				worksheet_list = list(filter(None, worksheet_list))
+
 				print(worksheet_list)
 
 				## create empty assay and checked list
@@ -828,21 +833,37 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					print(wsid)
 					## check exists by querying for wsid
 					try:
-						worksheet_obj2 = Worksheet.objects.get(worksheet_id = wsid)
-						if worksheet_obj2.techteam_signoff_complete and worksheet_obj2.clinsci_signoff_complete:
+						worksheet_obj2 = Worksheet.objects.get(worksheet_id = str(wsid))
+						print(worksheet_obj2.get_ws_status())
+
+						if worksheet_obj2.get_ws_status() == "Signed Off":
+							print(f'ws {wsid} is signed off')
+
 							checked_ws_list.append(worksheet_obj2.worksheet_id)
-							assay_list.append(worksheet_obj2.assay_name)
+
+							print(checked_ws_list)
+
+							assay_list.append(worksheet_obj2.worksheet_test.assay_name)
+
+							print(worksheet_test)
+
 						else:
 							print(f'worksheet {wsid} not signed off')
+
 					except:
-						print(f'worksheet {wsid} does not exist')
+						print(f'Error occurred with worksheet {wsid}')
 						pass
 
-				if len(checked_ws_list) == len(worksheet_list):
+				if checked_ws_list == worksheet_list and len(checked_ws_list) > 0:
+					print('worksheet lists match')
+
+					# join lists to pass into function
+					worksheets = ','.join(checked_ws_list)
+					assays = ','.join(assay_list)
+
 					# run generate_samplesheet management command and save output as variable
 					buffer = StringIO()
-					# TODO - add option to reverse complement or not
-					call_command('generate_samplesheet', '--worksheets', checked_ws_list, '--assays', assay_list, stdout=buffer)
+					call_command('generate_samplesheet', '--worksheets', worksheets, '--assays', assays, stdout=buffer)
 					out = buffer.getvalue()
 					buffer.close()
 
@@ -850,7 +871,8 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					response = HttpResponse(out, content_type='text/csv')
 					response['Content-Disposition'] = 'attachment; filename="SampleSheet.csv"'
 					return response
-
+				else:
+					print('one or more worksheet is not signed off')
 
 	return render(request, 'sample_sheet/worksheet_base.html', context)
 

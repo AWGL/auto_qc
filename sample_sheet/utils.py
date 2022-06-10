@@ -241,11 +241,11 @@ def import_worksheet_data(filepath):
                     shire_referral_name = 'FH' # N/A
 
                 ## overwrite all wes referral types on DB
-                elif assay_name == 'WES':
-                    if debug_notes:
-                        print('wes found')
-                    referral_name = 'wes'
-                    shire_referral_name = 'WES' # N/A
+                # elif assay_name == 'WES':
+                #     if debug_notes:
+                #         print('wes found')
+                #     referral_name = 'wes'
+                #     shire_referral_name = 'WES' # N/A
 
                 ## no overwrite, default to lowercase no blankspace
                 else:

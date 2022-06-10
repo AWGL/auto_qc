@@ -142,6 +142,8 @@ class Command(BaseCommand):
                 #generate referral data
                 if values["Referral"].startswith('wgs~'):
                     referral_formatted = values["Referral"].replace('wgs~','')
+                elif values['Referral'] == "null":
+                    referral_formatted = "None"
                 else:
                     referral_formatted = values["Referral"]
 
@@ -150,9 +152,9 @@ class Command(BaseCommand):
                 # generate hpo data
                 if values['hpo_ids'] != None:
                     hpo_formatted = values['hpo_ids'].replace(',','|')
-                    hpo_desc = f';hpoId={hpo_formatted}'
+                    hpo_desc = f';hpoId="{hpo_formatted}"'
                 else:
-                    hpo_desc = ';hpoId=null'
+                    hpo_desc = ';hpoId=None'
 
                 ## if familyid is populated then generate paternal/maternal ids from familydict
                 if values['Familyid']:
@@ -336,6 +338,23 @@ class Command(BaseCommand):
                 else:
                     sex_desc = 'sex=0'
 
+                #generate referral data
+                if values["Referral"].startswith('wes~'):
+                    referral_formatted = values["Referral"].replace('wes~','')
+                elif values['Referral'] == "null":
+                    referral_formatted = "None"
+                else:
+                    referral_formatted = values["Referral"]
+
+                referral_desc = f';referral={referral_formatted}'
+
+                # generate hpo data
+                if values['hpo_ids'] != None:
+                    hpo_formatted = values['hpo_ids'].replace(',','|')
+                    hpo_desc = f';hpoId="{hpo_formatted}"'
+                else:
+                    hpo_desc = ';hpoId=None'
+
                 ## if familyid is populated then generate paternal/maternal ids from familydict
                 if values['Familyid']:
                     familyid = values['Familyid']
@@ -376,7 +395,7 @@ class Command(BaseCommand):
 
 
                 ## build description field for WINGS
-                description_field = f'{description_dict[assay]}{sex_desc}{fam_desc}{affected_desc}'
+                description_field = f'{description_dict[assay]}{sex_desc}{referral_desc}{hpo_desc}{fam_desc}{affected_desc}'
 
 
 
