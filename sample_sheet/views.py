@@ -833,19 +833,14 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					print(wsid)
 					## check exists by querying for wsid
 					try:
-						worksheet_obj2 = Worksheet.objects.get(worksheet_id = str(wsid))
+						worksheet_obj2 = Worksheet.objects.get(worksheet_id = wsid)
 						print(worksheet_obj2.get_ws_status())
 
 						if worksheet_obj2.get_ws_status() == "Signed Off":
 							print(f'ws {wsid} is signed off')
 
 							checked_ws_list.append(worksheet_obj2.worksheet_id)
-
-							print(checked_ws_list)
-
 							assay_list.append(worksheet_obj2.worksheet_test.assay_name)
-
-							print(worksheet_test)
 
 						else:
 							print(f'worksheet {wsid} not signed off')

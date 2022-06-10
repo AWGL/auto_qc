@@ -6,7 +6,7 @@ from datetime import date
 
 class Command(BaseCommand):
 
-    help = 'Generate samplesheets TODO' #TODO add description
+    help = 'Generate samplesheet from an input of a list of completed worksheets and a list of assay types'
 
     def add_arguments(self, parser):
 
@@ -50,11 +50,7 @@ class Command(BaseCommand):
 
 
         ## create experiment id
-        if len(worksheets) == 1:
-            experiment_id = worksheets[0]
-
-        elif len(worksheets) == 2:
-            experiment_id = f'{worksheets[0]}_{worksheets[1]}'
+        experiment_id = "_".join(worksheets)
 
 
         ## create samplesheet list of lines ready to add and export
@@ -207,31 +203,41 @@ class Command(BaseCommand):
                             'TSO500DNA' : 'DNA',
                 }
 
-                ## match values wsid with type_dict for sample type column. add to dict
+                ## match values wsid with type_dict for sample type column. add to data dict
+                '''
+                output example:
+                {'20-6582': 'DNA', '21-1971': 'RNA'}
+
+                '''
+                worksheet_type_dict = {}
+                for a, b in zip(worksheets, assays):
+                    worksheet_type_dict[a] = type_dict[b]
+
+
                 ## if ws 1 then add dict value for assay 1 etc.
-                if values['Sample_Plate'] == worksheets[0]:
+                # if values['Sample_Plate'] == worksheets[0]:
 
-                    ## copy whole of values and change
-                    changed_values = values
-                    changed_values['Sample_Type'] = type_dict[assays[0]]
-                    changed_values['Sample_Well'] = values['Index_Well']
+                ## copy whole of values and change
+                changed_values = values
+                changed_values['Sample_Type'] = worksheet_type_dict[values['Sample_Plate']]
+                changed_values['Sample_Well'] = values['Index_Well']
 
-                    ## update main dict
-                    ss_data_dict[pos].update(changed_values)
+                ## update main dict
+                ss_data_dict[pos].update(changed_values)
 
 
                 ## check if second worksheet was inputted, then run same dict update loop
-                if len(worksheets) == 2:
+                # if len(worksheets) == 2:
 
-                    if values['Sample_Plate'] == worksheets[1]:
+                #     if values['Sample_Plate'] == worksheets[1]:
 
-                        ## copy whole of values and change
-                        changed_values = values
-                        changed_values['Sample_Type'] = type_dict[assays[1]]
-                        changed_values['Sample_Well'] = values['Index_Well']
+                #         ## copy whole of values and change
+                #         changed_values = values
+                #         changed_values['Sample_Type'] = type_dict[assays[1]]
+                #         changed_values['Sample_Well'] = values['Index_Well']
                         
-                        ## update main dict
-                        ss_data_dict[pos].update(changed_values)
+                #         ## update main dict
+                #         ss_data_dict[pos].update(changed_values)
 
 
                 ## create description field
