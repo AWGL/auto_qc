@@ -213,10 +213,6 @@ class Command(BaseCommand):
                 for a, b in zip(worksheets, assays):
                     worksheet_type_dict[a] = type_dict[b]
 
-
-                ## if ws 1 then add dict value for assay 1 etc.
-                # if values['Sample_Plate'] == worksheets[0]:
-
                 ## copy whole of values and change
                 changed_values = values
                 changed_values['Sample_Type'] = worksheet_type_dict[values['Sample_Plate']]
@@ -224,21 +220,6 @@ class Command(BaseCommand):
 
                 ## update main dict
                 ss_data_dict[pos].update(changed_values)
-
-
-                ## check if second worksheet was inputted, then run same dict update loop
-                # if len(worksheets) == 2:
-
-                #     if values['Sample_Plate'] == worksheets[1]:
-
-                #         ## copy whole of values and change
-                #         changed_values = values
-                #         changed_values['Sample_Type'] = type_dict[assays[1]]
-                #         changed_values['Sample_Well'] = values['Index_Well']
-                        
-                #         ## update main dict
-                #         ss_data_dict[pos].update(changed_values)
-
 
                 ## create description field
                 description_field = f'{description_dict[assay]}referral={values["Referral"]}'
