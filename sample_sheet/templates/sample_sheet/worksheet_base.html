@@ -99,11 +99,36 @@
 
         {% crispy download_form %}
 
+<!--         <button data-bs-toggle="modal" data-bs-target="#download-advanced" class="btn" colour="blue">
+            Advanced
+        </button> -->
+
+        <button data-bs-toggle="modal" data-bs-target="#download-advanced" type="button" class="btn btn-link">Advanced</button>
       </div>
     </div>
   </div>
 </div>
 
+
+<!-- download advanced -->
+<div class="modal fade" id="download-advanced" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+        <h5>Download worksheet - Advanced Input</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h5><center>Type in a list of worksheet IDs seperated by commas</center></h5>
+        <p>Use of this advanced form should involve subsequent checks of the data on the samplesheet.</p>
+        <p>This functionality is aimed at joining more than two worksheets of usually joined types, or two worksheets of a not usually joined service. </p>
+        <p>Users should not attempt to mix unusual worksheet types.</p>
+        {% crispy advanced_download_form %}
+        
+      </div>
+    </div>
+  </div>
+</div>
 
 
 <!--------------------------------------------------------------------------------------- 

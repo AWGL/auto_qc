@@ -1,10 +1,13 @@
 {% load crispy_forms_tags %}
 
-
+{% if worksheet_info.assay_name in "WGS WES"%}
+<div class="container-fluid" id="clin-sci">
+{% else %}
 <div class="container" id="clin-sci">
+{% endif %}
   <div class="row">
 
-    <div class="col-8 border-right border-2 border-dark">
+    <div class="col-10 border-right border-2 border-dark text-wrap">
 
       <h5></h5>
       <table class="table table-sm table-hover">
@@ -16,10 +19,11 @@
             <th scope="col">Sex</th>
 
             <!-- only display family and affected information if wings -->
-            {% if worksheet_info.assay_name in "WINGS WES" %}
+            {% if worksheet_info.assay_name in "WGS WES" %}
             <th scope="col">Family ID</th>
             <th scope="col">Family Position</th>
             <th scope="col">Affected</th>
+            <th scope="col">HPO IDs</th>
             {% endif %}
 
             <th scope="col"></th>
@@ -34,8 +38,9 @@
             <td>{{ sample.referral }}</td>
             <td>{{ sample.sex }}</td>
 
+
             <!-- only display family and affected information if wings -->
-            {% if worksheet_info.assay_name in "WINGS WES" %}
+            {% if worksheet_info.assay_name in "WGS WINGS WES" %}
             
               {% if sample.familyid %}
               <td>{{ sample.familyid }}</td>
@@ -54,6 +59,9 @@
               {% else %}
               <td>-</td>
               {% endif %}
+
+              <td style="word-wrap: break-word;min-width: 100px;max-width: 100px;">{{ sample.hpo_ids }}</td>
+
 
             {% endif %}
 
@@ -76,7 +84,7 @@
       {% if worksheet_info.clinsci_signoff_complete %}
       <!-- do not display button if signoff is done -->
 
-      {% elif worksheet_info.assay_name in "WINGS WES" %}
+      {% elif worksheet_info.assay_name in "WGS WES" %}
       <!-- create family form only if wings worksheet -->
       <br>
       <div class="row justify-content-center">
@@ -97,7 +105,7 @@
 
     </div>
 
-    <div class='col-4'>
+    <div class='col-2'>
       <!-- sign off/check table -->
       <table class="table table-sm">
         <tbody>
@@ -129,8 +137,8 @@
             <td>{{ worksheet_info.clinsci_signoff_name }}</td>
           </tr>
           <tr>
-            <td>Sign off datetime</td>
-            <td>{{ worksheet_info.clinsci_signoff_datetime }}</td>
+            <td>Sign off date</td>
+            <td>{{ worksheet_info.clinsci_signoff_datetime|date }}</td>
           </tr>
         </tbody>
       </table>

@@ -76,7 +76,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-"""
+# """
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -84,8 +84,8 @@ DATABASES = {
     }
 }
 
-"""
-
+# """
+'''
 DB_PASSWORD_FILE = '/export/home/webapps/password.txt'
 with open(DB_PASSWORD_FILE) as f:
     db_password = f.readline().strip()
@@ -101,7 +101,7 @@ DATABASES = {
         'PORT': '',
     }
 }
-
+'''
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
@@ -151,3 +151,25 @@ SLACK_URL_FILE = '/home/webapps/auto_qc/qc_database/utils/slack_url.txt'
 if MESSAGE_SLACK:
     with open(SLACK_URL_FILE) as f:
         SLACK_URL = f.read()
+
+
+# parse hpo ids into a dict for querying
+HPO_FILEPATH = 'sample_sheet/exomiser_hpo/hp.obo'
+
+# empty hpo dict
+HPO_TERMS_DICT = {}
+
+# parse file line by line
+with open(HPO_FILEPATH) as file:
+    for count, line in enumerate(file):
+
+        line = line.replace(' ','').strip()
+        # if line starts with id then rip out term
+        if line.startswith('id:'):
+            HPO_TERM = ':'.join(line.split(':')[1:])
+            HPO_TERMS_DICT[HPO_TERM]=''
+
+        # if line starts with alt id then rip out term
+        if line.startswith('alt_id:'):
+            HPO_TERM = ':'.join(line.split(':')[1:])
+            HPO_TERMS_DICT[HPO_TERM]=''
