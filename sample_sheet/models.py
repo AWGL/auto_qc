@@ -145,7 +145,8 @@ class Worksheet(models.Model):
             sample_dict[str(s.pos)] = {
                 'sample': s.sample.sampleid, 
                 'referral': s.referral.name,
-                'notes' : s.notes,
+                'hpo_ids': s.hpo_ids,
+                'notes': s.notes,
                 'sex': s.sample.get_sex_display(),
                 'familyid': s.sample.familyid,
                 'familypos': s.sample.familypos,
@@ -342,8 +343,8 @@ class ReferralType(models.Model):
     A referral type from Shire
     """
     # code = models.CharField(max_length=6
-    name = models.CharField(max_length=20, primary_key=True)
-    shire_name = models.CharField(max_length=50, null=True, blank=True)
+    name = models.CharField(max_length=100, primary_key=True)
+    shire_name = models.CharField(max_length=100, null=True, blank=True)
     assay = models.ManyToManyField('Assay')
 
     def __str__(self):
@@ -363,6 +364,7 @@ class SampleToWorksheet(models.Model):
     sample = models.ForeignKey('Sample', on_delete=models.PROTECT) # TODO related name
     worksheet = models.ForeignKey('Worksheet', on_delete=models.CASCADE) # TODO related name
     referral = models.ForeignKey('ReferralType', on_delete=models.PROTECT, default='null') #, related_name='custom_index1'
+    hpo_ids = models.CharField(max_length=200, blank=True, null=True)
     pos = models.IntegerField()
     index1 = models.ForeignKey('Index', on_delete=models.PROTECT, related_name='sample_index1', blank=True, null=True)
     index2 = models.ForeignKey('Index', on_delete=models.PROTECT, related_name='sample_index2', blank=True, null=True)

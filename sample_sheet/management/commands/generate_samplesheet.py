@@ -6,7 +6,7 @@ from datetime import date
 
 class Command(BaseCommand):
 
-    help = 'Generate samplesheets TODO' #TODO add description
+    help = 'Generate samplesheet from an input of a list of completed worksheets and a list of assay types'
 
     def add_arguments(self, parser):
 
@@ -27,7 +27,7 @@ class Command(BaseCommand):
 
         ## hardcoded description column dictionary. added to and edited before writing csv file
         description_dict = {
-                        'WINGS' : 'pipelineName=DragenWGS;pipelineVersion=master;panel=NexteraDNAFlex;',
+                        'WGS' : 'pipelineName=DragenWGS;pipelineVersion=master;panel=WGS;',
                         'TSO500RNA' : 'pipelineName=TSO500;pipelineVersion=master;',
                         'TSO500DNA' : 'pipelineName=TSO500;pipelineVersion=master;',
                         'Myeloid' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=TruSightMyeloid;',
@@ -50,11 +50,7 @@ class Command(BaseCommand):
 
 
         ## create experiment id
-        if len(worksheets) == 1:
-            experiment_id = worksheets[0]
-
-        elif len(worksheets) == 2:
-            experiment_id = f'{worksheets[0]}_{worksheets[1]}'
+        experiment_id = "_".join(worksheets)
 
 
         ## create samplesheet list of lines ready to add and export
@@ -90,7 +86,7 @@ class Command(BaseCommand):
         for pos, values in ss_data_dict.items():
 
             ## if wings or WES assays as only ones that uses family at the moment
-            if assay in ["WINGS","WES"]:
+            if assay in ["WGS","WES"]:
 
                 ## if familyid is populated
                 if values['Familyid']:
@@ -128,7 +124,7 @@ class Command(BaseCommand):
 
             ## generate description field
             ## if wings generate sex and family info then add to description field
-            if assay == "WINGS":
+            if assay == "WGS":
 
                 ## format sex part. no semicolon in case its on a singleton/NTC
                 if values['Sex'] == 'Male':
@@ -138,27 +134,56 @@ class Command(BaseCommand):
                 else:
                     sex_desc = 'sex=0'
 
+
+                #generate referral data
+                if values["Referral"].startswith('wgs~'):
+                    referral_formatted = values["Referral"].replace('wgs~','')
+                elif values['Referral'] == "null":
+                    referral_formatted = "None"
+                else:
+                    referral_formatted = values["Referral"]
+
+                referral_desc = f';referral={referral_formatted}'
+
+                # generate hpo data
+                if values['hpo_ids'] != None:
+                    hpo_formatted = values['hpo_ids'].replace(',','|')
+                    hpo_desc = f';hpoId="{hpo_formatted}"'
+                else:
+                    hpo_desc = ';hpoId=None'
+
                 ## if familyid is populated then generate paternal/maternal ids from familydict
                 if values['Familyid']:
-                    familyid = values['Familyid']
+                    familyid = values["Familyid"]
+                    fam_desc = f';familyId={familyid}'
                     
                     ## if proband then add data: family, maternal, paternal
                     if values['FamilyPos'] == 'Proband':
-                        paternal = familydict[familyid]['paternalid']
-                        maternal = familydict[familyid]['maternalid']
 
-                        fam_desc = f';familyId={familyid};paternalId={paternal};maternalId={maternal};'
+                        # try get paternal info and add to family desc
+                        try:
+                            paternal = familydict[familyid]['paternalid']
+                            fam_desc += f';paternalId={paternal}'
+                        except:
+                            pass
+                        
+                        # try to get maternal and add to family desc
+                        try:
+                            maternal = familydict[familyid]['maternalid']
+                            fam_desc += f';maternalId={maternal}'
+                        except:
+                            pass
 
-                    ##
+                    ## if not proband only inclue family ID
                     else:
-                        fam_desc = f';familyId={familyid};'
+                        fam_desc = f';familyId={familyid}'
 
                     ## format phenotype/affected part. no semicolon needed as at the end of the description.
                     ## only present in the event of a family id
                     if values['Affected']:
-                        affected_desc = 'phenotype=2'
+                        affected_desc = ';phenotype=2'
                     else:
-                        affected_desc = 'phenotype=1'
+                        affected_desc = ';phenotype=1'
 
                 else:
                     ## fixes bug where if singleton processed after a family member it kept fam_desc and affected value
@@ -167,7 +192,7 @@ class Command(BaseCommand):
 
 
                 ## build description field for WINGS
-                description_field = f'{description_dict[assay]}{sex_desc}{fam_desc}{affected_desc}'
+                description_field = f'{description_dict[assay]}{sex_desc}{referral_desc}{hpo_desc}{fam_desc}{affected_desc}'
 
 
             ## if TSO500RNA or DNA is main assay, add DNA/RNA field to dict for relevant samples. Then deal with description field
@@ -178,32 +203,23 @@ class Command(BaseCommand):
                             'TSO500DNA' : 'DNA',
                 }
 
-                ## match values wsid with type_dict for sample type column. add to dict
-                ## if ws 1 then add dict value for assay 1 etc.
-                if values['Sample_Plate'] == worksheets[0]:
+                ## match values wsid with type_dict for sample type column. add to data dict
+                '''
+                output example:
+                {'20-6582': 'DNA', '21-1971': 'RNA'}
 
-                    ## copy whole of values and change
-                    changed_values = values
-                    changed_values['Sample_Type'] = type_dict[assays[0]]
-                    changed_values['Sample_Well'] = values['Index_Well']
+                '''
+                worksheet_type_dict = {}
+                for a, b in zip(worksheets, assays):
+                    worksheet_type_dict[a] = type_dict[b]
 
-                    ## update main dict
-                    ss_data_dict[pos].update(changed_values)
+                ## copy whole of values and change
+                changed_values = values
+                changed_values['Sample_Type'] = worksheet_type_dict[values['Sample_Plate']]
+                changed_values['Sample_Well'] = values['Index_Well']
 
-
-                ## check if second worksheet was inputted, then run same dict update loop
-                if len(worksheets) == 2:
-
-                    if values['Sample_Plate'] == worksheets[1]:
-
-                        ## copy whole of values and change
-                        changed_values = values
-                        changed_values['Sample_Type'] = type_dict[assays[1]]
-                        changed_values['Sample_Well'] = values['Index_Well']
-                        
-                        ## update main dict
-                        ss_data_dict[pos].update(changed_values)
-
+                ## update main dict
+                ss_data_dict[pos].update(changed_values)
 
                 ## create description field
                 description_field = f'{description_dict[assay]}referral={values["Referral"]}'
@@ -309,27 +325,55 @@ class Command(BaseCommand):
                 else:
                     sex_desc = 'sex=0'
 
+                #generate referral data
+                if values["Referral"].startswith('wes~'):
+                    referral_formatted = values["Referral"].replace('wes~','')
+                elif values['Referral'] == "null":
+                    referral_formatted = "None"
+                else:
+                    referral_formatted = values["Referral"]
+
+                referral_desc = f';referral={referral_formatted}'
+
+                # generate hpo data
+                if values['hpo_ids'] != None:
+                    hpo_formatted = values['hpo_ids'].replace(',','|')
+                    hpo_desc = f';hpoId="{hpo_formatted}"'
+                else:
+                    hpo_desc = ';hpoId=None'
+
                 ## if familyid is populated then generate paternal/maternal ids from familydict
                 if values['Familyid']:
                     familyid = values['Familyid']
+                    fam_desc = f';familyId={familyid}'
                     
                     ## if proband then add data: family, maternal, paternal
                     if values['FamilyPos'] == 'Proband':
-                        paternal = familydict[familyid]['paternalid']
-                        maternal = familydict[familyid]['maternalid']
 
-                        fam_desc = f';familyId={familyid};paternalId={paternal};maternalId={maternal};'
+                        # try get paternal info and add to family desc
+                        try:
+                            paternal = familydict[familyid]['paternalid']
+                            fam_desc += f';paternalId={paternal}'
+                        except:
+                            pass
+                        
+                        # try to get maternal and add to family desc
+                        try:
+                            maternal = familydict[familyid]['maternalid']
+                            fam_desc += f';maternalId={maternal}'
+                        except:
+                            pass
 
-                    ##
+                    ## if not proband only inclue family ID
                     else:
-                        fam_desc = f';familyId={familyid};'
+                        fam_desc = f';familyId={familyid}'
 
                     ## format phenotype/affected part. no semicolon needed as at the end of the description.
                     ## only present in the event of a family id
                     if values['Affected']:
-                        affected_desc = 'phenotype=2'
+                        affected_desc = ';phenotype=2'
                     else:
-                        affected_desc = 'phenotype=1'
+                        affected_desc = ';phenotype=1'
 
                 else:
                     ## fixes bug where if singleton processed after a family member it kept fam_desc and affected value
@@ -338,7 +382,7 @@ class Command(BaseCommand):
 
 
                 ## build description field for WINGS
-                description_field = f'{description_dict[assay]}{sex_desc}{fam_desc}{affected_desc}'
+                description_field = f'{description_dict[assay]}{sex_desc}{referral_desc}{hpo_desc}{fam_desc}{affected_desc}'
 
 
 
