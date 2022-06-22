@@ -29,7 +29,7 @@ def import_worksheet_data(filepath):
                         'TSO500RNA panel' : 'TSO500RNA',
                         'TSO500DNA panel' : 'TSO500DNA',
                         'WGS - Nextera DNA Flex' : 'WGS',
-                        'WGS – Illumina PCR Free' : 'WGS',
+                        'WGS - Illumina PCR Free' : 'WGS',
                         'CRM panel' : 'CRM',
                         'BRCA panel' : 'BRCA',
                         'haem NGS' : 'Myeloid',
