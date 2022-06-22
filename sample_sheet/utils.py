@@ -112,7 +112,7 @@ def import_worksheet_data(filepath):
         print(f'translated assay type is: {assay_translate_dict[assay_type]}')
 
     ## check is dependent on assay type. Don't check for overwritten values below
-    if assay_translate_dict[assay_type] not in ['Myeloid','TruSightOne','TruSightCancer', 'FH', 'WES', 'WGS']:
+    if assay_translate_dict[assay_type] not in ['Myeloid','TruSightOne','TruSightCancer', 'FH', 'WES']:
         print('checking referral')
 
         # get list of referral types from models
@@ -239,6 +239,11 @@ def import_worksheet_data(filepath):
                 elif assay_name == 'FH':
                     referral_name = 'fh'
                     shire_referral_name = 'FH' # N/A
+
+                ## overwrite all WES referral types on DB
+                elif assay_name == 'WES':
+                    referral_name = 'null'
+                    shire_referral_name = 'null' # N/A
 
                 ## no overwrite, default to lowercase no blankspace
                 else:
