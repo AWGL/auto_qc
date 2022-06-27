@@ -148,7 +148,7 @@ class Command(BaseCommand):
                 # generate hpo data
                 if values['hpo_ids'] != None:
                     hpo_formatted = values['hpo_ids'].replace(',','|')
-                    hpo_desc = f';hpoId="{hpo_formatted}"'
+                    hpo_desc = f';hpoId={hpo_formatted}'
                 else:
                     hpo_desc = ';hpoId=None'
 
@@ -338,7 +338,7 @@ class Command(BaseCommand):
                 # generate hpo data
                 if values['hpo_ids'] != None:
                     hpo_formatted = values['hpo_ids'].replace(',','|')
-                    hpo_desc = f';hpoId="{hpo_formatted}"'
+                    hpo_desc = f';hpoId={hpo_formatted}'
                 else:
                     hpo_desc = ';hpoId=None'
 
