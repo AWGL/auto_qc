@@ -74,7 +74,7 @@ class TestSampleSheet(TestCase):
 		
 
 
-	def test_wings(self):
+	def test_wgs(self):
 		'''
 		tests:
 		worksheet/assay exists
@@ -84,10 +84,10 @@ class TestSampleSheet(TestCase):
 		models updated with worksheet information
 			- samples exist
 			- worksheet exists
-			- all referral types are wgs
+			- referral type edited from rapidWGS to wgs~wings
 
 		'''
-		shire_filepath = 'sample_sheet/example_shire_queries/wings_shire_query.csv'
+		shire_filepath = 'sample_sheet/example_shire_queries/wgs_nextera_shire_query.csv'
 
 		with open(shire_filepath) as file:
 			completed, message, ws, assay_name = import_worksheet_data(file)
@@ -103,7 +103,7 @@ class TestSampleSheet(TestCase):
 		sample_ws_obj = SampleToWorksheet.objects.get(sample=test_sample)
 		referral_test = sample_ws_obj.referral.name
 
-		self.assertEqual(referral_test, 'rapidwgs')
+		self.assertEqual(referral_test, 'wgs~wings')
 		
 
 	def test_wings_fail(self):
@@ -366,7 +366,7 @@ class TestSampleSheet(TestCase):
 		sample_ws_obj = SampleToWorksheet.objects.get(sample=test_sample)
 		referral_test = sample_ws_obj.referral.name
 
-		self.assertEqual(referral_test, 'wes')
+		self.assertEqual(referral_test, 'wes~paediatric_disorders_green')
 
 
 	## test index import management command
