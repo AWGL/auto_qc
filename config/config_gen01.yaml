@@ -298,7 +298,7 @@ pipelines:
     min_fastq_size: 0
     sample_completed_files: ['*variants.tsv', '*_coverage.json']
     sample_valid_files: ['DNA_QC_combined.txt']
-    run_completed_files: ['contamination-*.csv']
+    run_completed_files: ['timings.txt']
     run_expected_files: ['DNA_QC_combined.txt','completed_samples.txt']
     metrics_file: ['DNA_QC_combined.txt']
 
@@ -310,7 +310,7 @@ pipelines:
     qc_checks: [pct_q30, fastqc, reads_tso500]
     min_fastq_size: 0
     sample_completed_files: ['*_fusion_check.csv']
-    run_completed_files: ['contamination-*.csv']
+    run_completed_files: ['timings.txt']
     run_expected_files: ['RNA_QC_combined.txt', 'contamination-*.csv' ,'completed_samples.txt']
     metrics_file: ['RNA_QC_combined.txt']
 
