@@ -545,9 +545,16 @@ def add_dragen_wgs_coverage_metrics(dragen_wgs_coverage_metrics, run_analysis_ob
 			
 			for key in sample_data:
 
+
 				if sample_data[key] == 'NA' or sample_data[key] == ''  or sample_data[key] == 'inf':
 
 					sample_data[key] = None
+					
+				#Updating single field which is renamed for dragen v3.10.8 so it matches old outputs			
+				if key == 'pct_of_genome_with_coverage_50x_100x':
+					
+					sample_data['pct_of_genome_with_coverage_50x100x'] = sample_data[key]
+					del sample_data[key]
 
 			new_dragen_wgs_cov_obj = DragenWGSCoverageMetrics(**sample_data)
 			new_dragen_wgs_cov_obj.save()
@@ -583,6 +590,12 @@ def add_dragen_exonic_coverage_metrics(dragen_exonic_coverage_metrics, run_analy
 				if sample_data[key] == 'NA' or sample_data[key] == ''  or sample_data[key] == 'inf':
 
 					sample_data[key] = None
+				
+				#Updating single field which is renamed for dragen v3.10.8 so it matches old outputs			
+				if key == 'pct_of_qc_coverage_region_with_coverage_50x_100x':
+					
+					sample_data['pct_of_qc_coverage_region_with_coverage_50x100x'] = sample_data[key]
+					del sample_data[key]
 
 			new_dragen_region_cov_obj = DragenRegionCoverageMetrics(**sample_data)
 			new_dragen_region_cov_obj.save()
