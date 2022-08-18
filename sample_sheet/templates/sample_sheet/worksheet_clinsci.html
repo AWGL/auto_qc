@@ -60,7 +60,26 @@
               <td>-</td>
               {% endif %}
 
-              <td style="word-wrap: break-word;min-width: 100px;max-width: 100px;">{{ sample.hpo_ids }}</td>
+              <td style="word-wrap: break-word;min-width: 100px;max-width: 200px;">
+
+                {% if sample.hpo_ids == None %}
+
+                  None
+
+                {% else %}
+
+                {% for hpo in sample.hpo_tuples %}
+
+
+                  <span class="badge bg-secondary">{{hpo.1}}</span>
+
+
+                {% endfor %}
+
+
+                {% endif %}
+
+              </td>
 
 
             {% endif %}
@@ -232,3 +251,10 @@
     </div>
   </div>
 </div>
+
+<script>
+$(document).ready(function(){
+  $('[data-toggle="popover"]').popover();
+
+});
+</script>

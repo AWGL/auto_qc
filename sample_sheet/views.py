@@ -3,7 +3,6 @@ from datetime import datetime
 from itertools import cycle, islice
 import numpy
 
-
 from django.shortcuts import render, get_object_or_404
 from django.core.management import call_command
 from django.http import HttpResponse
@@ -20,12 +19,19 @@ from django.conf import settings
 @transaction.atomic
 @login_required
 def home_samplesheet(request):
+	"""
+	Home page for sample sheet
+	"""
+
 	return render(request, 'sample_sheet/home.html')
 
 ############## upload ################
 @transaction.atomic
 @login_required
 def upload(request):
+	"""
+	Upload a sample sheet
+	"""
 
 	form = uploadQuery()
 	context = {
@@ -39,26 +45,31 @@ def upload(request):
 	if request.POST:
 		
 		form = uploadQuery(request.POST, request.FILES)
-		print(request.POST)
+
 		if form.is_valid():
 			
 			raw_file = request.FILES['select_upload_file']
 			utf_file = TextIOWrapper(raw_file, encoding='utf-8')
 
 			# try running import script. The script is coded to return upload_complete = False if a specific error occurs
-			try:                
+			try:
+
 				upload_complete, message, worksheet_id, assay_name = import_worksheet_data(utf_file)
+
 				if upload_complete:
+
 					context['success'] = f'Worksheet {worksheet_id} upload is complete'
 					context['assay'] = assay_name
 					context['worksheet_id'] = worksheet_id
 					print('import ok')
+
 				else:
 					context['error'] = message
 					print('import failed due to logic checks')
 				
 			# if script fails, error.
 			except:
+
 				print('did not upload ok due to script error')
 				context['error'] = 'An unknown error occurred, please check your input file or contact Bioinformatics'
 
@@ -70,6 +81,7 @@ def upload(request):
 @login_required
 def index_sets(request):
 	"""
+	view index sets
 	"""
 	# get all index sets
 	index_sets = IndexSet.objects.all()
@@ -84,20 +96,28 @@ def index_sets(request):
 @login_required
 def index_detail(request, index_set_name):
 	"""
+	View index detail
 	"""
 	# get all index sets
 	index_set_query = IndexSet.objects.get(set_name=index_set_name)
 
 	index_list = []
+
 	for count, index in enumerate(index_set_query.get_vendor_index_set(),1):
+
 		# for first position/well, see if both the same eg: 1.
 		if count == 1:
+
 			if str(index.index_pos) != str(index.index1.index_well):
+
 				well_input = True
+
 			else:
+
 				well_input = False
 
 		if index.index2:
+
 			temp_dict = {
 				'pos': index.index_pos,
 				'well': index.index1.index_well,
@@ -109,6 +129,7 @@ def index_detail(request, index_set_name):
 			index_list.append(temp_dict)
 
 		else:
+
 			temp_dict = {
 				'pos': index.index_pos,
 				'well': index.index1.index_well,
@@ -117,6 +138,7 @@ def index_detail(request, index_set_name):
 				'index2_name': '-',
 				'index2_seq': '-'
 			}
+
 			index_list.append(temp_dict)
 
 	context = {
@@ -124,81 +146,26 @@ def index_detail(request, index_set_name):
 		'indexes': index_list,
 		'well_input': well_input,
 	}
+
 	return render(request, 'sample_sheet/indexes.html', context)
 
 
 ############# samplesheet pages ################
 def get_sample_info(worksheet_obj):
+	"""
+	Get sample info
+	"""
+
 	samples = worksheet_obj.get_samples_from_ws()
 
-	'''
-	samples example
-	{'1': {
-		'sample': '20M12346', 
-		'referral': 'null', 
-		'notes': None, 
-		'sex': 'Unknown', 
-		'index1': <Index: B01_i7>, 
-		'index2': <Index: B02_i5>, 
-		'pool': 'Y', 
-		'sample_obj': <SampleToWorksheet: 1_20-456_20M12346>, 
-		'edited': True
-		}, 
-	'2': {
-		'sample': '20M12348', 
-		'referral': 'null', 
-		'notes': 'sample and worksheet specific notes blah blah blah', 
-		'sex': 'Unknown', 
-		'index1': <Index: B02_i7>, 
-		'index2': <Index: B02_i5>, 
-		'pool': 'Y', 
-		'sample_obj': <SampleToWorksheet: 2_20-456_20M12348>, 
-		'edited': False
-		},
-
-		etc...
-
-	'''
 	# add index and notes form to each sample
 	for k, v in samples.items():
+		
 		v['indexform'] = EditIndexForm(sample_index_obj=v['sample_obj'])
 		v['notesform'] = EditSampleNotesForm(sample_notes_obj=v['sample_obj'])
 		v['detailsform'] = EditSampleDetailsForm(sample_details_obj=v['sample_obj'])
 		
 		samples[k] = v
-
-	'''
-	samples example after edit with forms
-	{'1': {
-		'sample': '20M12346', 
-		'referral': 'null', 
-		'notes': None, 
-		'sex': 'Unknown', 
-		'index1': <Index: B01_i7>, 
-		'index2': <Index: B02_i5>, 
-		'pool': 'Y', 
-		'sample_obj': <SampleToWorksheet: 1_20-456_20M12346>, 
-		'edited': True, 
-		'indexform': <EditIndexForm bound=False, valid=Unknown, fields=(pos;i7_index;i5_index;pool)>, 
-		'notesform': <EditSampleNotesForm bound=False, valid=Unknown, fields=(pos;samplenotes)>
-		}, 
-	'2': {
-		'sample': '20M12348', 
-		'referral': 'null', 
-		'notes': 'sample and worksheet specific notes blah blah blah', 
-		'sex': 'Unknown', 
-		'index1': <Index: B02_i7>, 
-		'index2': <Index: B02_i5>, 
-		'pool': 'Y', 
-		'sample_obj': <SampleToWorksheet: 2_20-456_20M12348>, 
-		'edited': False, 
-		'indexform': <EditIndexForm bound=False, valid=Unknown, fields=(pos;i7_index;i5_index;pool)>, 
-		'notesform': <EditSampleNotesForm bound=False, valid=Unknown, fields=(pos;samplenotes)>
-		}
-
-		etc...
-
-	'''
 
 	return samples
 
@@ -206,6 +173,7 @@ def get_sample_info(worksheet_obj):
 @login_required
 def view_worksheets(request, service_slug):
 	"""
+	View a worksheet
 	"""
 
 	# get assay config
@@ -213,10 +181,11 @@ def view_worksheets(request, service_slug):
 
 	# get all worksheets from selected service
 	worksheets = Worksheet.objects.filter(worksheet_test = assay).order_by('-worksheet_id')
-	
 
 	ws_list = []
+
 	for w in worksheets:
+
 		ws_list.append({
 			'worksheet_id' : w.worksheet_id,
 			'upload_date' : w.upload_date,
@@ -236,57 +205,24 @@ def view_worksheets(request, service_slug):
 @login_required
 def view_worksheet_samples(request, service_slug, worksheet_id):
 	"""
+	View worksheet samples
 	"""
 	# get worksheet/ assay/ samples objects
 	worksheet_obj = Worksheet.objects.get(worksheet_id = worksheet_id)
+
 	# worksheet_obj = 20-456
 	assay = Assay.objects.get(assay_slug = service_slug)
 	samples = get_sample_info(worksheet_obj)
-	'''
-	samples example:
-	{'1': {
-		'sample': '20M12346', 
-		'referral': 'null', 
-		'notes': None, 
-		'sex': 'Unknown', 
-		'index1': <Index: B01_i7>, 
-		'index2': <Index: B02_i5>, 
-		'pool': 'Y', 
-		'sample_obj': <SampleToWorksheet: 1_20-456_20M12346>, 
-		'edited': True, 
-		'indexform': <EditIndexForm bound=False, valid=Unknown, fields=(pos;i7_index;i5_index;pool)>, 
-		'notesform': <EditSampleNotesForm bound=False, valid=Unknown, fields=(pos;samplenotes)>
-		}, 
-	'2': {
-		'sample': '20M12348', 
-		'referral': 'null', 
-		'notes': 'sample and worksheet specific notes blah blah blah', 
-		'sex': 'Unknown', 
-		'index1': <Index: B02_i7>, 
-		'index2': <Index: B02_i5>, 
-		'pool': 'Y', 
-		'sample_obj': <SampleToWorksheet: 2_20-456_20M12348>, 
-		'edited': False, 
-		'indexform': <EditIndexForm bound=False, valid=Unknown, fields=(pos;i7_index;i5_index;pool)>, 
-		'notesform': <EditSampleNotesForm bound=False, valid=Unknown, fields=(pos;samplenotes)>
-		}
-
-		etc...
-	}
-
-   '''
 
 	################## tech team status ###################
 	## get auto checks for techteam. Returns dictionary eg:
 	# {'techteam_autochecks_overall': 'complete', 'techteam_manualchecks_overall': 'incomplete', 'techteam_checks_overall': 'incomplete'}
 	techteam_check_status = Worksheet.get_techteam_check_status(worksheet_id)
 
-
 	############ clin sci status ##################
 	## get auto checks for clinsci. Returns dictionary eg:
 	# {'clinsci_autochecks_overall': 'complete', 'clinsci_manualchecks_overall': 'incomplete', 'clinsci_checks_overall': 'incomplete'}
 	clinsci_check_status = Worksheet.get_clinsci_check_status(worksheet_id)
-
 
 	## lookup dictionary to render tick/cross etc, depending on status
 	status_html_lookup = {
@@ -299,7 +235,6 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 		download_form = DownloadSamplesheetButton(checks_complete=True, assay_obj=assay)
 	else:
 		download_form = DownloadSamplesheetButton(checks_complete=False, assay_obj=assay)
-
 
 	## add to context dict for template
 	context = {
@@ -341,7 +276,6 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 		'advanced_download_form' : AdvancedDownloadForm(worksheet_obj=worksheet_obj),
 	}
 
-
 	## when request is submitted
 	if request.method == 'POST':
 
@@ -365,7 +299,6 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					## Add index to each sample
 					samples = SampleToWorksheet.objects.filter(worksheet_id = worksheet_id).order_by('pos')
 					index_set_obj = IndexToIndexSet.objects.filter(index_set=cleaned_data['index_set']).order_by('index_pos')
-					print(index_set_obj)
 
 					# clear old indexes if exist
 					for s in samples:
@@ -387,7 +320,6 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					## save worksheet changes to db
 					worksheet_obj.save()
 
-
 					# reload context
 					worksheet_obj = Worksheet.objects.get(worksheet_id = worksheet_id)
 					context['worksheet_info']['index_set'] = worksheet_obj.index_set
@@ -398,8 +330,6 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					# check status for techteam
 					techteam_check_status = Worksheet.get_techteam_check_status(worksheet_id)
 					context['worksheet_checks']['tech_team']['autochecks'] = status_html_lookup[ techteam_check_status['techteam_autochecks_overall'] ]
-
-
 
 		## if index edit form is submitted
 		if 'i7_index' in request.POST:
@@ -430,13 +360,6 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					sample_ws_obj.edited = True
 					sample_ws_obj.save()
 
-				## check to see if any indexes have been skipped
-				# if cleaned_data['pool'] == "N1":
-				# 	print('index is skipped somewhere')
-
-					## trigger function to reload indexes
-
-
 				## reload context
 				context['sample_data'] = get_sample_info(worksheet_obj)
 
@@ -451,6 +374,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 			reset_form = ResetIndexForm(request.POST, worksheet_obj=worksheet_obj)
 
 			if reset_form.is_valid():
+
 				cleaned_data = reset_form.cleaned_data
 
 				## only change data is tick box was checked (AKA == True)
@@ -483,6 +407,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 		## if notes edit form is submitted
 		if 'samplenotes' in request.POST:
+
 			sample_ws_obj = SampleToWorksheet.objects.get(id=request.POST['sample_notes_obj'])
 			edit_notes = EditSampleNotesForm(request.POST, sample_notes_obj=sample_ws_obj)
 
@@ -491,6 +416,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 				# edit notes if changed
 				if cleaned_data['samplenotes'] != sample_ws_obj.notes:
+
 					sample_ws_obj.notes = cleaned_data['samplenotes']
 					sample_ws_obj.save()
 
@@ -501,19 +427,23 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 		## if details edit form is submitted
 		if 'gender' in request.POST:
+
 			sample_ws_obj = SampleToWorksheet.objects.get(id=request.POST['sample_details_obj'])
 			edit_details = EditSampleDetailsForm(request.POST, sample_details_obj=sample_ws_obj)
 			
 			if edit_details.is_valid():
+
 				cleaned_data = edit_details.cleaned_data
 
 				## edit referral if changed
 				if cleaned_data['referral_type'] != sample_ws_obj.referral:
+
 					sample_ws_obj.referral = cleaned_data['referral_type']
 					sample_ws_obj.save()
 
 				## if sample sex has changed then change and save the worksheet.sample instance
 				if cleaned_data['gender'] != sample_ws_obj.sample.sex:
+
 					sample_ws_obj.sample.sex = cleaned_data['gender']
 					sample_ws_obj.sample.save()
 
@@ -522,8 +452,11 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 					# check if new submitted info is blank, then default to None value instead
 					if cleaned_data['hpo_ids'] == '':
+
 						sample_ws_obj.hpo_ids = None
+
 					else:
+
 						# if hpo terms are not blank, check valid then update with no space capital version
 						hpo_id_list = cleaned_data['hpo_ids'].replace(' ','').upper().split(',')
 
@@ -534,20 +467,27 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 						hpo_id_list= list(filter(None, hpo_id_list))
 
 						## check all HPO ids are valid HPO IDs
-						for  value in hpo_id_list:
+						for value in hpo_id_list:
+
 							if value not in settings.HPO_TERMS_DICT.keys():
+
 								print(f'invalid HPO ID {value} found in input, will not update field')
 								incorrect_HPO = True
+
 								break
+
 							else:
+
 								incorrect_HPO = False
 
 						## if incorrect HPO is false, populate field with joined list else do nothing
 						if not incorrect_HPO:
+
 							sample_ws_obj.hpo_ids = ','.join(hpo_id_list)
+
 						else:
+
 							pass
-							# sample_ws_obj.hpo_ids = None
 						
 					sample_ws_obj.save()
 
@@ -562,15 +502,18 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 			create_family_form = CreateFamilyForm(request.POST, worksheet_obj= worksheet_obj)
 
 			if create_family_form.is_valid():
+
 				cleaned_data = create_family_form.cleaned_data
 
 				## check that three unique sampleid are selected.
 				if cleaned_data['fatherid'] == cleaned_data['motherid'] or cleaned_data['fatherid'] == cleaned_data['probandid'] or cleaned_data['motherid'] == cleaned_data['probandid']:
+
 					print('selected samples were not unique')
 					print(cleaned_data)
 
 				## check familyid was selected
 				elif cleaned_data['familyid'] == None:
+
 					print('familyid not selected')
 
 				else:
@@ -604,9 +547,11 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 		## if clear family form submitted
 		if 'clear_family_check' in request.POST:
+
 			clear_family_form = ClearFamilyForm(request.POST, worksheet_obj=worksheet_obj)
 
 			if clear_family_form.is_valid():
+
 				cleaned_data = clear_family_form.cleaned_data
 
 				## only perform clearing if box was ticked
@@ -615,6 +560,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					samples = SampleToWorksheet.objects.filter(worksheet=worksheet_obj).order_by('pos')
 
 					for s in samples:
+
 						print(s)
 						s.sample.familyid, s.sample.familypos, s.sample.affected = None, None, False
 						s.sample.save()
@@ -667,8 +613,11 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 		## if clinsci reopen form is pressed
 		if 'clinsci_reopen_check' in request.POST:
+
 			clinsci_open_worksheet = ClinSciOpenWorksheetForm(request.POST, worksheet_obj=worksheet_obj)
+
 			if clinsci_open_worksheet.is_valid():
+
 				cleaned_data = clinsci_open_worksheet.cleaned_data
 
 				if cleaned_data['clinsci_reopen_check'] == True:
@@ -693,9 +642,11 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 					# download form. clinsci status has been reloaded so need to see if download is ok now
 					if clinsci_check_status['clinsci_checks_overall'] == 'complete' and techteam_check_status['techteam_checks_overall'] == 'complete': 
+
 						download_form = DownloadSamplesheetButton(checks_complete=True, assay_obj=assay)
 
 					else:
+
 						download_form = DownloadSamplesheetButton(checks_complete=False, assay_obj=assay)
 
 					context['download_form'] = download_form
@@ -726,7 +677,6 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					context['worksheet_info']['techteam_signoff_datetime'] = worksheet_obj.techteam_signoff_datetime
 					context['worksheet_info']['techteam_signoff_complete'] = worksheet_obj.techteam_signoff_complete
 
-
 					# check overall status for clinsci
 					techteam_check_status = Worksheet.get_techteam_check_status(worksheet_id)
 					context['worksheet_checks']['tech_team']['overall'] = techteam_check_status['techteam_checks_overall']
@@ -741,11 +691,13 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 					context['download_form'] = download_form
 
-
 		## if techteam reopen form is pressed
 		if 'techteam_reopen_check' in request.POST:
+
 			techteam_open_worksheet = TechteamOpenWorksheetForm(request.POST, worksheet_obj=worksheet_obj)
+
 			if techteam_open_worksheet.is_valid():
+
 				cleaned_data = techteam_open_worksheet.cleaned_data
 
 				if cleaned_data['techteam_reopen_check'] == True:
@@ -770,9 +722,11 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 					# download form. techteam status has been reloaded so need to see if download is ok now
 					if clinsci_check_status['clinsci_checks_overall'] == 'complete' and techteam_check_status['techteam_checks_overall'] == 'complete': 
+
 						download_form = DownloadSamplesheetButton(checks_complete=True, assay_obj=assay)
 
 					else:
+
 						download_form = DownloadSamplesheetButton(checks_complete=False, assay_obj=assay)
 
 					context['download_form'] = download_form
@@ -780,8 +734,11 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 		## if download samplesheet button is pressed
 		if 'download-samplesheet' in request.POST:
+
 			download_button = DownloadSamplesheetButton(request.POST, checks_complete=True, assay_obj=assay)
+
 			if download_button.is_valid():
+
 				cleaned_data = download_button.cleaned_data
 
 				worksheet_list = [worksheet_obj.worksheet_id]
@@ -789,6 +746,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 				## if additional worksheet is selected then put as second worksheet id and assay type
 				if cleaned_data['additional_worksheet']:
+
 					print(f'additional worksheet selected: {cleaned_data["additional_worksheet"].worksheet_id}')
 					worksheet_obj2 = Worksheet.objects.get(worksheet_id = cleaned_data['additional_worksheet'])
 					worksheet_list.append(worksheet_obj2.worksheet_id)
@@ -812,8 +770,11 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 		## if advanced fownload form is used
 		if 'advanced_download_text' in request.POST:
+
 			advanced_download_form = AdvancedDownloadForm(request.POST, worksheet_obj=worksheet_obj)
+
 			if advanced_download_form.is_valid():
+
 				cleaned_data = advanced_download_form.cleaned_data
 
 				## remove whitespace and split into comma seperated list
@@ -822,34 +783,35 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 				## remove blank instances in case of careless comma use
 				worksheet_list = list(filter(None, worksheet_list))
 
-				print(worksheet_list)
-
 				## create empty assay and checked list
 				assay_list = []
 				checked_ws_list = []
 
 				## check that worksheets in list exist and are all completed worksheets
 				for wsid in worksheet_list:
-					print(wsid)
+
 					## check exists by querying for wsid
 					try:
 						worksheet_obj2 = Worksheet.objects.get(worksheet_id = wsid)
-						print(worksheet_obj2.get_ws_status())
 
 						if worksheet_obj2.get_ws_status() == "Signed Off":
+
 							print(f'ws {wsid} is signed off')
 
 							checked_ws_list.append(worksheet_obj2.worksheet_id)
 							assay_list.append(worksheet_obj2.worksheet_test.assay_name)
 
 						else:
+
 							print(f'worksheet {wsid} not signed off')
 
 					except:
+
 						print(f'Error occurred with worksheet {wsid}')
 						pass
 
 				if checked_ws_list == worksheet_list and len(checked_ws_list) > 0:
+
 					print('worksheet lists match')
 
 					# join lists to pass into function
@@ -865,8 +827,11 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					# return csv file for download
 					response = HttpResponse(out, content_type='text/csv')
 					response['Content-Disposition'] = 'attachment; filename="SampleSheet.csv"'
+
 					return response
+
 				else:
+
 					print('one or more worksheet is not signed off')
 
 	return render(request, 'sample_sheet/worksheet_base.html', context)
@@ -877,9 +842,8 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 @transaction.atomic
 @login_required
 def load_indexes(request):
-	print(request)
+
 	index_set = request.GET.get('index_set')
-	print(index_set)
 	index_list = IndexToIndexSet.objects.filter(index_set=index_set).order_by('pk')
-	print(index_list)
+
 	return render(request, 'sample_sheet/startpos_dropdown_list_options.html', {'index_list': index_list})
