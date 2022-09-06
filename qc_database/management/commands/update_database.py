@@ -1592,8 +1592,8 @@ class Command(BaseCommand):
 							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
 							
 							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
-							ntc_contamination_dict= tso500.ntc_contamination()
-							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, run_analysis)
+							ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict= tso500.ntc_contamination()
+							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
 
 							send_to_slack = True
 
@@ -1610,8 +1610,9 @@ class Command(BaseCommand):
 							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
 							
 							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
-							ntc_contamination_dict = tso500.ntc_contamination()
-							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, run_analysis)
+							ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict= tso500.ntc_contamination()
+							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
+
 
 
 							send_to_slack = True

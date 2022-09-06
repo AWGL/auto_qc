@@ -148,6 +148,9 @@ class TSO500_DNA():
 		"""
 
 		ntc_contamination_dict={}
+		total_pf_reads_dict={}
+		aligned_reads_dict={}
+		ntc_contamination_aligned_reads_dict={}
 
 		for sample in self.sample_names:
 
@@ -161,17 +164,19 @@ class TSO500_DNA():
 				for file in found_file:
 
 					dna_metrics_data = pd.read_csv(file, sep='\t')
-					dna_metrics_filtered = dna_metrics_data[['Sample', 'total_pf_reads']]
+					dna_metrics_filtered = dna_metrics_data[['Sample', 'total_pf_reads', 'Aligned_reads']]
 
 					ntc_metrics = dna_metrics_filtered[dna_metrics_filtered['Sample'].str.contains('NTC')]
 					ntc_reads = ntc_metrics.iloc[0,1]
+					ntc_aligned_reads = ntc_metrics.iloc[0,2]
 
 					sample_metrics = dna_metrics_filtered[dna_metrics_filtered['Sample']==sample]
 					sample_reads = sample_metrics.iloc[0,1]
+					sample_aligned_reads=sample_metrics.iloc[0,2]
 
 					# if there are no reads report as 100% 
 					if sample_reads == 0:
-
+						total_pf_reads_dict[sample]=0
 						ntc_contamination_dict[sample] = 100
 
 					else:
@@ -179,10 +184,24 @@ class TSO500_DNA():
 						ntc_contamination = ((ntc_reads/sample_reads)*100)
 						decimal.getcontext().rounding=decimal.ROUND_DOWN
 						ntc_contamination_dict[sample]=(decimal.Decimal(ntc_contamination).quantize(decimal.Decimal('1')))
+						total_pf_reads_dict[sample]= sample_reads
+
+
+					# if there are no reads report as 100% 
+					if sample_aligned_reads == 0:
+						aligned_reads_dict[sample]=0
+						ntc_contamination_aligned_reads_dict[sample] = 100
+
+					else:
+
+						ntc_contamination_aligned_reads = ((ntc_aligned_reads/sample_aligned_reads)*100)
+						decimal.getcontext().rounding=decimal.ROUND_DOWN
+						ntc_contamination_aligned_reads_dict[sample]=(decimal.Decimal(ntc_contamination_aligned_reads).quantize(decimal.Decimal('1')))
+						aligned_reads_dict[sample]= sample_aligned_reads
 
 
 
-		return ntc_contamination_dict
+		return ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict
 	
 
 	def get_fastqc_data(self):

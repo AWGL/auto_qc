@@ -967,6 +967,24 @@ class SampleAnalysis(models.Model):
 
 
 
+
+	def get_percent_ntc_aligned_tso500(self):
+
+		try:
+			tso500_aligned_reads = Tso500Reads.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(tso500_aligned_reads) != 1:
+
+			return None
+
+		else:
+
+			return tso500_aligned_reads[0].percent_ntc_contamination
+
+
+
 	def passes_percent_ntc_tso500(self):
 
 		try:
@@ -981,6 +999,38 @@ class SampleAnalysis(models.Model):
 			return None
 
 		return False
+
+
+	def get_total_pf_reads_tso500(self):
+
+		try:
+			tso500_reads_DNA= Tso500Reads.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(tso500_reads_DNA) != 1:
+
+			return None
+
+		else:
+
+			return tso500_reads_DNA[0].total_pf_reads
+
+	def get_total_aligned_reads_tso500(self):
+
+		try:
+			tso500_aligned_reads_DNA= Tso500Reads.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(tso500_aligned_reads_DNA) != 1:
+
+			return None
+
+		else:
+
+			return tso500_aligned_reads_DNA[0].aligned_reads
+
 
 
 	def get_contamination_fusion(self):
@@ -1555,6 +1605,9 @@ class Tso500Reads(models.Model):
 	total_on_target_reads= models.IntegerField(null=True)
 	total_pf_reads = models.IntegerField(null=True)
 	percent_ntc_reads = models.IntegerField(null=True)
+	aligned_reads=models.IntegerField(null=True)
+	percent_ntc_contamination=models.IntegerField(null=True)
+
 
 class DragenPloidyMetrics(models.Model):
 	"""
