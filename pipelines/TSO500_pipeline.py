@@ -14,7 +14,7 @@ class TSO500_DNA():
 
 	"""
 
-	def __init__(self,results_dir, sample_completed_files, sample_valid_files, run_completed_files, run_expected_files, metrics_file, run_id, sample_names, reads_file):
+	def __init__(self,results_dir, sample_completed_files, sample_valid_files, run_completed_files, run_expected_files, metrics_file, run_id, sample_names):
 
 		self.results_dir = results_dir
 		self.sample_completed_files=sample_completed_files
@@ -22,7 +22,6 @@ class TSO500_DNA():
 		self.run_completed_files=run_completed_files
 		self.run_expected_files=run_expected_files
 		self.metrics_file= metrics_file
-		self.reads_file= reads_file
 		self.run_id = run_id
 		self.sample_names=sample_names
 
@@ -159,7 +158,7 @@ class TSO500_DNA():
 			results_dir_path = Path(self.results_dir)
 			results_path = results_dir_path.joinpath(self.run_id)
 
-			for file in self.reads_file:
+			for file in self.metrics_file:
 
 				found_file = results_path.glob(file)
 
