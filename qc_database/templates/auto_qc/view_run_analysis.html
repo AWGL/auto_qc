@@ -414,8 +414,10 @@
 
 	{% if 'ntc_contamination_TSO500' in checks_to_do %}
 
-
-		<th> NTC Contamination</th>
+		<th> Total_pf_reads</th>
+		<th> Percent NTC PF reads</th>
+		<th> Total_aligned_reads</th>
+		<th> Percent NTC aligned reads</th>
 
 
 	{% endif %}
@@ -491,6 +493,9 @@
 
 			{% if 'ntc_contamination_TSO500' in checks_to_do %}
 
+				<td class="table-dark">{{sample_analysis.get_total_pf_reads_tso500}}</td>
+				<td class="table-dark">N/A</td>
+				<td class="table-dark">{{sample_analysis.get_total_aligned_reads_tso500}}</td>
 				<td class="table-dark">N/A</td>
 
 			{% endif %}
@@ -581,12 +586,27 @@
 		{% if 'ntc_contamination_TSO500' in checks_to_do %}
 
 
-			{% if sample_analysis.get_percent_ntc_tso500 < 10 %}
-				<td class="table-success"> {{sample_analysis.get_percent_ntc_tso500}}% </td>
+
+			<td> {{sample_analysis.get_total_pf_reads_tso500}} </td>
+			<td> {{sample_analysis.get_percent_ntc_tso500}} </td>
+
+
+
+			<td> {{sample_analysis.get_total_aligned_reads_tso500}} </td>
+
+
+			{% if sample_analysis.get_percent_ntc_aligned_tso500 < 10 %}
+				<td class="table-success"> {{sample_analysis.get_percent_ntc_aligned_tso500}}% </td>
 			{% else %}
-				<td class="table-danger"> {{sample_analysis.get_percent_ntc_tso500}}% </td>
+				<td class="table-danger"> {{sample_analysis.get_percent_ntc_aligned_tso500}}% </td>
 
 			{% endif %}
+
+
+
+
+
+
 
 		{% endif %}
 
