@@ -178,6 +178,7 @@ class RunAnalysis(models.Model):
 	max_relatedness_unrelated = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	max_relatedness_between_parents = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	max_child_parent_relatedness = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	ntc_contamination_cutoff=models.IntegerField(null=True, blank=True)
 
 	history = AuditlogHistoryField()
 
@@ -987,11 +988,36 @@ class SampleAnalysis(models.Model):
 
 	def passes_percent_ntc_tso500(self):
 
+		run_analysis = self.get_run_analysis()
+
 		try:
 
 			percent_ntc = self.get_percent_ntc_tso500()
 
-			if percent_ntc < 10:
+
+			if percent_ntc < run_analysis.ntc_contamination_cutoff:
+
+				return True
+		except:
+
+			return None
+
+		return False
+
+
+	def passes_percent_ntc_aligned_tso500(self):
+
+		run_analysis = self.get_run_analysis()
+
+
+		try:
+
+			percent_ntc = self.get_percent_ntc_aligned_tso500()
+
+			print(percent_ntc)
+			print(run_analysis.ntc_contamination_cutoff)
+
+			if percent_ntc < run_analysis.ntc_contamination_cutoff:
 
 				return True
 		except:
