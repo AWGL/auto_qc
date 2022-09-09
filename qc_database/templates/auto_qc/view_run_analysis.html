@@ -584,7 +584,7 @@
 
 
 
-			{% if sample_analysis.get_percent_ntc_tso500 < 10 %}
+			{% if sample_analysis.passes_percent_ntc_tso500 %}
 				<td class="table-success"> {{sample_analysis.get_percent_ntc_tso500}}% </td>
 			{% else %}
 				<td class="table-warning"> {{sample_analysis.get_percent_ntc_tso500}}% </td>
@@ -594,7 +594,7 @@
 
 			<td> {{sample_analysis.get_total_aligned_reads_tso500}} </td>
 
-			{% if sample_analysis.get_percent_ntc_aligned_tso500 < 10 %}
+			{% if sample_analysis.passes_percent_ntc_aligned_tso500 %}
 				<td class="table-success"> {{sample_analysis.get_percent_ntc_aligned_tso500}}% </td>
 			{% else %}
 				<td class="table-danger"> {{sample_analysis.get_percent_ntc_aligned_tso500}}% </td>
