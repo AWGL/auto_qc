@@ -253,6 +253,17 @@ class Command(BaseCommand):
 						min_on_target_reads = 9000000
 
 
+
+					try:
+
+						max_ntc_contamination = config_dict['pipelines'][run_config_key]['max_ntc_contamination']
+
+
+					except:
+
+						max_ntc_contamination = 10
+
+
 					try:
 
 						min_relatedness_parents = config_dict['pipelines'][run_config_key]['min_relatedness_parents']
@@ -293,6 +304,7 @@ class Command(BaseCommand):
 						new_run_analysis_obj.max_relatedness_between_parents = max_relatedness_between_parents
 						new_run_analysis_obj.max_child_parent_relatedness = max_child_parent_relatedness
 						new_run_analysis_obj.min_on_target_reads = min_on_target_reads
+						new_run_analysis_obj.max_ntc_contamination = max_ntc_contamination
 
 						# message slack
 
