@@ -96,6 +96,26 @@
 
 	{% endif %}
 
+	{% if 'reads_tso500' in checks_to_do %}
+
+	<tr>
+		<td> Min Reads</td>
+		<td> {{run_analysis.min_on_target_reads}} </td>
+
+	</tr>
+	{% endif %}
+
+
+	{% if 'ntc_contamination_TSO500' in checks_to_do %}
+
+	<tr>
+		<td> Max NTC Contamination </td>
+		<td> {{run_analysis.max_ntc_contamination}}% </td>
+
+	</tr>
+	{% endif %}
+
+
 	{% if 'coverage' in checks_to_do %}
 
 	<tr>
