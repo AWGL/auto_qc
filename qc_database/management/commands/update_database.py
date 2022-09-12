@@ -91,7 +91,7 @@ class Command(BaseCommand):
 
 
 					# add runlog stats to database
-					interop_data = management_utils.add_run_log_info(run_info, run_parameters, run_obj, raw_data)
+					#interop_data = management_utils.add_run_log_info(run_info, run_parameters, run_obj, raw_data)
 
 				else:
 
@@ -242,6 +242,17 @@ class Command(BaseCommand):
 						min_fusion_aligned_reads_unique = 0
 
 
+
+					try:
+
+						min_on_target_reads = config_dict['pipelines'][run_config_key]['min_on_target_reads']
+
+
+					except:
+
+						min_on_target_reads = 9000000
+
+
 					try:
 
 						min_relatedness_parents = config_dict['pipelines'][run_config_key]['min_relatedness_parents']
@@ -281,6 +292,7 @@ class Command(BaseCommand):
 						new_run_analysis_obj.max_relatedness_unrelated = max_relatedness_unrelated
 						new_run_analysis_obj.max_relatedness_between_parents = max_relatedness_between_parents
 						new_run_analysis_obj.max_child_parent_relatedness = max_child_parent_relatedness
+						new_run_analysis_obj.min_on_target_reads = min_on_target_reads
 
 						# message slack
 
