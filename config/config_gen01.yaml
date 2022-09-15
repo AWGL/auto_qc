@@ -307,9 +307,10 @@ pipelines:
   TSO500-master-TSO500_RNA:
     results_dir:  '/mnt/wren_results/results/'
     min_q30_score: 0.8
-    ntc_contamination_cutoff: 10
+    max_ntc_contamination: 10
     qc_checks: [pct_q30, fastqc, reads_tso500]
     min_fastq_size: 0
+    min_on_target_reads: 9000000
     sample_completed_files: ['*_fusion_check.csv']
     run_completed_files: ['run_complete.txt']
     run_expected_files: ['RNA_QC_combined.txt', 'contamination-*.csv' ,'completed_samples.txt']

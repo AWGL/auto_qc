@@ -291,12 +291,25 @@ class TestPipelineMonitoring(unittest.TestCase):
 
 			#ntc contamination
 			ntc_contamination=tso500.ntc_contamination()
-			self.assertEqual(ntc_contamination.get('Sample1'), 81)
-			self.assertEqual(ntc_contamination.get('Sample2'), 0)
-			self.assertEqual(ntc_contamination.get('Sample3'), 0)
+			self.assertEqual(ntc_contamination[0].get('Sample1'), 81)
+			self.assertEqual(ntc_contamination[1].get('Sample1'), 11)
+			self.assertEqual(ntc_contamination[2].get('Sample1'), 574)
+			self.assertEqual(ntc_contamination[3].get('Sample1'), 1)
 
+			self.assertEqual(ntc_contamination[0].get('Sample2'), 0)
+			self.assertEqual(ntc_contamination[1].get('Sample2'), 130596554)
+			self.assertEqual(ntc_contamination[2].get('Sample2'), 5736)
+			self.assertEqual(ntc_contamination[3].get('Sample2'), 0)
 
+			self.assertEqual(ntc_contamination[0].get('Sample3'), 0)
+			self.assertEqual(ntc_contamination[1].get('Sample3'), 5000)
+			self.assertEqual(ntc_contamination[2].get('Sample3'), 4763)
+			self.assertEqual(ntc_contamination[3].get('Sample3'), 0)
 
+			self.assertEqual(ntc_contamination[0].get('NTC-worksheet2'), 100)
+			self.assertEqual(ntc_contamination[1].get('NTC-worksheet2'), 9)
+			self.assertEqual(ntc_contamination[2].get('NTC-worksheet2'), 6)
+			self.assertEqual(ntc_contamination[3].get('NTC-worksheet2'), 100)
 
 
 			results_dir = 'test_data/tso500_test'

@@ -1,5 +1,5 @@
-Sample	FastQC	completed_all_steps	median_cv_gene_500x	total_on_target_reads	median_insert_size	total_pf_reads
-Sample4	PASS	TRUE	43.95	NA	143	29997770
-Sample5	PASS	FALSE	49.24	5000	112	5000
-Sample6	PASS	TRUE	48.27	28146104	101	29998226
-NTC-worksheet1	FAIL	FALSE	49.34	NA	50	550
+Sample	FastQC	completed_all_steps	median_cv_gene_500x	total_on_target_reads	median_insert_size	total_pf_reads	Aligned_reads
+Sample4	PASS	TRUE	43.95	NA	143	29997770	8576
+Sample5	PASS	FALSE	49.24	5000	112	5000	7563
+Sample6	PASS	TRUE	48.27	28146104	101	29998226	15
+NTC-worksheet1	FAIL	FALSE	49.34	NA	50	550	5
