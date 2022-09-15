@@ -168,18 +168,33 @@ class TSO500_DNA():
 
 					dna_metrics_filtered = dna_metrics_data[['Sample', 'total_pf_reads', 'Aligned_reads']]
 
+					#get ntc data
 					ntc_metrics = dna_metrics_filtered[dna_metrics_filtered['Sample'].str.contains('NTC')]
+
+					#get total pf reads in NTC
 					ntc_reads = ntc_metrics.iloc[0,1]
+
+					#get total aligned reads in NTC
 					ntc_aligned_reads = ntc_metrics.iloc[0,2]
 
+					#get sample data
 					sample_metrics = dna_metrics_filtered[dna_metrics_filtered['Sample']==sample]
+
+					#get total pf reads
 					sample_reads = sample_metrics.iloc[0,1]
+
+					#get total aligned reads
 					sample_aligned_reads=sample_metrics.iloc[0,2]
 
-					# if there are no reads report as 100% 
+					# if there are no pf reads report as 100% 
 					if sample_reads == 0:
 						total_pf_reads_dict[sample]=0
 						ntc_contamination_dict[sample] = 100
+
+					#if number of pf reads is na report as None
+					elif pd.isna(sample_reads):
+						total_pf_reads_dict[sample]= None
+						ntc_contamination_dict[sample] = None
 
 					else:
 
@@ -189,10 +204,15 @@ class TSO500_DNA():
 						total_pf_reads_dict[sample]= sample_reads
 
 
-					# if there are no reads report as 100% 
+					# if there are no aligned reads report as 100% 
 					if sample_aligned_reads == 0:
 						aligned_reads_dict[sample]=0
 						ntc_contamination_aligned_reads_dict[sample] = 100
+
+					#if number of aligned reads is na report as None
+					elif pd.isna(sample_aligned_reads):
+						aligned_reads_dict[sample]= None
+						ntc_contamination_aligned_reads_dict[sample] = None
 
 					else:
 
