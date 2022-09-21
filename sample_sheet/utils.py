@@ -21,7 +21,7 @@ def import_worksheet_data(filepath):
     """
 
     # change to True if want verbose output and where upload is failing/completing
-    debug_notes = True
+    debug_notes = False
 
     ## sort/translate via hardcoded dict (shire test: assay instance - see model data)
     ## Add more here when adding assays/tests

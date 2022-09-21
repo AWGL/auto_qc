@@ -31,44 +31,44 @@ ALLOWED_HOSTS = ['127.0.0.1', '10.59.210.245']
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'qc_database.apps.QcDatabaseConfig',
-    'crispy_forms',
-    'auditlog',
-    'sample_sheet.apps.SampleSheetConfig',
+	'django.contrib.admin',
+	'django.contrib.auth',
+	'django.contrib.contenttypes',
+	'django.contrib.sessions',
+	'django.contrib.messages',
+	'django.contrib.staticfiles',
+	'qc_database.apps.QcDatabaseConfig',
+	'crispy_forms',
+	'auditlog',
+	'sample_sheet.apps.SampleSheetConfig',
 ]
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'auditlog.middleware.AuditlogMiddleware',
+	'django.middleware.security.SecurityMiddleware',
+	'django.contrib.sessions.middleware.SessionMiddleware',
+	'django.middleware.common.CommonMiddleware',
+	'django.middleware.csrf.CsrfViewMiddleware',
+	'django.contrib.auth.middleware.AuthenticationMiddleware',
+	'django.contrib.messages.middleware.MessageMiddleware',
+	'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'auditlog.middleware.AuditlogMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
 
 TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
+	{
+		'BACKEND': 'django.template.backends.django.DjangoTemplates',
+		'DIRS': [],
+		'APP_DIRS': True,
+		'OPTIONS': {
+			'context_processors': [
+				'django.template.context_processors.debug',
+				'django.template.context_processors.request',
+				'django.contrib.auth.context_processors.auth',
+				'django.contrib.messages.context_processors.messages',
+			],
+		},
+	},
 ]
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
@@ -77,41 +77,43 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 # """
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
 
-# """
-'''
+"""
+DATABASES = {
+	'default': {
+		'ENGINE': 'django.db.backends.sqlite3',
+		'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+	}
+}
+"""
+
+
 DB_PASSWORD_FILE = '/export/home/webapps/password.txt'
 with open(DB_PASSWORD_FILE) as f:
-    db_password = f.readline().strip()
+	db_password = f.readline().strip()
 
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'auto_qc',
-        'USER': 'auto_qc_user',
-        'PASSWORD': db_password,
-        'HOST': 'localhost',
-        'PORT': '',
-    }
+	'default': {
+		'ENGINE': 'django.db.backends.postgresql_psycopg2',
+		'NAME': 'auto_qc',
+		'USER': 'auto_qc_user',
+		'PASSWORD': db_password,
+		'HOST': 'localhost',
+		'PORT': '',
+	}
 }
-'''
+
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
+	{
+		'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+	},
+	{
+		'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+	},
 
 ]
 
@@ -135,7 +137,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
+	os.path.join(BASE_DIR, "static"),
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
@@ -149,8 +151,8 @@ SLACK_URL_FILE = '/home/webapps/auto_qc/qc_database/utils/slack_url.txt'
 
 # load in slack url if slack messages are turned on
 if MESSAGE_SLACK:
-    with open(SLACK_URL_FILE) as f:
-        SLACK_URL = f.read()
+	with open(SLACK_URL_FILE) as f:
+		SLACK_URL = f.read()
 
 
 # parse hpo ids into a dict for querying
@@ -159,17 +161,26 @@ HPO_FILEPATH = 'sample_sheet/exomiser_hpo/hp.obo'
 # empty hpo dict
 HPO_TERMS_DICT = {}
 
-# parse file line by line
 with open(HPO_FILEPATH) as file:
-    for count, line in enumerate(file):
-
-        line = line.replace(' ','').strip()
-        # if line starts with id then rip out term
-        if line.startswith('id:'):
-            HPO_TERM = ':'.join(line.split(':')[1:])
-            HPO_TERMS_DICT[HPO_TERM]=''
-
-        # if line starts with alt id then rip out term
-        if line.startswith('alt_id:'):
-            HPO_TERM = ':'.join(line.split(':')[1:])
-            HPO_TERMS_DICT[HPO_TERM]=''
+		
+	for line in file:
+		
+		if line.startswith('id:'):
+						
+			hpo_id = line.split('id:')[1].strip()
+						
+			name = None
+			
+			HPO_TERMS_DICT[hpo_id] = None
+		
+		if line.startswith('name:'):
+			
+			name = line.split('name:')[1].strip()
+			
+			HPO_TERMS_DICT[hpo_id] = name
+			
+		if line.startswith('alt_id:'):
+			
+			alt_id = line.split('alt_id:')[1].strip()
+			
+			HPO_TERMS_DICT[alt_id] = name

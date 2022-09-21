@@ -114,7 +114,7 @@ pipelines:
     run_expected_files: ['*.hard-filtered.vcf.gz',
                   '*.vc_metrics.csv',
                  'post_processing/results/relatedness/*.relatedness2',
-                 'post_processing/results/annotated_vcf/*.norm.anno.vcf.gz',
+                 'post_processing/results/annotated_vcf/*.vcf.gz',
                  'post_processing/results/database_config/*_config.csv',
                ]
     run_not_expected_files: []
@@ -143,7 +143,7 @@ pipelines:
     run_expected_files: ['*.hard-filtered.vcf.gz',
                   '*.vc_metrics.csv',
                  'post_processing/results/relatedness/*.relatedness2',
-                 'post_processing/results/annotated_vcf/*.norm.anno.vcf.gz',
+                 'post_processing/results/annotated_vcf/*.vcf.gz',
                  'post_processing/results/database_config/*_config.csv',
                ]
     run_not_expected_files: []
@@ -172,7 +172,7 @@ pipelines:
     run_expected_files: ['*.hard-filtered.vcf.gz',
                   '*.vc_metrics.csv',
                  'post_processing/results/relatedness/*.relatedness2',
-                 'post_processing/results/annotated_vcf/*.norm.anno.vcf.gz',
+                 'post_processing/results/annotated_vcf/*.vcf.gz',
                  'post_processing/results/database_config/*_config.csv',
                ]
     run_not_expected_files: []
@@ -201,7 +201,7 @@ pipelines:
     run_expected_files: ['*.hard-filtered.vcf.gz',
                   '*.vc_metrics.csv',
                  'post_processing/results/relatedness/*.relatedness2',
-                 'post_processing/results/annotated_vcf/*.norm.anno.vcf.gz',
+                 'post_processing/results/annotated_vcf/*.vcf.gz',
                  'post_processing/results/database_config/*_config.csv',
                ]
     run_not_expected_files: []
@@ -284,6 +284,7 @@ pipelines:
     max_relatedness_between_parents: 0.04
     max_child_parent_relatedness: 0.4
     sample_expected_files: []
+    
     sample_not_expected_files: []
     run_expected_files: []
     run_not_expected_files: []
@@ -298,7 +299,7 @@ pipelines:
     min_fastq_size: 0
     sample_completed_files: ['*variants.tsv', '*_coverage.json']
     sample_valid_files: ['DNA_QC_combined.txt']
-    run_completed_files: ['contamination-*.csv']
+    run_completed_files: ['run_complete.txt']
     run_expected_files: ['DNA_QC_combined.txt','completed_samples.txt']
     metrics_file: ['DNA_QC_combined.txt']
 
@@ -310,7 +311,7 @@ pipelines:
     qc_checks: [pct_q30, fastqc, reads_tso500]
     min_fastq_size: 0
     sample_completed_files: ['*_fusion_check.csv']
-    run_completed_files: ['contamination-*.csv']
+    run_completed_files: ['run_complete.txt']
     run_expected_files: ['RNA_QC_combined.txt', 'contamination-*.csv' ,'completed_samples.txt']
     metrics_file: ['RNA_QC_combined.txt']
 
