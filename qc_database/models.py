@@ -179,6 +179,7 @@ class RunAnalysis(models.Model):
 	max_relatedness_between_parents = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	max_child_parent_relatedness = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_on_target_reads=models.IntegerField(null=True, blank=True)
+	#for TSO500 only- ntc contamination for other runs in sampleAnalysis object
 	max_ntc_contamination=models.IntegerField(null=True, blank=True)
 
 

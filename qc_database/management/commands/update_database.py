@@ -8,7 +8,7 @@ import logging
 
 from qc_database.models import *
 from qc_database.utils.slack import message_slack
-from pipelines import dragen_pipelines, fusion_pipelines, germline_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines, TSO500_pipeline
+from pipelines import dragen_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines, TSO500_pipeline
 from qc_database import management_utils
 
 class Command(BaseCommand):
@@ -28,6 +28,7 @@ class Command(BaseCommand):
 		# Make or get initial model instances
 		raw_data_dir = options['raw_data_dir'][0]
 		config = options['config'][0]
+
 
 		# Read config file and create dictionary
 		config_dict = parsers.parse_config(config)
@@ -91,7 +92,7 @@ class Command(BaseCommand):
 
 
 					# add runlog stats to database
-					#interop_data = management_utils.add_run_log_info(run_info, run_parameters, run_obj, raw_data)
+					interop_data = management_utils.add_run_log_info(run_info, run_parameters, run_obj, raw_data)
 
 				else:
 
@@ -144,11 +145,17 @@ class Command(BaseCommand):
 					run_config_key = pipeline_obj.pipeline_id + '-' + analysis_type_obj.analysis_type_id
 
 					try:
-						contamination_cutoff = config_dict['pipelines'][run_config_key]['contamination_cutoff']
-						ntc_contamination_cutoff = config_dict['pipelines'][run_config_key]['ntc_contamination_cutoff']
+
+						#put checks to try into dictionary
+
+						checks_to_try = config_dict['pipelines'][run_config_key]['qc_checks']
+						checks_to_try_dict=dict(zip(checks_to_try, checks_to_try))
+						checks_to_try=','.join(checks_to_try)
+
+
 					except:
-						contamination_cutoff = 0.015
-						ntc_contamination_cutoff = 10
+
+						checks_to_try = None
 
 
 
@@ -156,11 +163,34 @@ class Command(BaseCommand):
 																			run = run_obj,
 																			pipeline = pipeline_obj,
 																			analysis_type = analysis_type_obj,
-																			worksheet = worksheet_obj
-																			)
-					if created:
-						new_sample_analysis_obj.contamination_cutoff = contamination_cutoff
-						new_sample_analysis_obj.ntc_contamination_cutoff = ntc_contamination_cutoff
+																			worksheet = worksheet_obj)
+
+
+					if checks_to_try!= None:
+
+						for key in checks_to_try_dict.keys():
+							if 'contamination' == key :
+
+								try:
+									contamination_cutoff = config_dict['pipelines'][run_config_key]['contamination_cutoff']
+
+									if created:
+										new_sample_analysis_obj.contamination_cutoff = contamination_cutoff
+								except:
+									raise Exception ("ERROR: Contamination cutoff not in config file")
+
+
+							if 'ntc_contamination' == key :
+
+								try:
+									ntc_contamination_cutoff = config_dict['pipelines'][run_config_key]['ntc_contamination_cutoff']
+
+									if created:
+										new_sample_analysis_obj.ntc_contamination_cutoff = ntc_contamination_cutoff
+								except:
+									raise Exception ("ERROR: NTC contamination cutoff not in config file")
+
+
 
 					new_sample_analysis_obj.sex = sex
 					new_sample_analysis_obj.save()
@@ -178,133 +208,156 @@ class Command(BaseCommand):
 
 					run_config_key = pipeline_obj.pipeline_id + '-' + analysis_type_obj.analysis_type_id
 
-					
-					try: 
-						
-						min_q30_score = config_dict['pipelines'][run_config_key]['min_q30_score']
+					new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
+																			pipeline = pipeline_obj,
+																			analysis_type = analysis_type_obj)
 
-					except:
-
-						min_q30_score = 0.8
-					
 					try:
 
+						#put checks to try into dictionary
+
 						checks_to_try = config_dict['pipelines'][run_config_key]['qc_checks']
-						checks_to_try = ','.join(checks_to_try)
+						checks_to_try_dict=dict(zip(checks_to_try, checks_to_try))
+						checks_to_try=','.join(checks_to_try)
+
 
 					except:
 
 						checks_to_try = None
 
-					try:
+	
 
-						min_variants =  config_dict['pipelines'][run_config_key]['min_variants']
-						max_variants =  config_dict['pipelines'][run_config_key]['max_variants']
+					if checks_to_try!= None:
 
-					except:
-
-						min_variants =  25
-						max_variants =  1000	
-
-					try:
-
-						min_sensitivity = config_dict['pipelines'][run_config_key]['min_sensitivity']
-
-					except:
-
-						min_sensitivity = None
-
-					try:
-
-						min_titv =  config_dict['pipelines'][run_config_key]['min_titv']
-						max_titv =  config_dict['pipelines'][run_config_key]['max_titv']
-
-					except:
-
-						min_titv = 2.0		
-						max_titv = 2.1
-
-					try:
-
-						min_coverage = config_dict['pipelines'][run_config_key]['min_coverage']
-
-					except:
-
-						min_coverage = 0.0
-
-
-					try:
-
-						min_fusion_aligned_reads_unique = config_dict['pipelines'][run_config_key]['min_fusion_aligned_reads_unique']
-
-					except:
-
-						min_fusion_aligned_reads_unique = 0
-
-
-
-					try:
-
-						min_on_target_reads = config_dict['pipelines'][run_config_key]['min_on_target_reads']
-
-
-					except:
-
-						min_on_target_reads = 9000000
-
-
-
-					try:
-
-						max_ntc_contamination = config_dict['pipelines'][run_config_key]['max_ntc_contamination']
-
-
-					except:
-
-						max_ntc_contamination = 10
-
-
-					try:
-
-						min_relatedness_parents = config_dict['pipelines'][run_config_key]['min_relatedness_parents']
-						max_relatedness_unrelated = config_dict['pipelines'][run_config_key]['max_relatedness_unrelated']
-						max_relatedness_between_parents = config_dict['pipelines'][run_config_key]['max_relatedness_between_parents']
-						max_child_parent_relatedness = config_dict['pipelines'][run_config_key]['max_child_parent_relatedness']
-
-
-					except:
-
-
-						min_relatedness_parents = 0.2
-						max_relatedness_unrelated = 0.05
-						max_relatedness_between_parents = 0.05
-						max_child_parent_relatedness = 0.4
-
-
-
-					new_run_analysis_obj, created = RunAnalysis.objects.get_or_create(run = run_obj,
-																			pipeline = pipeline_obj,
-																			analysis_type = analysis_type_obj)
-
-
-					if created:
 
 						new_run_analysis_obj.auto_qc_checks = checks_to_try
-						new_run_analysis_obj.min_variants = min_variants
-						new_run_analysis_obj.max_variants = max_variants
-						new_run_analysis_obj.min_q30_score = min_q30_score
 						new_run_analysis_obj.start_date = datetime.datetime.now()
-						new_run_analysis_obj.min_sensitivity = min_sensitivity
-						new_run_analysis_obj.min_titv = min_titv
-						new_run_analysis_obj.max_titv = max_titv
-						new_run_analysis_obj.min_coverage = min_coverage
-						new_run_analysis_obj.min_fusion_aligned_reads_unique = min_fusion_aligned_reads_unique
-						new_run_analysis_obj.min_relatedness_parents = min_relatedness_parents
-						new_run_analysis_obj.max_relatedness_unrelated = max_relatedness_unrelated
-						new_run_analysis_obj.max_relatedness_between_parents = max_relatedness_between_parents
-						new_run_analysis_obj.max_child_parent_relatedness = max_child_parent_relatedness
-						new_run_analysis_obj.min_on_target_reads = min_on_target_reads
-						new_run_analysis_obj.max_ntc_contamination = max_ntc_contamination
+
+						for key in checks_to_try_dict.keys():
+							if 'pct_q30' in checks_to_try_dict:
+
+
+								try: 
+						
+									min_q30_score = config_dict['pipelines'][run_config_key]['min_q30_score']
+
+									if created:
+										new_run_analysis_obj.min_q30_score = min_q30_score
+
+								except:
+
+									raise Exception ("ERROR: min_q30_score not in config file")
+
+
+							if 'variant_check' in checks_to_try_dict:
+
+								try:
+
+									min_variants =  config_dict['pipelines'][run_config_key]['min_variants']
+									max_variants =  config_dict['pipelines'][run_config_key]['max_variants']
+
+									if created:
+										new_run_analysis_obj.min_variants = min_variants
+										new_run_analysis_obj.max_variants = max_variants
+
+								except:
+
+									raise Exception ("ERROR: Min or max variants not in config file")
+
+
+							if 'sensitivity' in checks_to_try_dict:
+								try:
+
+									min_sensitivity = config_dict['pipelines'][run_config_key]['min_sensitivity']
+
+									if created:
+										new_run_analysis_obj.min_sensitivity = min_sensitivity
+
+								except:
+
+									raise Exception ("ERROR: Sensitivity not in config file")
+
+
+							if 'titv' in checks_to_try_dict:
+
+								try:
+
+									min_titv =  config_dict['pipelines'][run_config_key]['min_titv']
+									max_titv =  config_dict['pipelines'][run_config_key]['max_titv']
+
+									if created:
+										new_run_analysis_obj.min_titv = min_titv
+										new_run_analysis_obj.max_titv = max_titv
+
+								except:
+									raise Exception ("ERROR: Titv values not in config file")
+
+
+							if 'coverage' in checks_to_try_dict:
+
+								try:
+
+									min_coverage = config_dict['pipelines'][run_config_key]['min_coverage']
+
+									if created:
+										new_run_analysis_obj.min_coverage = min_coverage
+
+								except:
+
+									raise Exception ("ERROR: Coverage values not in config file")
+
+
+
+							if 'reads_tso500' in checks_to_try_dict:
+
+
+								try:
+
+									min_on_target_reads = config_dict['pipelines'][run_config_key]['min_on_target_reads']
+
+									if created:
+										new_run_analysis_obj.min_on_target_reads = min_on_target_reads
+
+								except:
+
+									raise Exception ("ERROR: TSO500 reads not in config file")
+
+
+							if 'relatedness' in checks_to_try_dict:
+								try:
+
+									min_relatedness_parents = config_dict['pipelines'][run_config_key]['min_relatedness_parents']
+									max_relatedness_unrelated = config_dict['pipelines'][run_config_key]['max_relatedness_unrelated']
+									max_relatedness_between_parents = config_dict['pipelines'][run_config_key]['max_relatedness_between_parents']
+									max_child_parent_relatedness = config_dict['pipelines'][run_config_key]['max_child_parent_relatedness']
+
+
+									if created:
+										new_run_analysis_obj.min_relatedness_parents = min_relatedness_parents
+										new_run_analysis_obj.max_relatedness_unrelated = max_relatedness_unrelated
+										new_run_analysis_obj.max_relatedness_between_parents = max_relatedness_between_parents
+										new_run_analysis_obj.max_child_parent_relatedness = max_child_parent_relatedness
+
+
+								except:
+									raise Exception ("ERROR: Relatedness values not in config file")
+
+
+
+							if 'ntc_contamination_TSO500' in checks_to_try_dict:
+
+								try:
+
+									max_ntc_contamination = config_dict['pipelines'][run_config_key]['max_ntc_contamination']
+									if created:
+										new_run_analysis_obj.max_ntc_contamination = max_ntc_contamination
+
+
+								except:
+									raise Exception ("ERROR: max_ntc_contamination not in config file")
+
+
+
 
 						# message slack
 
@@ -457,311 +510,9 @@ class Command(BaseCommand):
 				# set to false, will be overwritten if pipeline is comleted
 				send_to_slack = False
 
-				# for germline enrichment
-				if 'GermlineEnrichment' in run_analysis.pipeline.pipeline_id:
 
-					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+				if 'SomaticAmplicon' in run_analysis.pipeline.pipeline_id:
 
-					try:
-						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
-						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
-						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
-						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
-
-						germline_enrichment = germline_pipelines.GermlineEnrichment(results_dir = run_data_dir,
-															sample_names = sample_ids,
-															run_id = run_analysis.run.run_id,
-															sample_expected_files = sample_expected_files,
-															sample_not_expected_files = sample_not_expected_files,
-															run_expected_files = run_expected_files,
-															run_not_expected_files = run_not_expected_files
-															)
-
-					except:
-
-						germline_enrichment = germline_pipelines.GermlineEnrichment(results_dir = run_data_dir,
-															sample_names = sample_ids,
-															run_id = run_analysis.run.run_id
-															)
-
-					for sample in sample_ids:
-
-						sample_complete = germline_enrichment.sample_is_complete(sample)
-						sample_valid = germline_enrichment.sample_is_valid(sample)
-
-						sample_obj = Sample.objects.get(sample_id = sample)
-
-						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
-																		run = run_analysis.run,
-																		pipeline = run_analysis.pipeline,
-																		analysis_type = run_analysis.analysis_type)
-
-						if sample_analysis_obj.results_completed == False and sample_complete == True:
-
-							if sample_valid == True:
-
-								logger.info(f'Sample {sample} on run {run_analysis.run.run_id} has finished GermlineEnrichment script one successfully.')
-
-							else:
-								logger.info(f'Sample {sample} on run {run_analysis.run.run_id} has failed GermlineEnrichment script one.')
-
-						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
-
-							logger.info(f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
-
-
-						sample_analysis_obj.results_completed = sample_complete
-						sample_analysis_obj.results_valid = sample_valid
-						sample_analysis_obj.save()
-
-					run_complete = germline_enrichment.run_and_samples_complete()
-					run_valid = germline_enrichment.run_and_samples_valid()
-
-					if run_analysis.results_completed == False and run_complete == True:
-
-						if run_valid == True:
-
-							logger.info(f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-							logger.info('putting fastqc into db')
-
-							logger.info(f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-							fastqc_dict = germline_enrichment.get_fastqc_data()
-							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
-
-							logger.info(f'Putting hs metrics into db for run {run_analysis.run.run_id}')
-							hs_metrics_dict = germline_enrichment.get_hs_metrics()
-							management_utils.add_hs_metrics(hs_metrics_dict, run_analysis)
-
-							logger.info (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
-							depth_metrics_dict = germline_enrichment.get_depth_metrics()
-							management_utils.add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
-
-							logger.info (f'Putting duplication into db for run {run_analysis.run.run_id}')
-							duplication_metrics_dict = germline_enrichment.get_duplication_metrics()
-							management_utils.add_duplication_metrics(duplication_metrics_dict, run_analysis)
-
-							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
-							contamination_metrics_dict = germline_enrichment.get_contamination()
-							management_utils.add_contamination_metrics(contamination_metrics_dict, run_analysis)
-
-							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
-							sex_dict = germline_enrichment.get_calculated_sex()
-							management_utils.add_sex_metrics(sex_dict, run_analysis, 'gender')
-
-							logger.info (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
-							alignment_metrics_dict = germline_enrichment.get_alignment_metrics()
-							management_utils.add_alignment_metrics(alignment_metrics_dict, run_analysis)
-
-							logger.info (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
-							variant_calling_metrics_dict = germline_enrichment.get_variant_calling_metrics()
-							management_utils.add_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
-
-							logger.info (f'Putting insert metrics into db for run {run_analysis.run.run_id}')
-							insert_metrics_dict = germline_enrichment.get_insert_metrics()
-							management_utils.add_insert_metrics(insert_metrics_dict, run_analysis)
-
-							send_to_slack = True
-
-						else:
-
-							logger.info (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
-
-					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
-
-							logger.info (f'Run {run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-
-							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-							fastqc_dict = germline_enrichment.get_fastqc_data()
-							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
-
-							logger.info (f'Putting hs metrics into db for run {run_analysis.run.run_id}')
-							hs_metrics_dict = germline_enrichment.get_hs_metrics()
-							management_utils.add_hs_metrics(hs_metrics_dict, run_analysis)
-
-							logger.info (f'Putting depth metrics into db for run {run_analysis.run.run_id}')
-							depth_metrics_dict = germline_enrichment.get_depth_metrics()
-							management_utils.add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
-
-							logger.info (f'Putting duplication into db for run {run_analysis.run.run_id}')
-							duplication_metrics_dict = germline_enrichment.get_duplication_metrics()
-							management_utils.add_duplication_metrics(duplication_metrics_dict, run_analysis)
-
-							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
-							contamination_metrics_dict = germline_enrichment.get_contamination()
-							management_utils.add_contamination_metrics(contamination_metrics_dict, run_analysis)
-
-							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
-							sex_dict = germline_enrichment.get_calculated_sex()
-							management_utils.add_sex_metrics(sex_dict, run_analysis, 'gender')
-
-							logger.info (f'Putting alignment metrics into db for run {run_analysis.run.run_id}')
-							alignment_metrics_dict = germline_enrichment.get_alignment_metrics()
-							management_utils.add_alignment_metrics(alignment_metrics_dict, run_analysis)
-
-							logger.info (f'Putting variant calling metrics into db for run {run_analysis.run.run_id}')
-							variant_calling_metrics_dict = germline_enrichment.get_variant_calling_metrics()
-							management_utils.add_variant_calling_metrics(variant_calling_metrics_dict, run_analysis)
-
-							logger.info (f'Putting insert metrics into db for run {run_analysis.run.run_id}')
-							insert_metrics_dict = germline_enrichment.get_insert_metrics()
-							management_utils.add_insert_metrics(insert_metrics_dict, run_analysis)
-
-							send_to_slack = True
-
-					run_analysis.results_completed = run_complete
-					run_analysis.results_valid = run_valid
-
-					run_analysis.save()
-
-				elif 'SomaticEnrichment' in run_analysis.pipeline.pipeline_id:
-
-					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
-
-					if run_config_key not in config_dict['pipelines']:
-
-						somatic_enrichment = somatic_pipelines.SomaticEnrichment(results_dir = run_data_dir,
-															sample_names = sample_ids,
-															run_id = run_analysis.run.run_id
-															)
-					else:
-
-						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
-						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
-						run_sample_expected_files = config_dict['pipelines'][run_config_key]['run_sample_expected_files']
-						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
-						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
-
-						somatic_enrichment = somatic_pipelines.SomaticEnrichment(results_dir = run_data_dir,
-																sample_names = sample_ids,
-																run_id = run_analysis.run.run_id,
-																sample_expected_files = sample_expected_files,
-																sample_not_expected_files = sample_not_expected_files,
-																run_sample_expected_files = run_sample_expected_files,
-																run_expected_files = run_expected_files,
-																run_not_expected_files = run_not_expected_files
-																)
-
-
-					for sample in sample_ids:
-
-						sample_complete = somatic_enrichment.sample_is_complete(sample)
-						sample_valid = somatic_enrichment.sample_is_valid(sample)
-
-						sample_obj = Sample.objects.get(sample_id = sample)
-
-						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
-																		run = run_analysis.run,
-																		pipeline = run_analysis.pipeline)
-
-						if sample_analysis_obj.results_completed == False and sample_complete == True:
-
-							if sample_valid == True:
-
-								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has finished sample level SomaticEnrichment successfully.')
-
-							else:
-								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has failed sample level SomaticEnrichment.')
-
-						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
-
-							logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
-
-			
-						sample_analysis_obj.results_completed = sample_complete
-						sample_analysis_obj.results_valid = sample_valid
-						sample_analysis_obj.save()
-
-					run_complete = somatic_enrichment.run_and_samples_complete()
-					run_valid = somatic_enrichment.run_and_samples_valid()
-
-					if run_analysis.results_completed == False and run_complete == True:
-
-						if run_valid == True:
-
-							logger.info (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-
-							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-							fastqc_dict = somatic_enrichment.get_fastqc_data()
-							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
-							
-							logger.info (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
-							hs_metrics_dict = somatic_enrichment.get_hs_metrics()
-							management_utils.add_hs_metrics(hs_metrics_dict, run_analysis)
-
-							logger.info (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
-							depth_metrics_dict = somatic_enrichment.get_depth_metrics()
-							management_utils.add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
-
-							logger.info (f'Putting duplication metrics data into db for run {run_analysis.run.run_id}')
-							duplication_metrics_dict = somatic_enrichment.get_duplication_metrics()
-							management_utils.add_duplication_metrics(duplication_metrics_dict, run_analysis)
-
-							logger.info (f'Putting sex metrics data into db for run {run_analysis.run.run_id}')
-							sex_dict = somatic_enrichment.get_calculated_sex()
-							management_utils.add_sex_metrics(sex_dict, run_analysis, 'gender')
-
-							logger.info (f'Putting alignment metrics data into db for run {run_analysis.run.run_id}')
-							alignment_metrics_dict = somatic_enrichment.get_alignment_metrics()
-							management_utils.add_alignment_metrics(alignment_metrics_dict, run_analysis)
-
-							logger.info (f'Putting insert metrics data into db for run {run_analysis.run.run_id}')
-							insert_metrics_dict = somatic_enrichment.get_insert_metrics()
-							management_utils.add_insert_metrics(insert_metrics_dict, run_analysis)
-
-							logger.info (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
-							variant_count_metrics_dict = somatic_enrichment.get_variant_count()
-							management_utils.add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
-
-							send_to_slack = True
-
-						else:
-
-							logger.info (f'Run {run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
-
-					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
-
-							logger.info (f'Run {run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-
-							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-							fastqc_dict = somatic_enrichment.get_fastqc_data()
-							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
-							
-							logger.info (f'Putting hs metrics data into db for run {run_analysis.run.run_id}')
-							hs_metrics_dict = somatic_enrichment.get_hs_metrics()
-							management_utils.add_hs_metrics(hs_metrics_dict, run_analysis)
-
-							logger.info (f'Putting depth metrics data into db for run {run_analysis.run.run_id}')
-							depth_metrics_dict = somatic_enrichment.get_depth_metrics()
-							management_utils.add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis)
-
-							logger.info (f'Putting duplication metrics data into db for run {run_analysis.run.run_id}')
-							duplication_metrics_dict = somatic_enrichment.get_duplication_metrics()
-							management_utils.add_duplication_metrics(duplication_metrics_dict, run_analysis)
-
-							logger.info (f'Putting sex metrics data into db for run {run_analysis.run.run_id}')
-							sex_dict = somatic_enrichment.get_calculated_sex()
-							management_utils.add_sex_metrics(sex_dict, run_analysis, 'gender')
-
-							logger.info (f'Putting alignment metrics data into db for run {run_analysis.run.run_id}')
-							alignment_metrics_dict = somatic_enrichment.get_alignment_metrics()
-							management_utils.add_alignment_metrics(alignment_metrics_dict, run_analysis)
-
-							logger.info (f'Putting insert metrics data into db for run {run_analysis.run.run_id}')
-							insert_metrics_dict = somatic_enrichment.get_insert_metrics()
-							management_utils.add_insert_metrics(insert_metrics_dict, run_analysis)
-
-							logger.info (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
-							variant_count_metrics_dict = somatic_enrichment.get_variant_count()
-							management_utils.add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
-
-							send_to_slack = True
-
-					run_analysis.results_completed = run_complete
-					run_analysis.results_valid = run_valid
-
-					run_analysis.save()
-
-				elif 'SomaticAmplicon' in run_analysis.pipeline.pipeline_id:
 
 					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
 
@@ -786,6 +537,7 @@ class Command(BaseCommand):
 																run_expected_files = run_expected_files,
 																run_not_expected_files = run_not_expected_files
 																)
+
 
 					for sample in sample_ids:
 
@@ -874,13 +626,6 @@ class Command(BaseCommand):
 					run_analysis.results_valid = run_valid
 
 					run_analysis.save()
-
-				elif 'CRUK' in run_analysis.pipeline.pipeline_id:
-
-
-					# remove as causing errors
-					pass
-
 
 				# for germline enrichment
 				elif 'DragenGE' in run_analysis.pipeline.pipeline_id:
@@ -1028,6 +773,7 @@ class Command(BaseCommand):
 
 					run_analysis.save()
 
+
 				# for germline enrichment
 				elif 'DragenWGS' in run_analysis.pipeline.pipeline_id:
 
@@ -1174,119 +920,6 @@ class Command(BaseCommand):
 					run_analysis.save()
 
 
-				# for lauras fusion pipelines
-				elif 'Fusion' in run_analysis.pipeline.pipeline_id:
-
-					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
-
-					try:
-
-						sample_expected_files = config_dict['pipelines'][run_config_key]['sample_expected_files']
-						sample_not_expected_files = config_dict['pipelines'][run_config_key]['sample_not_expected_files']
-						run_expected_files = config_dict['pipelines'][run_config_key]['run_expected_files']
-						run_not_expected_files = config_dict['pipelines'][run_config_key]['run_not_expected_files']
-
-						somatic_fusion = fusion_pipelines.SomaticFusion(results_dir = run_data_dir,
-															sample_names = sample_ids,
-															run_id = run_analysis.run.run_id,
-															sample_expected_files = sample_expected_files,
-															sample_not_expected_files = sample_not_expected_files,
-															run_expected_files = run_expected_files,
-															run_not_expected_files = run_not_expected_files
-															)
-
-					except:
-
-						somatic_fusion = fusion_pipelines.SomaticFusion(results_dir = run_data_dir,
-															sample_names = sample_ids,
-															run_id = run_analysis.run.run_id
-															)
-
-					for sample in sample_ids:
-
-						sample_complete = somatic_fusion.sample_is_complete(sample)
-						sample_valid = somatic_fusion.sample_is_valid(sample)
-
-						sample_obj = Sample.objects.get(sample_id = sample)
-
-						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
-																		run = run_analysis.run,
-																		pipeline = run_analysis.pipeline)
-
-						if sample_analysis_obj.results_completed == False and sample_complete == True:
-
-							if sample_valid == True:
-
-								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has finished SomaticFusion pipeline successfully.')
-
-							else:
-								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has failed SomaticFusion pipeline.')
-
-						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
-
-							logger.info (f'Sample {sample} on run {run_analysis.run.run_id} has now completed successfully.')
-
-
-						sample_analysis_obj.results_completed = sample_complete
-						sample_analysis_obj.results_valid = sample_valid
-						sample_analysis_obj.save()
-
-					run_complete = somatic_fusion.run_is_complete()
-					run_valid = somatic_fusion.run_is_valid()
-
-					if run_analysis.results_completed == False and run_complete == True:
-
-						if run_valid == True:
-
-							logger.info (f'Run {run_analysis.run.run_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-
-							# put qc here
-							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-							fastqc_dict = somatic_fusion.get_fastqc_data()
-							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
-
-							# add contamination metrics
-							logger.info (f'Putting contamination data into db for run {run_analysis.run.run_id}')
-							contamination_metrics_dict = somatic_fusion.get_contamination_metrics()
-							management_utils.add_fusion_contamination_metrics(contamination_metrics_dict, run_analysis)
-
-							# add alignment metrics
-							logger.info (f'Putting alignment data into db for run {run_analysis.run.run_id}')
-							alignment_metrics_dict = somatic_fusion.get_alignment_metrics()
-							management_utils.add_fusion_alignment_metrics(alignment_metrics_dict, run_analysis)				
-
-
-							send_to_slack = True
-
-						else:
-
-							logger.info (f'Run {run_analysis.run.run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
-
-					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
-
-							logger.info (f'Run {run_analysis.run.run_id} now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-
-							# put qc here
-							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-							fastqc_dict = somatic_fusion.get_fastqc_data()
-							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
-
-							# add contamination metrics
-							logger.info (f'Putting contamination data into db for run {run_analysis.run.run_id}')
-							contamination_metrics_dict = somatic_fusion.get_contamination_metrics()
-							management_utils.add_fusion_contamination_metrics(contamination_metrics_dict, run_analysis)
-							
-							logger.info (f'Putting alignment data into db for run {run_analysis.run.run_id}')
-							alignment_metrics_dict = somatic_fusion.get_alignment_metrics()
-							management_utils.add_fusion_alignment_metrics(alignment_metrics_dict, run_analysis)		
-
-							send_to_slack = True
-
-					run_analysis.results_completed = run_complete
-					run_analysis.results_valid = run_valid
-
-					run_analysis.save()
-
 				# for nextflow piplines
 				elif 'nextflow' in run_analysis.pipeline.pipeline_id:
 
@@ -1429,8 +1062,6 @@ class Command(BaseCommand):
 					run_id=run_analysis.run.run_id
 					dna_or_rna="RNA"
 					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
-
-					print(run_config_key)
 
 					if run_config_key not in config_dict['pipelines']:
 

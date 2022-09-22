@@ -42,25 +42,6 @@ pipelines:
                         ]
     run_not_expected_files: []
 
-  SomaticAmplicon-master-TruSightMyeloid:
-    results_dir: '/mnt/wren_results/results/'
-    min_q30_score: 0.8
-    contamination_cutoff: 0.025
-    ntc_contamination_cutoff: 10
-    qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
-    min_fastq_size: 10000000
-    min_variants: 100
-    max_variants: 700
-    sample_expected_files: ['*_VariantReport.txt',
-                  '*.bam',
-                  '*_DepthOfCoverage.sample_summary',
-                  '*_QC.txt',
-                  '*_filtered_meta_annotated.vcf',
-                  'hotspot_variants'
-                  ]
-    sample_not_expected_files: ['*_fastqc.zip']
-    run_expected_files: []
-    run_not_expected_files: []
 
   DragenWGS-master-NexteraDNAFlex:
     results_dir: '/mnt/wren_results/results/'
@@ -284,7 +265,6 @@ pipelines:
     max_relatedness_between_parents: 0.04
     max_child_parent_relatedness: 0.4
     sample_expected_files: []
-    
     sample_not_expected_files: []
     run_expected_files: []
     run_not_expected_files: []
@@ -307,7 +287,6 @@ pipelines:
   TSO500-master-TSO500_RNA:
     results_dir:  '/mnt/wren_results/results/'
     min_q30_score: 0.8
-    max_ntc_contamination: 10
     qc_checks: [pct_q30, fastqc, reads_tso500]
     min_fastq_size: 0
     min_on_target_reads: 9000000
