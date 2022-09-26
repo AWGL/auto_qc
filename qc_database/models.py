@@ -3,7 +3,6 @@ from django.conf import settings
 from auditlog.registry import auditlog
 from auditlog.models import AuditlogHistoryField
 
-
 class Instrument(models.Model):
 	"""
 	Model to hold a sequencer
@@ -15,7 +14,6 @@ class Instrument(models.Model):
 
 	def __str__(self):
 		return self.instrument_id
-
 
 class Run(models.Model):
 	"""
@@ -179,10 +177,9 @@ class RunAnalysis(models.Model):
 	max_relatedness_between_parents = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	max_child_parent_relatedness = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_on_target_reads=models.IntegerField(null=True, blank=True)
+
 	#for TSO500 only- ntc contamination for other runs in sampleAnalysis object
-	max_ntc_contamination=models.IntegerField(null=True, blank=True)
-
-
+	max_ntc_contamination = models.IntegerField(null=True, blank=True)
 
 	history = AuditlogHistoryField()
 
@@ -1317,7 +1314,7 @@ class AlignmentMetrics(models.Model):
 	pf_hq_aligned_reads = models.BigIntegerField()
 	pf_hq_aligned_bases = models.BigIntegerField()
 	pf_hq_aligned_q20_bases = models.BigIntegerField()
-	pf_hq_median_mismatches = models.IntegerField()
+	pf_hq_median_mismatches = models.DecimalField(max_digits=6, decimal_places=4)
 	pf_mismatch_rate = models.DecimalField(max_digits=6, decimal_places=4)
 	pf_hq_error_rate = models.DecimalField(max_digits=6, decimal_places=4)
 	pf_indel_rate = models.DecimalField(max_digits=6, decimal_places=4)

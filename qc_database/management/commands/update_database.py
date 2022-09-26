@@ -1,13 +1,13 @@
-from django.core.management.base import BaseCommand
-from django.conf import settings
-from django.db import transaction
 import csv
 from pathlib import Path
 import datetime
 import logging
 
+from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.db import transaction
+
 from qc_database.models import *
-from qc_database.utils.slack import message_slack
 from pipelines import dragen_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines, TSO500_pipeline
 from qc_database import management_utils
 
@@ -21,14 +21,12 @@ class Command(BaseCommand):
 	
 	def handle(self, *args, **options):
 
-
 		logging.basicConfig(level=logging.DEBUG)
 		logger = logging.getLogger(__name__)
 
 		# Make or get initial model instances
 		raw_data_dir = options['raw_data_dir'][0]
 		config = options['config'][0]
-
 
 		# Read config file and create dictionary
 		config_dict = parsers.parse_config(config)
@@ -59,6 +57,7 @@ class Command(BaseCommand):
 					logger.info(f'Could not find sample sheet for {raw_data}')
 					continue
 
+				# skip if we don't have marker file
 				copy_complete = raw_data.joinpath('run_copy_complete.txt')
 
 				if copy_complete.exists() == False:
@@ -89,7 +88,6 @@ class Command(BaseCommand):
 
 						logger.warn (f'Can\'t find required XML files for {run_id}')
 						continue
-
 
 					# add runlog stats to database
 					interop_data = management_utils.add_run_log_info(run_info, run_parameters, run_obj, raw_data)
@@ -157,8 +155,6 @@ class Command(BaseCommand):
 
 						checks_to_try = None
 
-
-
 					new_sample_analysis_obj, created = SampleAnalysis.objects.get_or_create(sample=sample_obj,
 																			run = run_obj,
 																			pipeline = pipeline_obj,
@@ -166,31 +162,37 @@ class Command(BaseCommand):
 																			worksheet = worksheet_obj)
 
 
-					if checks_to_try!= None:
+					if checks_to_try is not None:
 
 						for key in checks_to_try_dict.keys():
+
 							if 'contamination' == key :
 
 								try:
+
 									contamination_cutoff = config_dict['pipelines'][run_config_key]['contamination_cutoff']
 
 									if created:
-										new_sample_analysis_obj.contamination_cutoff = contamination_cutoff
-								except:
-									raise Exception ("ERROR: Contamination cutoff not in config file")
 
+										new_sample_analysis_obj.contamination_cutoff = contamination_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Contamination cutoff not in config file")
 
 							if 'ntc_contamination' == key :
 
 								try:
+
 									ntc_contamination_cutoff = config_dict['pipelines'][run_config_key]['ntc_contamination_cutoff']
 
 									if created:
+
 										new_sample_analysis_obj.ntc_contamination_cutoff = ntc_contamination_cutoff
+
 								except:
+
 									raise Exception ("ERROR: NTC contamination cutoff not in config file")
-
-
 
 					new_sample_analysis_obj.sex = sex
 					new_sample_analysis_obj.save()
@@ -203,8 +205,8 @@ class Command(BaseCommand):
 					pipeline = run_analysis[0]
 					analysis_type = run_analysis[1]
 
-					pipeline_obj = Pipeline.objects.get(pipeline_id=pipeline)
-					analysis_type_obj = AnalysisType.objects.get(analysis_type_id=analysis_type)
+					pipeline_obj = Pipeline.objects.get(pipeline_id = pipeline)
+					analysis_type_obj = AnalysisType.objects.get(analysis_type_id = analysis_type)
 
 					run_config_key = pipeline_obj.pipeline_id + '-' + analysis_type_obj.analysis_type_id
 
@@ -225,15 +227,14 @@ class Command(BaseCommand):
 
 						checks_to_try = None
 
-	
 
-					if checks_to_try!= None:
-
+					if checks_to_try is not None:
 
 						new_run_analysis_obj.auto_qc_checks = checks_to_try
 						new_run_analysis_obj.start_date = datetime.datetime.now()
 
 						for key in checks_to_try_dict.keys():
+
 							if 'pct_q30' in checks_to_try_dict:
 
 
@@ -266,6 +267,7 @@ class Command(BaseCommand):
 
 
 							if 'sensitivity' in checks_to_try_dict:
+
 								try:
 
 									min_sensitivity = config_dict['pipelines'][run_config_key]['min_sensitivity']
@@ -286,6 +288,7 @@ class Command(BaseCommand):
 									max_titv =  config_dict['pipelines'][run_config_key]['max_titv']
 
 									if created:
+
 										new_run_analysis_obj.min_titv = min_titv
 										new_run_analysis_obj.max_titv = max_titv
 
@@ -300,6 +303,7 @@ class Command(BaseCommand):
 									min_coverage = config_dict['pipelines'][run_config_key]['min_coverage']
 
 									if created:
+
 										new_run_analysis_obj.min_coverage = min_coverage
 
 								except:
@@ -310,12 +314,12 @@ class Command(BaseCommand):
 
 							if 'reads_tso500' in checks_to_try_dict:
 
-
 								try:
 
 									min_on_target_reads = config_dict['pipelines'][run_config_key]['min_on_target_reads']
 
 									if created:
+
 										new_run_analysis_obj.min_on_target_reads = min_on_target_reads
 
 								except:
@@ -324,6 +328,7 @@ class Command(BaseCommand):
 
 
 							if 'relatedness' in checks_to_try_dict:
+
 								try:
 
 									min_relatedness_parents = config_dict['pipelines'][run_config_key]['min_relatedness_parents']
@@ -331,17 +336,15 @@ class Command(BaseCommand):
 									max_relatedness_between_parents = config_dict['pipelines'][run_config_key]['max_relatedness_between_parents']
 									max_child_parent_relatedness = config_dict['pipelines'][run_config_key]['max_child_parent_relatedness']
 
-
 									if created:
 										new_run_analysis_obj.min_relatedness_parents = min_relatedness_parents
 										new_run_analysis_obj.max_relatedness_unrelated = max_relatedness_unrelated
 										new_run_analysis_obj.max_relatedness_between_parents = max_relatedness_between_parents
 										new_run_analysis_obj.max_child_parent_relatedness = max_child_parent_relatedness
 
-
 								except:
-									raise Exception ("ERROR: Relatedness values not in config file")
 
+									raise Exception ("ERROR: Relatedness values not in config file")
 
 
 							if 'ntc_contamination_TSO500' in checks_to_try_dict:
@@ -349,35 +352,23 @@ class Command(BaseCommand):
 								try:
 
 									max_ntc_contamination = config_dict['pipelines'][run_config_key]['max_ntc_contamination']
+
 									if created:
+
 										new_run_analysis_obj.max_ntc_contamination = max_ntc_contamination
 
-
 								except:
+
 									raise Exception ("ERROR: max_ntc_contamination not in config file")
-
-
-
-
-						# message slack
-
-						if settings.MESSAGE_SLACK:
-							message_slack(
-								f':information_source: *{new_run_analysis_obj.analysis_type} run {new_run_analysis_obj.get_worksheets()} has finished sequencing*\n' +
-								f'```Run ID:          {new_run_analysis_obj.run}```'
-							)
 
 					new_run_analysis_obj.save()
 
-
-
 			# Loop through existing run analysis objects
-			existing_run_analyses = RunAnalysis.objects.filter(watching=True)
+			existing_run_analyses = RunAnalysis.objects.filter(watching = True)
 
 			for run_analysis in existing_run_analyses:
 
 				# make IlluminaQC object
-
 				run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
 
 				samples = SampleAnalysis.objects.filter(run = run_analysis.run,
@@ -387,16 +378,17 @@ class Command(BaseCommand):
 
 				sample_ids = [sample.sample.sample_id for sample in samples]
 
-				
 				# have we configured a fastq folder
 				try:
+
 					has_fastqs = config_dict['pipelines'][run_config_key].get('fastq_dir')
+
 				except:
 
 					has_fastqs = None
 
-
 				try:
+
 					results_dir = config_dict['pipelines'][run_config_key]['results_dir']
 
 				except:
@@ -406,7 +398,7 @@ class Command(BaseCommand):
 
 
 
-				if has_fastqs != None:
+				if has_fastqs is not None:
 					
 					fastq_data_dir = config_dict['pipelines'][run_config_key]['fastq_dir']
 					run_fastq_dir = Path(fastq_data_dir).joinpath(run_analysis.run.run_id)
@@ -416,6 +408,7 @@ class Command(BaseCommand):
 					run_fastq_dir = 'test'
 
 				if 'TSO500' in run_config_key:
+
 					run_data_dir = Path(results_dir)
 
 				else:
@@ -469,7 +462,6 @@ class Command(BaseCommand):
 
 				else:
 
-
 					has_completed = illumina_qc.demultiplex_run_is_complete()
 
 					is_valid = illumina_qc.demultiplex_run_is_valid()
@@ -480,9 +472,6 @@ class Command(BaseCommand):
 
 						logger.info(f'Run {run_analysis} {run_analysis.analysis_type.analysis_type_id} has now completed demultiplexing')
 						
-						# set slack status message
-						status_message = f':information_source: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has generated FASTQs successfully*\n'
-
 					else:
 
 						logger.info(f'Run {run_analysis} {run_analysis.analysis_type.analysis_type_id} has now failed demultiplexing')
@@ -490,29 +479,11 @@ class Command(BaseCommand):
 						run_analysis.demultiplexing_valid = is_valid
 						run_analysis.save()
 						
-						# set slack status message
-						status_message = f':heavy_exclamation_mark: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} has failed FASTQ generation*\n'
-						
-
-					# send slack message
-					if settings.MESSAGE_SLACK:
-
-						message_slack(
-							status_message +
-							f'```Run ID:          {run_analysis.run}\n' + 
-							f'QC link:          http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
-						)
-
 				run_analysis.demultiplexing_completed = has_completed
 				run_analysis.demultiplexing_valid = is_valid
 				run_analysis.save()
 				
-				# set to false, will be overwritten if pipeline is comleted
-				send_to_slack = False
-
-
 				if 'SomaticAmplicon' in run_analysis.pipeline.pipeline_id:
-
 
 					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
 
@@ -594,8 +565,6 @@ class Command(BaseCommand):
 							variant_count_metrics_dict = somatic_amplicon.get_variant_count()
 							management_utils.add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
 
-							send_to_slack = True
-
 						else:
 
 							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
@@ -619,8 +588,6 @@ class Command(BaseCommand):
 							logger.info (f'Putting variant count metrics data into db for run {run_analysis.run.run_id}')
 							variant_count_metrics_dict = somatic_amplicon.get_variant_count()
 							management_utils.add_variant_count_metrics(variant_count_metrics_dict, run_analysis)
-
-							send_to_slack = True
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
@@ -718,9 +685,6 @@ class Command(BaseCommand):
 
 							management_utils.add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_analysis)
 
-
-							send_to_slack = True
-
 						else:
 
 							logger.info (f'Run {run_analysis.run.run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
@@ -764,9 +728,6 @@ class Command(BaseCommand):
 																												run_analysis.max_child_parent_relatedness)
 
 							management_utils.add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_analysis)
-
-
-							send_to_slack = True
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
@@ -870,11 +831,6 @@ class Command(BaseCommand):
 							dragen_ploidy_metrics_dict = dragen_wgs.get_ploidy_metrics()
 							management_utils.add_dragen_ploidy_metrics(dragen_ploidy_metrics_dict, run_analysis)
 
-
-
-
-							send_to_slack = True
-
 						else:
 
 							logger.info (f'Run {run_analysis.run.run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
@@ -910,9 +866,6 @@ class Command(BaseCommand):
 							logger.info (f'Putting ploidy metrics into db for run {run_analysis.run.run_id}')
 							dragen_ploidy_metrics_dict = dragen_wgs.get_ploidy_metrics()
 							management_utils.add_dragen_ploidy_metrics(dragen_ploidy_metrics_dict, run_analysis)
-
-
-							send_to_slack = True
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
@@ -1000,8 +953,6 @@ class Command(BaseCommand):
 							sex_dict = nextflow.get_sex_metrics()
 							management_utils.add_sex_metrics(sex_dict, run_analysis, 'sex')
 
-							send_to_slack = True
-
 						else:
 
 							logger.info (f'Run {run_analysis.run.run_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
@@ -1047,9 +998,6 @@ class Command(BaseCommand):
 							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
 							sex_dict = nextflow.get_sex_metrics()
 							management_utils.add_sex_metrics(sex_dict, run_analysis, 'sex')
-
-
-							send_to_slack = True
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
@@ -1140,8 +1088,6 @@ class Command(BaseCommand):
 							reads_dict = tso500.get_reads()
 							management_utils.add_tso500_reads(reads_dict, run_analysis)
 
-							send_to_slack = True
-
 						else:
 
 							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
@@ -1157,8 +1103,6 @@ class Command(BaseCommand):
 							logger.info (f'Putting reads data into db for run {run_analysis.run.run_id}')
 							reads_dict = tso500.get_reads()
 							management_utils.add_tso500_reads(reads_dict, run_analysis)
-
-							send_to_slack = True
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
@@ -1250,8 +1194,6 @@ class Command(BaseCommand):
 							ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict= tso500.ntc_contamination()
 							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
 
-							send_to_slack = True
-
 						else:
 
 							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
@@ -1268,20 +1210,7 @@ class Command(BaseCommand):
 							ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict= tso500.ntc_contamination()
 							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
 
-
-
-							send_to_slack = True
-
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
 
 					run_analysis.save()
-
-				# message slack
-				if settings.MESSAGE_SLACK:
-					if send_to_slack:
-						message_slack(
-							f':heavy_exclamation_mark: *{run_analysis.analysis_type} run {run_analysis.get_worksheets()} is ready for QC*\n' +
-							f'```Run ID:          {run_analysis.run}\n' + 
-							f'QC link:          http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
-						)
