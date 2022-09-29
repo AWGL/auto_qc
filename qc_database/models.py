@@ -3,7 +3,6 @@ from django.conf import settings
 from auditlog.registry import auditlog
 from auditlog.models import AuditlogHistoryField
 
-
 class Instrument(models.Model):
 	"""
 	Model to hold a sequencer
@@ -15,7 +14,6 @@ class Instrument(models.Model):
 
 	def __str__(self):
 		return self.instrument_id
-
 
 class Run(models.Model):
 	"""
@@ -178,6 +176,10 @@ class RunAnalysis(models.Model):
 	max_relatedness_unrelated = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	max_relatedness_between_parents = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	max_child_parent_relatedness = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+	min_on_target_reads=models.IntegerField(null=True, blank=True)
+
+	#for TSO500 only- ntc contamination for other runs in sampleAnalysis object
+	max_ntc_contamination = models.IntegerField(null=True, blank=True)
 
 	history = AuditlogHistoryField()
 
@@ -682,10 +684,12 @@ class SampleAnalysis(models.Model):
 
 	def passes_reads_tso500(self):
 
+		run_analysis = self.get_run_analysis()
+
 		try:
 			reads = self.get_reads_tso500()
 
-			if reads < 9000000:
+			if reads < run_analysis.min_on_target_reads:
 
 				return False
 		except:
@@ -967,13 +971,39 @@ class SampleAnalysis(models.Model):
 
 
 
+
+	def get_percent_ntc_aligned_tso500(self):
+
+		try:
+			tso500_aligned_reads = Tso500Reads.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(tso500_aligned_reads) != 1:
+
+			return None
+
+		else:
+
+			return tso500_aligned_reads[0].percent_ntc_contamination
+
+
+
 	def passes_percent_ntc_tso500(self):
+
+		run_analysis = self.get_run_analysis()
+
+		if run_analysis == None:
+
+			return False
+
 
 		try:
 
 			percent_ntc = self.get_percent_ntc_tso500()
 
-			if percent_ntc < 10:
+
+			if percent_ntc < run_analysis.max_ntc_contamination:
 
 				return True
 		except:
@@ -981,6 +1011,63 @@ class SampleAnalysis(models.Model):
 			return None
 
 		return False
+
+
+	def passes_percent_ntc_aligned_tso500(self):
+
+		run_analysis = self.get_run_analysis()
+
+		if run_analysis == None:
+
+			return False
+
+
+
+		try:
+
+			percent_ntc = self.get_percent_ntc_aligned_tso500()
+
+
+			if percent_ntc < run_analysis.max_ntc_contamination:
+
+				return True
+		except:
+
+			return None
+
+		return False
+
+
+	def get_total_pf_reads_tso500(self):
+
+		try:
+			tso500_reads_DNA= Tso500Reads.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(tso500_reads_DNA) != 1:
+
+			return None
+
+		else:
+
+			return tso500_reads_DNA[0].total_pf_reads
+
+	def get_total_aligned_reads_tso500(self):
+
+		try:
+			tso500_aligned_reads_DNA= Tso500Reads.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(tso500_aligned_reads_DNA) != 1:
+
+			return None
+
+		else:
+
+			return tso500_aligned_reads_DNA[0].aligned_reads
+
 
 
 	def get_contamination_fusion(self):
@@ -1227,7 +1314,7 @@ class AlignmentMetrics(models.Model):
 	pf_hq_aligned_reads = models.BigIntegerField()
 	pf_hq_aligned_bases = models.BigIntegerField()
 	pf_hq_aligned_q20_bases = models.BigIntegerField()
-	pf_hq_median_mismatches = models.IntegerField()
+	pf_hq_median_mismatches = models.DecimalField(max_digits=6, decimal_places=4)
 	pf_mismatch_rate = models.DecimalField(max_digits=6, decimal_places=4)
 	pf_hq_error_rate = models.DecimalField(max_digits=6, decimal_places=4)
 	pf_indel_rate = models.DecimalField(max_digits=6, decimal_places=4)
@@ -1555,6 +1642,9 @@ class Tso500Reads(models.Model):
 	total_on_target_reads= models.IntegerField(null=True)
 	total_pf_reads = models.IntegerField(null=True)
 	percent_ntc_reads = models.IntegerField(null=True)
+	aligned_reads=models.IntegerField(null=True)
+	percent_ntc_contamination=models.IntegerField(null=True)
+
 
 class DragenPloidyMetrics(models.Model):
 	"""

@@ -96,6 +96,26 @@
 
 	{% endif %}
 
+	{% if 'reads_tso500' in checks_to_do %}
+
+	<tr>
+		<td> Min Reads</td>
+		<td> {{run_analysis.min_on_target_reads}} </td>
+
+	</tr>
+	{% endif %}
+
+
+	{% if 'ntc_contamination_TSO500' in checks_to_do %}
+
+	<tr>
+		<td> Max NTC Contamination </td>
+		<td> {{run_analysis.max_ntc_contamination}}% </td>
+
+	</tr>
+	{% endif %}
+
+
 	{% if 'coverage' in checks_to_do %}
 
 	<tr>
@@ -414,8 +434,10 @@
 
 	{% if 'ntc_contamination_TSO500' in checks_to_do %}
 
-
-		<th> NTC Contamination</th>
+		<th> Total pf reads</th>
+		<th> Percent NTC pf reads</th>
+		<th> Total aligned reads</th>
+		<th> Percent NTC aligned reads</th>
 
 
 	{% endif %}
@@ -491,12 +513,12 @@
 
 			{% if 'ntc_contamination_TSO500' in checks_to_do %}
 
+				<td class="table-dark">{{sample_analysis.get_total_pf_reads_tso500}}</td>
+				<td class="table-dark">N/A</td>
+				<td class="table-dark">{{sample_analysis.get_total_aligned_reads_tso500}}</td>
 				<td class="table-dark">N/A</td>
 
 			{% endif %}
-
-
-
 
 		{% else %}
 
@@ -522,8 +544,6 @@
 			<td class="table-warning"> {{sample_analysis.get_reads_tso500}} </td>
 		{% endif %}
 		{% endif %}
-
-
 
 
 
@@ -580,13 +600,27 @@
 
 		{% if 'ntc_contamination_TSO500' in checks_to_do %}
 
+			<td> {{sample_analysis.get_total_pf_reads_tso500}} </td>
 
-			{% if sample_analysis.get_percent_ntc_tso500 < 10 %}
+
+
+			{% if sample_analysis.passes_percent_ntc_tso500 %}
 				<td class="table-success"> {{sample_analysis.get_percent_ntc_tso500}}% </td>
 			{% else %}
-				<td class="table-danger"> {{sample_analysis.get_percent_ntc_tso500}}% </td>
+				<td class="table-warning"> {{sample_analysis.get_percent_ntc_tso500}}% </td>
 
 			{% endif %}
+
+
+			<td> {{sample_analysis.get_total_aligned_reads_tso500}} </td>
+
+			{% if sample_analysis.passes_percent_ntc_aligned_tso500 %}
+				<td class="table-success"> {{sample_analysis.get_percent_ntc_aligned_tso500}}% </td>
+			{% else %}
+				<td class="table-danger"> {{sample_analysis.get_percent_ntc_aligned_tso500}}% </td>
+
+			{% endif %}
+
 
 		{% endif %}
 

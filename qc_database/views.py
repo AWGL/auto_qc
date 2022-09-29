@@ -1,15 +1,18 @@
+from datetime import datetime
+
+
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import *
-from .forms import *
-from .utils.slack import message_slack
-from .utils.kpi import make_kpi_excel
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
 from django.conf import settings
 from django.http import HttpResponse
-from datetime import datetime
+
+from qc_database.models import *
+from qc_database.forms import *
+from qc_database.utils.kpi import make_kpi_excel
+
 
 @transaction.atomic
 @login_required
@@ -20,7 +23,6 @@ def home_auto_qc(request):
 	"""
 
 	run_analyses = RunAnalysis.objects.filter(watching=True).order_by('-run')
-
 
 	return render(request, 'auto_qc/home.html', {'run_analyses': run_analyses})
 
@@ -91,21 +93,6 @@ def view_run_analysis(request, pk):
 				run_analysis.signoff_user = request.user
 				run_analysis.signoff_date = datetime.now()
 				run_analysis.save()
-
-				# message run status to slack
-
-				if settings.MESSAGE_SLACK:
-
-					message_slack(
-						status_message +
-						f'```Run ID:          {run_analysis.run}\n' + 
-						f'Worksheet ID:    {run_analysis.get_worksheets()}\n' + 
-						f'Panel:           {run_analysis.analysis_type}\n' + 
-						f'Pipeline:        {run_analysis.pipeline}\n' + 
-						f'Signed off by:   {run_analysis.signoff_user}\n' +
-						f'Comments:        {run_analysis.comment}\n' +
-						f'QC link:         http://10.59.210.245:5000/run_analysis/{run_analysis.pk}/```'
-				)
 
 				return redirect('home_auto_qc')
 
@@ -213,8 +200,11 @@ def search(request):
 			if form.cleaned_data['search_type'] == 'Sample':
 
 				try:
+
 					queried_sample = Sample.objects.get(sample_id = query)
+
 				except:
+
 					return render(request, 'auto_qc/search.html', {'form': form, 'results': None})
 
 				results = SampleAnalysis.objects.filter(sample=queried_sample)
@@ -224,8 +214,11 @@ def search(request):
 			elif form.cleaned_data['search_type'] == 'Worksheet':
 
 				try:
+
 					queried_sample = WorkSheet.objects.get(worksheet_id = query)
+
 				except:
+
 					return render(request, 'auto_qc/search.html', {'form': form, 'results': None})
 
 				results = SampleAnalysis.objects.filter(worksheet=queried_sample)

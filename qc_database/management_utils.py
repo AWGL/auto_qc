@@ -766,7 +766,7 @@ def add_tso500_reads(reads_dict, run_analysis_obj):
 
 
 
-def add_tso500_ntc_contamination(ntc_contamination_dict, run_analysis_obj):
+def add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis_obj):
 
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
@@ -787,7 +787,13 @@ def add_tso500_ntc_contamination(ntc_contamination_dict, run_analysis_obj):
 
 			sample_data = ntc_contamination_dict[key]
 
-			new_reads_obj = Tso500Reads(sample_analysis = sample_analysis_obj, percent_ntc_reads= sample_data)
+			total_pf_reads=total_pf_reads_dict[key]
+
+			aligned_reads=aligned_reads_dict[key]
+
+			ntc_contamination_aligned_reads=ntc_contamination_aligned_reads_dict[key]
+
+			new_reads_obj = Tso500Reads(sample_analysis = sample_analysis_obj, aligned_reads=aligned_reads, percent_ntc_contamination=ntc_contamination_aligned_reads, total_pf_reads=total_pf_reads, percent_ntc_reads= sample_data)
 
 			new_reads_obj.save()
 

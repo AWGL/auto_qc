@@ -1,17 +1,19 @@
 import csv
-import os
 import xmltodict
 from datetime import date
 import json
-from interop import py_interop_run_metrics, py_interop_run, py_interop_summary
 import yaml
 import math
-import pandas as pd
-from pysam import VariantFile
 import string
 
+from interop import py_interop_run_metrics, py_interop_run, py_interop_summary
+from pysam import VariantFile
 
 def sample_sheet_parser(sample_sheet_path):
+	"""
+	Parse the sample sheet into a dictionary
+
+	"""
 
 	sample_sheet_dict = {}
 
@@ -58,41 +60,10 @@ def sample_sheet_parser(sample_sheet_path):
 
 	return sample_sheet_dict
 
-
-def sample_sheet_parser_nipt(sample_sheet_path):
-
-	sample_sheet_dict = {}
-
-	start = False
-
-	with open(sample_sheet_path, 'r') as csvfile:
-
-		spamreader = csv.reader(csvfile, delimiter=',')
-
-		for row in spamreader:
-
-			sample_id = row[1]
-
-			if sample_id == 'Sample_ID':
-
-				start = True
-				desc = row
-
-			if sample_id == '':
-
-				continue
-
-			if start == True and sample_id != 'Sample_ID':
-
-				sample_sheet_dict[sample_id] = {}
-
-				for i, col in enumerate(row):
-
-					sample_sheet_dict[sample_id][desc[i]] = col
-
-	return sample_sheet_dict
-
 def get_run_parameters_dict(run_parameters_path):
+	"""
+	Parse the run parameters dict
+	"""
 
 	# turn XML file into a dictionary
 	with open(run_parameters_path) as f:
