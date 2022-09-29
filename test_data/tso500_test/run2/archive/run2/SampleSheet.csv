@@ -19,7 +19,7 @@
 ,,,,,,,,,
 [Data],,,,,,,,,
 Sample_ID,Sample_Name,Sample_Plate,Sample_Well,Index_ID,index,index2,Sample_Type,Pair_ID,Description
-Sample1,Sample1,worksheet1,,,,,DNA,Sample1,pipelineName=TSO500;pipelineVersion=master;referral=Glioma
-Sample4,Sample4,worksheet2,,,,,RNA,Sample4,pipelineName=TSO500;pipelineVersion=master;referral=Glioma
+Sample1,Sample1,worksheet2,,,,,DNA,Sample1,pipelineName=TSO500;pipelineVersion=master;referral=Glioma
+Sample4,Sample4,worksheet1,,,,,RNA,Sample4,pipelineName=TSO500;pipelineVersion=master;referral=Glioma
 NTC-worksheet1,NTC-worksheet1,worksheet1,,,,,RNA,NTC-worksheet1,pipelineName=TSO500;pipelineVersion=master;referral=null
 NTC-worksheet2,NTC-worksheet2,worksheet2,,,,,DNA,NTC-worksheet2,pipelineName=TSO500;pipelineVersion=master;referral=null
