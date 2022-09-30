@@ -226,7 +226,7 @@ pipelines:
   TSO500-master-TSO500_DNA:
     results_dir:  '/mnt/wren_results/results/'
     min_q30_score: 0.8
-    ntc_contamination_cutoff: 10
+    max_ntc_contamination: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination_TSO500]
     min_fastq_size: 0
     sample_completed_files: ['*variants.tsv', '*_coverage.json']
