@@ -1,6 +1,3 @@
-from datetime import datetime
-
-
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
@@ -12,6 +9,8 @@ from django.http import HttpResponse
 from qc_database.models import *
 from qc_database.forms import *
 from qc_database.utils.kpi import make_kpi_excel
+
+from datetime import datetime as dt
 
 
 @transaction.atomic
@@ -91,7 +90,7 @@ def view_run_analysis(request, pk):
 				run_analysis.comment = comment
 				run_analysis.watching = False
 				run_analysis.signoff_user = request.user
-				run_analysis.signoff_date = datetime.now()
+				run_analysis.signoff_date = dt.now()
 				run_analysis.save()
 
 				return redirect('home_auto_qc')
