@@ -196,7 +196,7 @@ class DragenGE:
 
 		for sample in self.sample_names:
 
-			vcf_file = results_path.glob(f'post_processing/results/old_variant_database_vcf/{self.run_id}_old_variant_database.vcf')
+			vcf_file = results_path.glob(f'post_processing/results/annotated_vcf/{self.run_id}*.vcf.gz')
 
 			vcf_file = list(vcf_file)[0]
 
