@@ -203,27 +203,27 @@ def import_worksheet_data(filepath):
                 referral_name = 'wes~intellectual_disability'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
-            elif referral_formatted == 'panelwesr101eds' or referral_formatted == 'panelwesr101':
+            elif referral_formatted == 'panelwesr101eds':
                 referral_name = 'wes~ehlers_danlos_syndromes_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
-            elif referral_formatted == 'panelwesr125aortic' or referral_formatted == 'panelwesr125':
+            elif referral_formatted == 'panelwesr125aortic':
                 referral_name = 'wes~thoracic_aortic_aneurysm_and_dissection_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
-            elif referral_formatted == 'panelwesr15pid' or referral_formatted == 'panelwesr15':
+            elif referral_formatted == 'panelwesr15pid':
                 referral_name = 'wes~primary_immunodeficiency_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
-            elif referral_formatted == 'panelwesr163ed' or referral_formatted == 'panelwesr163':
+            elif referral_formatted == 'panelwesr163ed':
                 referral_name = 'wes~ectodermal_dysplasia_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
-            elif referral_formatted == 'panelwesr59epilepsy' or referral_formatted == 'panelwesr59':
+            elif referral_formatted == 'panelwesr59epilepsy':
                 referral_name = 'wes~genetic_epilepsy_syndromes_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
-            elif referral_formatted == 'panelwesr87cermal' or referral_formatted == 'panelwesr87':
+            elif referral_formatted == 'panelwesr87cermal':
                 referral_name = 'wes~cerebral_malformations_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
