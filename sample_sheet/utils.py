@@ -243,6 +243,10 @@ def import_worksheet_data(filepath):
                 referral_name = 'wgs~wings'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
+            elif referral_formatted == 'endometrial':
+                 referral_name = 'endometrial-pole'
+                 shire_referral_name = sample['REASON_FOR_REFERRAL']
+
             ## add ws level overwrite for some assays (except NTC)
             elif not sample['LABNO'].startswith('NTC'):
                 ## overwrite all Trusightcancer referrals on DB
