@@ -195,16 +195,36 @@ def import_worksheet_data(filepath):
                 referral_name = 'wgs~paediatric_disorders_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
-            elif referral_formatted == 'panelwesclefting':
-                referral_name = 'wes~clefting'
-                shire_referral_name = sample['REASON_FOR_REFERRAL']
-
             elif referral_formatted == 'panelwescongenanom':
                 referral_name = 'wes~paediatric_disorders_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
             elif referral_formatted == 'panelwesid':
                 referral_name = 'wes~intellectual_disability'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'panelwesr101eds':
+                referral_name = 'wes~ehlers_danlos_syndromes_green'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'panelwesr125aortic':
+                referral_name = 'wes~thoracic_aortic_aneurysm_and_dissection_green'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'panelwesr15pid':
+                referral_name = 'wes~primary_immunodeficiency_green'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'panelwesr163ed':
+                referral_name = 'wes~ectodermal_dysplasia_green'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'panelwesr59epilepsy':
+                referral_name = 'wes~genetic_epilepsy_syndromes_green'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'panelwesr87cermal':
+                referral_name = 'wes~cerebral_malformations_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
             elif referral_formatted == 'panelwesrasopathies':
@@ -215,13 +235,17 @@ def import_worksheet_data(filepath):
                 referral_name = 'wes~severe_microcephaly'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
-            elif referral_formatted == 'panelwesskeletalsysplasias':
+            elif referral_formatted == 'panelwesskeletaldysplasias':
                 referral_name = 'wes~skeletal_dysplasia'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
             elif referral_formatted == 'rapidwgs':
                 referral_name = 'wgs~wings'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            elif referral_formatted == 'endometrial':
+                 referral_name = 'endometrial-pole'
+                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
             ## add ws level overwrite for some assays (except NTC)
             elif not sample['LABNO'].startswith('NTC'):
