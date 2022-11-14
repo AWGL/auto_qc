@@ -304,7 +304,7 @@ class TestSampleSheet(TestCase):
 		sample_ws_obj = SampleToWorksheet.objects.get(sample=test_sample)
 		referral_test = sample_ws_obj.referral.name
 
-		self.assertEqual(referral_test, 'lung')
+		self.assertEqual(referral_test, 'endometrial-pole')
 
 
 	def test_TSO500RNA(self):
