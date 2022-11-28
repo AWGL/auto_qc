@@ -207,7 +207,7 @@ def import_worksheet_data(filepath):
                 referral_name = 'wes~ehlers_danlos_syndromes_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
-            elif referral_formatted == 'panelwesr125aortic':
+            elif referral_formatted == 'panelwesr125':
                 referral_name = 'wes~thoracic_aortic_aneurysm_and_dissection_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
@@ -219,11 +219,11 @@ def import_worksheet_data(filepath):
                 referral_name = 'wes~ectodermal_dysplasia_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
-            elif referral_formatted == 'panelwesr59epilepsy':
+            elif referral_formatted == 'panelwesr59':
                 referral_name = 'wes~genetic_epilepsy_syndromes_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
-            elif referral_formatted == 'panelwesr87cermal':
+            elif referral_formatted == 'panelwesr87':
                 referral_name = 'wes~cerebral_malformations_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
