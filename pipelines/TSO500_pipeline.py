@@ -33,12 +33,13 @@ class TSO500_DNA():
 
 		results_dir_path = Path(self.results_dir)
 		results_path = results_dir_path.joinpath(self.run_id)
+		full_results_path = results_path.joinpath("DNA_Analysis/results")
 
 		found_file_list = []
 
 		for file in self.run_completed_files:
 
-			found_file = results_path.glob(file)
+			found_file = full_results_path.glob(file)
 
 			for file in found_file:
 
@@ -55,59 +56,68 @@ class TSO500_DNA():
 		"""
 		Is the TSO500 DNA run Valid?
 
-		Checks all self.run_expected_files are present.
+		Checks contents of post_processing_finished file
 
 		"""
 
-		results_dir_path = Path(self.results_dir)
-		results_path = results_dir_path.joinpath(self.run_id)
+		if self.run_is_complete():
 
-		found_file_list = []
+			results_dir_path = Path(self.results_dir)
+			results_path = results_dir_path.joinpath(self.run_id)
+			full_results_path = results_path.joinpath("DNA_Analysis/results")
+			
+			marker_name=self.run_completed_files[0]
+		
+			marker = full_results_path.glob(marker_name)
+			
+			marker = list(marker)[0]
 
-		for file in self.run_expected_files:
+			# last line in file
+			last_report = ''
 
-			found_file = results_path.glob(file)
+			with open(marker, 'r') as outfile:
 
-			for file in found_file:
+				for x in outfile:
+					last_report = x.strip()
 
-				found_file_list.append(file)
-
-		if len(list(found_file_list)) == len(self.run_expected_files):
+			if 'success' in last_report:
 
 				return True
 
+			
 		return False
-
 
 	def sample_is_valid(self, sample):
 		"""
-		For each sample checks that it is valid.
-
-		Opens the DNA_QC_combined.txt and checks the completed_all_steps column is True
+		Has each sample in the TS500 DNA pipeline completed and is Valid?
+		Same check as run is valid as based on post processing finished marker
 
 		"""
-		results_dir_path = Path(self.results_dir)
-		results_path = results_dir_path.joinpath(self.run_id)
+		if self.run_is_complete():
 
-		found_file = results_path.glob(self.metrics_file[0])
+			results_dir_path = Path(self.results_dir)
+			results_path = results_dir_path.joinpath(self.run_id)
+			full_results_path = results_path.joinpath("DNA_Analysis/results")
+			
+			marker_name=self.run_completed_files[0]
 		
-		try:
-			found_file = list(found_file)[0]
+			marker = full_results_path.glob(marker_name)
+			
+			marker = list(marker)[0]
 
-		except:
+			# last line in file
+			last_report = ''
 
-			return False
+			with open(marker, 'r') as outfile:
 
-		dna_metrics_data = pd.read_csv(found_file, sep='\t')
+				for x in outfile:
+					last_report = x.strip()
 
-		dna_metrics_filtered = dna_metrics_data[['Sample', 'completed_all_steps']]
-		sample_metrics = dna_metrics_filtered[dna_metrics_filtered['Sample']==sample]
+			if 'success' in last_report:
 
+				return True
 
-		if sample_metrics.iloc[0,1]:
-
-			return True
-
+			
 		return False
 
 
@@ -123,7 +133,7 @@ class TSO500_DNA():
 
 		for sample_completed_file in self.sample_completed_files:
 
-			found_file = results_path.joinpath('Gathered_Results/Database').glob(sample_completed_file)
+			found_file = results_path.joinpath('DNA_Analysis/results/Database').glob(sample_completed_file)
 
 			for file in found_file:
 
@@ -153,75 +163,99 @@ class TSO500_DNA():
 		aligned_reads_dict={}
 		ntc_contamination_aligned_reads_dict={}
 
+		results_dir_path = Path(self.results_dir)
+		results_path = results_dir_path.joinpath(self.run_id)
+		full_results_path = results_path.joinpath("DNA_Analysis/results/QC_Checks")
+
+		#Go through samples
 		for sample in self.sample_names:
+			
+			#First of all capture aligned reads metrics from NTC cont file
+			align_name = sample+"_ntc_cont.txt"
+		
+			align_file = full_results_path.glob(align_name)
+			
+			align_file = list(align_file)[0]
+			
+			with open(align_file, 'r') as align_metrics:
 
-			results_dir_path = Path(self.results_dir)
-			results_path = results_dir_path.joinpath(self.run_id)
+				#File is space separated single line with number of aligned reads in third column
+				for line in align_metrics:
+					line = line.strip()
+					sample_aligned_reads = line.split()[2]
+			
+			#Get NTC aligned reads
+			ntc_name = "NTC*_ntc_cont.txt"
+		
+			ntc_file = full_results_path.glob(ntc_name)
+			
+			ntc_file = list(ntc_file)[0]
+			
+			with open(ntc_file, 'r') as ntc_metrics:
 
-			for file in self.metrics_file:
+				#File is space separated single line with number of aligned reads in third column
+				for line in ntc_metrics:
+					line = line.strip()
+					ntc_aligned_reads = line.split()[2]
+					
+			#Now will get filtered read number based on FastQC reports- will use R1 as should be the same
+			qc_name = sample+"_R1_fastqc_status.txt"
+		
+			qc_file = full_results_path.glob(qc_name)
+			
+			qc_file = list(qc_file)[0]
+			
+			with open(qc_file, 'r') as qc_metrics:
 
-				found_file = results_path.glob(file)
+				#File is tab separated with a line for Total_sequences
+				for line in qc_metrics:
+					line = line.strip()
+					
+					if line.startswith("Total_sequences"):
+						sample_reads = line.split()[1]
+		
+						
+			#Repeat for NTC
+			ntc_qc_name = "NTC*_R1_fastqc_status.txt"
+		
+			ntc_qc_file = full_results_path.glob(ntc_qc_name)
+			
+			ntc_qc_file = list(ntc_qc_file)[0]
+			
+			with open(ntc_qc_file, 'r') as ntc_qc_metrics:
 
-				for file in found_file:
+				#File is tab separated with a line for Total_sequences
+				for line in ntc_qc_metrics:
+					line = line.strip()
+					
+					if line.startswith("Total_sequences"):
+						ntc_reads = line.split()[1]
+			
 
-					dna_metrics_data = pd.read_csv(file, sep='\t')
-
-					dna_metrics_filtered = dna_metrics_data[['Sample', 'total_pf_reads', 'Aligned_reads']]
-
-					#get ntc data
-					ntc_metrics = dna_metrics_filtered[dna_metrics_filtered['Sample'].str.contains('NTC')]
-
-					#get total pf reads in NTC
-					ntc_reads = ntc_metrics.iloc[0,1]
-
-					#get total aligned reads in NTC
-					ntc_aligned_reads = ntc_metrics.iloc[0,2]
-
-					#get sample data
-					sample_metrics = dna_metrics_filtered[dna_metrics_filtered['Sample']==sample]
-
-					#get total pf reads
-					sample_reads = sample_metrics.iloc[0,1]
-
-					#get total aligned reads
-					sample_aligned_reads=sample_metrics.iloc[0,2]
-
-					# if there are no pf reads report as 100% 
-					if sample_reads == 0:
-						total_pf_reads_dict[sample]=0
-						ntc_contamination_dict[sample] = 100
-
-					#if number of pf reads is na report as None
-					elif pd.isna(sample_reads):
-						total_pf_reads_dict[sample]= None
-						ntc_contamination_dict[sample] = None
-
-					else:
-
-						ntc_contamination = ((ntc_reads/sample_reads)*100)
-						decimal.getcontext().rounding=decimal.ROUND_DOWN
-						ntc_contamination_dict[sample]=(decimal.Decimal(ntc_contamination).quantize(decimal.Decimal('1')))
-						total_pf_reads_dict[sample]= sample_reads
-
-
-					# if there are no aligned reads report as 100% 
-					if sample_aligned_reads == 0:
-						aligned_reads_dict[sample]=0
-						ntc_contamination_aligned_reads_dict[sample] = 100
-
-					#if number of aligned reads is na report as None
-					elif pd.isna(sample_aligned_reads):
-						aligned_reads_dict[sample]= None
-						ntc_contamination_aligned_reads_dict[sample] = None
-
-					else:
-
-						ntc_contamination_aligned_reads = ((ntc_aligned_reads/sample_aligned_reads)*100)
-						decimal.getcontext().rounding=decimal.ROUND_DOWN
-						ntc_contamination_aligned_reads_dict[sample]=(decimal.Decimal(ntc_contamination_aligned_reads).quantize(decimal.Decimal('1')))
-						aligned_reads_dict[sample]= sample_aligned_reads
+			# if there are no pf reads report as 100% 
+			if sample_reads == 0:
+				total_pf_reads_dict[sample]=0
+				ntc_contamination_dict[sample] = 100
 
 
+			else:
+				ntc_contamination = ((int(ntc_reads)/int(sample_reads))*100)
+				decimal.getcontext().rounding=decimal.ROUND_DOWN
+				ntc_contamination_dict[sample]=(decimal.Decimal(ntc_contamination).quantize(decimal.Decimal('1')))
+				total_pf_reads_dict[sample]= sample_reads
+
+
+			# if there are no aligned reads report as 100% 
+			if sample_aligned_reads == 0:
+				aligned_reads_dict[sample]=0
+				ntc_contamination_aligned_reads_dict[sample] = 100
+
+
+			else:
+				ntc_contamination_aligned_reads = ((int(ntc_aligned_reads)/int(sample_aligned_reads))*100)
+				decimal.getcontext().rounding=decimal.ROUND_DOWN
+				ntc_contamination_aligned_reads_dict[sample]=(decimal.Decimal(ntc_contamination_aligned_reads).quantize(decimal.Decimal('1')))
+				aligned_reads_dict[sample]= sample_aligned_reads
 
 		return ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict
 	
