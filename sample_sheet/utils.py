@@ -211,6 +211,10 @@ def import_worksheet_data(filepath):
                 referral_name = 'wes~thoracic_aortic_aneurysm_and_dissection_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
+            elif referral_formatted == 'panelwesclefting':
+                referral_name = 'wes~clefting'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
             elif referral_formatted == 'panelwesr15pid':
                 referral_name = 'wes~primary_immunodeficiency_green'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
