@@ -123,7 +123,7 @@ class TSO500_DNA():
 
 	def sample_is_complete(self, sample):
 		"""
-		Has each sample in the TS500 DNA pipeline completed?
+		Has each sample in the TSO500 DNA pipeline completed?
 
 		"""
 		results_dir_path = Path(self.results_dir)
@@ -198,8 +198,9 @@ class TSO500_DNA():
 					line = line.strip()
 					ntc_aligned_reads = line.split()[2]
 					
-			#Now will get filtered read number based on FastQC reports- will use R1 as should be the same
-			qc_name = sample+"_R1_fastqc_status.txt"
+			#Now will get filtered read number based on read number file. Will go for R1 but will be identical for R2. 
+			
+			qc_name = sample+"_R1_read_number.txt"
 		
 			qc_file = full_results_path.glob(qc_name)
 			
@@ -216,7 +217,7 @@ class TSO500_DNA():
 		
 						
 			#Repeat for NTC
-			ntc_qc_name = "NTC*_R1_fastqc_status.txt"
+			ntc_qc_name = "NTC*_R1_read_number.txt"
 		
 			ntc_qc_file = full_results_path.glob(ntc_qc_name)
 			
@@ -271,16 +272,18 @@ class TSO500_DNA():
 
 			results_dir_path = Path(self.results_dir)
 			results_path = results_dir_path.joinpath(self.run_id)
+			results_dir_path = Path(self.results_dir)
+			full_results_path = results_path.joinpath("DNA_Analysis/results/QC_Checks")
 
-			fastqc_data_files = results_path.glob(f'analysis/{sample}/FastQC/*{sample}*_fastqc.txt')
+			fastqc_data_files = full_results_path.glob(f'*{sample}*_fastqc_status.txt')
 
 			sample_fastqc_list = []
 
 			for fastqc_data in fastqc_data_files:
 
 				file = fastqc_data.name
-				read_number = file.split('_')[-2]
-				lane = file.split('_')[-3]
+				read_number = file.split('_')[1]
+				lane = "Combined"
 
 				parsed_fastqc_data = parsers.parse_fastqc_file_tso500(fastqc_data)
 
@@ -297,7 +300,6 @@ class TSO500_DNA():
 				file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
 				file_fastqc_dict['per_sequence_gc_content'] = parsed_fastqc_data['Per sequence GC content']
 				file_fastqc_dict['per_base_n_content'] = parsed_fastqc_data['Per base N content']
-				file_fastqc_dict['per_base_sequence_content'] = parsed_fastqc_data['Per base sequence content']
 				file_fastqc_dict['sequence_length_distribution'] = parsed_fastqc_data['Sequence Length Distribution']
 				file_fastqc_dict['sequence_duplication_levels'] = parsed_fastqc_data['Sequence Duplication Levels']
 				file_fastqc_dict['overrepresented_sequences'] = parsed_fastqc_data['Overrepresented sequences']

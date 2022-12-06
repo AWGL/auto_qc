@@ -463,7 +463,7 @@
 
 			{% if 'fastqc' in checks_to_do %}
 			<td class="table-dark"> {{sample_analysis.passes_fastqc}} </td>
-			{% endif %}
+		        {% endif %}
 
 			{% if 'coverage' in checks_to_do %}
 			<td class="table-dark"> {{sample_analysis.get_region_coverage_over_20}} </td>
@@ -529,9 +529,13 @@
 
 		{% if 'fastqc' in checks_to_do %}
 		{% if sample_analysis.passes_fastqc == True %}
-			<td class="table-success"> {{sample_analysis.passes_fastqc}} </td>
+			<td class="table-success"> 
+			<div data-toggle="tooltip" data-placement="top" title="Basic Statistics = {{sample_analysis.display_fastqc_checks.0}} | Per base sequencing quality = {{sample_analysis.display_fastqc_checks.1}} | Per tile sequencing quality = {{sample_analysis.display_fastqc_checks.2}} | Per sequence quality scores = {{sample_analysis.display_fastqc_checks.3}} | Per base N content =  {{sample_analysis.display_fastqc_checks.4}}"> 
+			{{sample_analysis.passes_fastqc}} </td>
 		{% else %}
-			<td class="table-danger"> {{sample_analysis.passes_fastqc}} </td>
+			<td class="table-danger"> 
+			<div data-toggle="tooltip" data-placement="top" title="Basic Statistics = {{sample_analysis.display_fastqc_checks.0}} | Per base sequencing quality = {{sample_analysis.display_fastqc_checks.1}} | Per tile sequencing quality = {{sample_analysis.display_fastqc_checks.2}} | Per sequence quality scores = {{sample_analysis.display_fastqc_checks.3}} | Per base N content =  {{sample_analysis.display_fastqc_checks.4}}">
+			{{sample_analysis.passes_fastqc}} </td>
 		{% endif %}
 		{% endif %}
 

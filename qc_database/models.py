@@ -568,6 +568,30 @@ class SampleAnalysis(models.Model):
 
 		return True
 
+	def display_fastqc_checks(self):
+		"""
+		Give Exact Metrics for FastQC
+		"""
+		#Empty list for metrics
+		Metrics=[]
+		
+		fastqc_objs = SampleFastqcData.objects.filter(sample_analysis=self)
+		
+		if len(fastqc_objs) == 0:
+			
+			return None
+
+		for fastqc in fastqc_objs:
+
+			Metrics.append(fastqc.basic_statistics)
+			Metrics.append(fastqc.per_base_sequencing_quality)
+			Metrics.append(fastqc.per_tile_sequence_quality)
+			Metrics.append(fastqc.per_sequence_quality_scores)
+			Metrics.append(fastqc.per_base_n_content)
+		
+		return Metrics
+	
+	
 	def get_total_reads(self):
 
 
