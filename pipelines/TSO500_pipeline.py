@@ -182,7 +182,7 @@ class TSO500_DNA():
 				#File is space separated single line with number of aligned reads in third column
 				for line in align_metrics:
 					line = line.strip()
-					sample_aligned_reads = line.split()[2]
+					sample_aligned_reads = int(line.split()[2])
 			
 			#Get NTC aligned reads
 			ntc_name = "NTC*_ntc_cont.txt"
@@ -196,7 +196,7 @@ class TSO500_DNA():
 				#File is space separated single line with number of aligned reads in third column
 				for line in ntc_metrics:
 					line = line.strip()
-					ntc_aligned_reads = line.split()[2]
+					ntc_aligned_reads = int(line.split()[2])
 					
 			#Now will get filtered read number based on read number file. Will go for R1 but will be identical for R2. 
 			
@@ -213,7 +213,7 @@ class TSO500_DNA():
 					line = line.strip()
 					
 					if line.startswith("Total_sequences"):
-						sample_reads = line.split()[1]
+						sample_reads = int(line.split()[1])
 		
 						
 			#Repeat for NTC
@@ -230,7 +230,7 @@ class TSO500_DNA():
 					line = line.strip()
 					
 					if line.startswith("Total_sequences"):
-						ntc_reads = line.split()[1]
+						ntc_reads = int(line.split()[1])
 			
 
 			# if there are no pf reads report as 100% 

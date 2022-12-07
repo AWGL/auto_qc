@@ -120,10 +120,10 @@ class TestPipelineMonitoring(unittest.TestCase):
 			results_dir = 'test_data/tso500_test'
 			tso500 = TSO500_pipeline.TSO500_DNA(results_dir = 'test_data/tso500_test/',
 																sample_completed_files= ['*variants.tsv', '*_coverage.json'],
-																sample_valid_files = [ 'DNA_QC_combined.txt'],
-																run_completed_files =['run_complete.txt'],
-																run_expected_files=['DNA_QC_combined.txt','completed_samples.txt' ],
-																metrics_file=['DNA_QC_combined.txt'],
+																sample_valid_files = [],
+																run_completed_files =['post_processing_finished.txt'],
+																run_expected_files=[],
+																metrics_file=['*_ntc_cont.txt','*_fastqc_status.txt','_read_number.txt'],
 																run_id = 'run1',
 																sample_names = ['Sample1', 'Sample2', 'Sample3', 'NTC-worksheet2'])
 
@@ -161,7 +161,7 @@ class TestPipelineMonitoring(unittest.TestCase):
 			self.assertEqual(sample_valid, True)
 
 			sample_valid=tso500.sample_is_valid(sample='Sample3')
-			self.assertEqual(sample_valid, False)
+			self.assertEqual(sample_valid, True)
 
 			sample_valid=tso500.sample_is_valid(sample='NTC-worksheet2')
 			self.assertEqual(sample_valid, True)
@@ -259,10 +259,10 @@ class TestPipelineMonitoring(unittest.TestCase):
 			results_dir = 'test_data/tso500_test'
 			tso500 = TSO500_pipeline.TSO500_DNA(results_dir = 'test_data/tso500_test/',
 																sample_completed_files= ['*variants.tsv', '*_coverage.json'],
-																sample_valid_files = [ 'DNA_QC_combined.txt'],
-																run_completed_files =['run_complete.txt'],
-																run_expected_files=['DNA_QC_combined.txt','completed_samples.txt' ],
-																metrics_file=['DNA_QC_combined.txt'],
+																sample_valid_files = [],
+																run_completed_files =['post_processing_finished.txt'],
+																run_expected_files=[],
+																metrics_file=['*_ntc_cont.txt','*_fastqc_status.txt','_read_number.txt'],
 																run_id = 'run2',
 																sample_names = ['Sample1', 'Sample2', 'Sample3', 'NTC-worksheet2'])
 
