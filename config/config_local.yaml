@@ -130,26 +130,26 @@ pipelines:
     run_not_expected_files: []
 
   TSO500-master-TSO500_DNA:
-    results_dir: '/media/joseph/Storage/data/results/'
+    results_dir:  '/home/sophieshaw/AutoQC_somatic_enrichment_nextflow/'
     min_q30_score: 0.8
-    ntc_contamination_cutoff: 10
+    max_ntc_contamination: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination_TSO500]
     min_fastq_size: 0
     sample_completed_files: ['*variants.tsv', '*_coverage.json']
-    sample_valid_files: ['DNA_QC_combined.txt']
-    run_completed_files: ['contamination-*.csv']
-    run_expected_files: ['DNA_QC_combined.txt','completed_samples.txt' ]
-    metrics_file: ['DNA_QC_combined.txt']
+    sample_valid_files: []
+    run_completed_files: ['post_processing_finished.txt']
+    run_expected_files: []
+    metrics_file: ['*_ntc_cont.txt','*_fastqc_status.txt','_read_number.txt']
 
 
   TSO500-master-TSO500_RNA:
-    results_dir: '/media/joseph/Storage/data/results/'
+    results_dir:  '/home/sophieshaw/AutoQC_somatic_enrichment_nextflow/'
     min_q30_score: 0.8
-    ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, reads_tso500]
     min_fastq_size: 0
+    min_on_target_reads: 9000000
     sample_completed_files: ['*_fusion_check.csv']
-    run_completed_files: ['contamination-*.csv']
+    run_completed_files: ['run_complete.txt']
     run_expected_files: ['RNA_QC_combined.txt', 'contamination-*.csv' ,'completed_samples.txt']
     metrics_file: ['RNA_QC_combined.txt']
 
