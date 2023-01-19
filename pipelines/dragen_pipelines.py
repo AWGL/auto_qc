@@ -161,7 +161,7 @@ class DragenGE:
 			alignment_metrics_file = results_path.joinpath(sample).glob(f'*{sample}.mapping_metrics.csv')
 
 			alignment_metrics_file = list(alignment_metrics_file)[0]
-			
+
 			parsed_alignment_metrics = parsers.parse_dragen_alignment_metrics_file(alignment_metrics_file)
 
 			run_alignment_metrics_dict[sample] = parsed_alignment_metrics

@@ -1,6 +1,7 @@
 from io import StringIO, TextIOWrapper
 from datetime import datetime
 from itertools import cycle, islice
+
 import numpy
 
 from django.shortcuts import render, get_object_or_404
@@ -11,9 +12,12 @@ from django.contrib.auth.decorators import login_required
 from django.forms import formset_factory
 from django.contrib.messages import get_messages
 from sample_sheet.utils import import_worksheet_data
+from django import forms
+from django.conf import settings
+
 from sample_sheet.models import Assay, IndexSet, Worksheet, SampleToWorksheet, IndexToIndexSet, Index, Sample
 from .forms import TechSettingsForm, DownloadSamplesheetButton, EditIndexForm, uploadQuery, EditSampleNotesForm, ClinSciSignoffForm, ClinSciOpenWorksheetForm, TechteamSignoffForm, TechteamOpenWorksheetForm, EditSampleDetailsForm, ResetIndexForm, CreateFamilyForm, ClearFamilyForm, AdvancedDownloadForm
-from django.conf import settings
+
 
 ########## home page ################
 @transaction.atomic
@@ -236,6 +240,16 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 	else:
 		download_form = DownloadSamplesheetButton(checks_complete=False, assay_obj=assay)
 
+	clin_sci_form = ClinSciSignoffForm(worksheet_obj=worksheet_obj)
+
+
+	if assay.assay_name != 'WGS':
+
+		clin_sci_form.fields['sex_checked'].widget = forms.HiddenInput()
+		clin_sci_form.fields['hpo_checked'].widget = forms.HiddenInput()
+		clin_sci_form.fields['family_checked'].widget = forms.HiddenInput()
+
+
 	## add to context dict for template
 	context = {
 		'worksheet_info': {
@@ -266,7 +280,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 		},
 		'tech_settings_form': TechSettingsForm(worksheet_obj=worksheet_obj),
 		'download_form': download_form,
-		'clinsci_signoff_form' : ClinSciSignoffForm(worksheet_obj=worksheet_obj),
+		'clinsci_signoff_form' : clin_sci_form,
 		'clinsci_reopen_form' : ClinSciOpenWorksheetForm(worksheet_obj=worksheet_obj),
 		'techteam_signoff_form' : TechteamSignoffForm(worksheet_obj=worksheet_obj),
 		'techteam_reopen_form' : TechteamOpenWorksheetForm(worksheet_obj=worksheet_obj),
@@ -283,8 +297,6 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 		if 'index_set' in request.POST:
 
 			tech_settings_form = TechSettingsForm(request.POST, worksheet_obj=worksheet_obj)
-			# print(tech_settings_form.errors)
-
 
 			if tech_settings_form.is_valid():
 				cleaned_data = tech_settings_form.cleaned_data
@@ -509,7 +521,6 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 				if cleaned_data['fatherid'] == cleaned_data['motherid'] or cleaned_data['fatherid'] == cleaned_data['probandid'] or cleaned_data['motherid'] == cleaned_data['probandid']:
 
 					print('selected samples were not unique')
-					print(cleaned_data)
 
 				## check familyid was selected
 				elif cleaned_data['familyid'] == None:
@@ -579,8 +590,13 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 				cleaned_data = clinsci_signoff_form.cleaned_data
 
+				main_checked = cleaned_data['clinsci_worksheet_checked']
+				sex_checked = cleaned_data['sex_checked']
+				hpo_checked = cleaned_data['hpo_checked']
+				family_checked = cleaned_data['family_checked']
+
 				# if clinsci manual check tick box is done before clicking 'sign off'
-				if cleaned_data['clinsci_worksheet_checked'] == True:
+				if (main_checked and assay.assay_name != 'WGS') or (assay.assay_name == 'WGS' and main_checked and hpo_checked and family_checked):
 
 					# all sign off related fields are changed
 					worksheet_obj.clinsci_manual_check = True

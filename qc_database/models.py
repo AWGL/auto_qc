@@ -592,7 +592,7 @@ class SampleAnalysis(models.Model):
 	def get_contamination(self):
 
 
-		if 'DragenWGS' in self.pipeline.pipeline_id:
+		if 'DragenWGS' in self.pipeline.pipeline_id or 'DragenGE' in self.pipeline.pipeline_id:
 
 			contamination_obj = DragenAlignmentMetrics.objects.get(sample_analysis=self)
 
@@ -620,6 +620,10 @@ class SampleAnalysis(models.Model):
 		except:
 			
 			return None
+
+		if contamination is None:
+
+			return False
 
 		if contamination > self.contamination_cutoff:
 
@@ -792,7 +796,7 @@ class SampleAnalysis(models.Model):
 
 	def get_variant_count(self):
 
-		if 'DragenWGS' in self.pipeline.pipeline_id:
+		if 'DragenWGS' in self.pipeline.pipeline_id or 'DragenGE' in self.pipeline.pipeline_id:
 
 			variant_calling_metrics = DragenVariantCallingMetrics.objects.get(sample_analysis=self)
 
