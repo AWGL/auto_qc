@@ -242,7 +242,6 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 	clin_sci_form = ClinSciSignoffForm(worksheet_obj=worksheet_obj)
 
-
 	if assay.assay_name != 'WGS':
 
 		clin_sci_form.fields['sex_checked'].widget = forms.HiddenInput()
@@ -596,7 +595,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 				family_checked = cleaned_data['family_checked']
 
 				# if clinsci manual check tick box is done before clicking 'sign off'
-				if (main_checked and assay.assay_name != 'WGS') or (assay.assay_name == 'WGS' and main_checked and hpo_checked and family_checked):
+				if (main_checked and assay.assay_name != 'WGS') or (assay.assay_name == 'WGS' and main_checked and hpo_checked and family_checked and sex_checked):
 
 					# all sign off related fields are changed
 					worksheet_obj.clinsci_manual_check = True
@@ -625,6 +624,8 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 						download_form = DownloadSamplesheetButton(checks_complete=False, assay_obj=assay)
 
 					context['download_form'] = download_form
+
+
 
 
 		## if clinsci reopen form is pressed
