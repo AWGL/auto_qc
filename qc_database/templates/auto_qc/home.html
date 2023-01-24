@@ -6,7 +6,7 @@
 <br>
 
 
-<table id="run_analysis" class="table table-hover table-bordered table-responsive">
+<table id="run_analysis" class="table table-hover table-bordered">
 
   <thead>
 	<tr>
@@ -15,7 +15,6 @@
 	  <th>Worksheets</th>
 	  <th>Analysis</th>
 	  <th>Pipeline</th>
-	  <th>Start Date</th>
 	  <th>Demultiplex Complete</th>
 	  <th>Demultiplex Valid</th>
 	  <th>Samples Complete</th>
@@ -39,7 +38,6 @@
 		<td> {{run_analysis.get_worksheets}} </td>
 		<td> {{run_analysis.analysis_type.analysis_type_id}} </td>
 		<td> {{run_analysis.pipeline.pipeline_id}} </td>
-		<td> {{run_analysis.start_date|date:'Y-m-d'}} </td>
 
 		{% if run_analysis.analysis_type.analysis_type_id == "NIPT" %}
 			<td class="table-success"> NA</td>
@@ -97,12 +95,13 @@
 
 
 	</tr>
+	</tbody>
 
 
 
 
 	{% endfor %}
-  </tbody>
+  
 
 
 </table>

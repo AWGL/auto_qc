@@ -653,10 +653,6 @@ class Command(BaseCommand):
 							coverage_metrics_dict = dragen_ge.get_coverage_metrics()
 							management_utils.add_custom_coverage_metrics(coverage_metrics_dict, run_analysis)
 
-							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
-							contamination_metrics_dict = dragen_ge.get_contamination()
-							management_utils.add_contamination_metrics(contamination_metrics_dict, run_analysis)
-
 							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
 							sex_dict = dragen_ge.get_sex_metrics()
 							management_utils.add_sex_metrics(sex_dict, run_analysis, 'sex')
@@ -672,10 +668,6 @@ class Command(BaseCommand):
 							logger.info (f'Putting sensitivity metrics into db for run {run_analysis.run.run_id}')
 							sensitivity_metrics = dragen_ge.get_sensitivity()
 							management_utils.add_sensitivity_metrics(sensitivity_metrics, run_analysis)
-
-							logger.info (f'Adding variant count metrics into db for run {run_analysis.run.run_id}')
-							variant_count = dragen_ge.get_variant_count_metrics()
-							management_utils.add_variant_count_metrics(variant_count, run_analysis)
 
 							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
 							parsed_relatedness, parsed_relatedness_comment = dragen_ge.get_relatedness_metrics(run_analysis.min_relatedness_parents,
@@ -697,10 +689,6 @@ class Command(BaseCommand):
 							coverage_metrics_dict = dragen_ge.get_coverage_metrics()
 							management_utils.add_custom_coverage_metrics(coverage_metrics_dict, run_analysis)
 
-							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
-							contamination_metrics_dict = dragen_ge.get_contamination()
-							management_utils.add_contamination_metrics(contamination_metrics_dict, run_analysis)
-
 							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
 							sex_dict = dragen_ge.get_sex_metrics()
 							management_utils.add_sex_metrics(sex_dict, run_analysis, 'sex')
@@ -716,10 +704,6 @@ class Command(BaseCommand):
 							logger.info (f'Putting sensitivity metrics into db for run {run_analysis.run.run_id}')
 							sensitivity_metrics = dragen_ge.get_sensitivity()
 							management_utils.add_sensitivity_metrics(sensitivity_metrics, run_analysis)
-
-							logger.info (f'Adding variant count metrics into db for run {run_analysis.run.run_id}')
-							variant_count = dragen_ge.get_variant_count_metrics()
-							management_utils.add_variant_count_metrics(variant_count, run_analysis)
 
 							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
 							parsed_relatedness, parsed_relatedness_comment = dragen_ge.get_relatedness_metrics(run_analysis.min_relatedness_parents,

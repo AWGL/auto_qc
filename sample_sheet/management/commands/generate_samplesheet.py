@@ -22,8 +22,6 @@ class Command(BaseCommand):
 
         ## use main/first assay for majority of formatting purposes. Can fail if wrong samplesheets are paired
         assay = assays[0]
-        print(assay)
-
 
         ## hardcoded description column dictionary. added to and edited before writing csv file
         description_dict = {
@@ -112,8 +110,7 @@ class Command(BaseCommand):
         ## process dict again to create fields
         for pos, values in ss_data_dict.items():
 
-            print(pos)
-            print(values)
+
             '''
             1 {'Sample_ID': '20M55555', 'Sample_Name': '20M55555',
             'Sample_Plate': '21-678', 'Sample_Well': 1, 'I7_Index_ID': 'A05',
