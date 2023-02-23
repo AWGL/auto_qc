@@ -973,3 +973,28 @@ def parse_custom_coverage_metrics(custom_coverage_file):
 			custom_coverage_dict[key] = value
 
 	return custom_coverage_dict
+
+def parse_dragen_cnv_qc_metrics(cnv_qc_metrics_file):
+	"""
+	Parse the CNV QC metrics from the Dragen post-processing pipeline
+	"""
+
+	cnv_qc_dict = {}
+
+	with open(cnv_qc_metrics_file) as file:
+
+		cnv_dictreader = csv.DictReader(file)
+
+		for i in cnv_dictreader:
+			sample = i["sample"]
+			key = i["key"]
+			value = i["value"]
+			
+			try:
+				cnv_qc_dict[sample][key] = value
+			
+			except KeyError:
+				cnv_qc_dict[sample] = {}
+				cnv_qc_dict[sample][key] = value
+
+	return cnv_qc_dict
