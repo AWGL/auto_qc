@@ -1,4 +1,5 @@
 import csv
+import os
 from pathlib import Path
 import datetime
 import logging
@@ -150,6 +151,16 @@ class Command(BaseCommand):
 						checks_to_try_dict=dict(zip(checks_to_try, checks_to_try))
 						checks_to_try=','.join(checks_to_try)
 
+						if "max_cnv_calls" in checks_to_try_dict.keys():
+
+							results_dir = config_dict['pipelines'][run_config_key]['results_dir']
+
+							cnv_qc_file = f"{results_dir}/{raw_data.name}/NonocusWES38/post_processing/results/sv_cnv/qc/{raw_data.name}.cnv_qc_report.csv"
+
+							if not os.path.isfile(cnv_qc_file):
+								checks_to_try_dict.pop("max_cnv_calls")
+								checks_to_try = checks_to_try.replace(",max_cnv_calls","")
+
 
 					except:
 
@@ -235,6 +246,16 @@ class Command(BaseCommand):
 						checks_to_try = config_dict['pipelines'][run_config_key]['qc_checks']
 						checks_to_try_dict=dict(zip(checks_to_try, checks_to_try))
 						checks_to_try=','.join(checks_to_try)
+
+						if "max_cnv_calls" in checks_to_try_dict.keys():
+
+							results_dir = config_dict['pipelines'][run_config_key]['results_dir']
+
+							cnv_qc_file = f"{results_dir}/{raw_data.name}/NonocusWES38/post_processing/results/sv_cnv/qc/{raw_data.name}.cnv_qc_report.csv"
+
+							if not os.path.isfile(cnv_qc_file):
+								checks_to_try_dict.pop("max_cnv_calls")
+								checks_to_try = checks_to_try.replace(",max_cnv_calls","")
 
 
 					except:
@@ -696,10 +717,13 @@ class Command(BaseCommand):
 							logger.info (f'Putting sensitivity metrics into db for run {run_analysis.run.run_id}')
 							sensitivity_metrics = dragen_ge.get_sensitivity()
 							management_utils.add_sensitivity_metrics(sensitivity_metrics, run_analysis)
-
-							logger.info (f'Putting CNV QC metrics into db for run {run_analysis.run.run_id}')
-							cnv_qc_metrics = dragen_ge.get_cnv_qc_metrics()
-							management_utils.add_dragen_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
+							
+							if "max_cnv_calls" in checks_to_try_dict.keys():
+								logger.info (f'Putting CNV QC metrics into db for run {run_analysis.run.run_id}')
+								cnv_qc_metrics = dragen_ge.get_cnv_qc_metrics()
+								management_utils.add_dragen_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
+							else:
+								logger.info (f'No CNV metrics for this run {run_analysis.run.run_id}')
 
 							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
 							parsed_relatedness, parsed_relatedness_comment = dragen_ge.get_relatedness_metrics(run_analysis.min_relatedness_parents,
@@ -737,9 +761,12 @@ class Command(BaseCommand):
 							sensitivity_metrics = dragen_ge.get_sensitivity()
 							management_utils.add_sensitivity_metrics(sensitivity_metrics, run_analysis)
 
-							logger.info (f'Putting CNV QC metrics into db for run {run_analysis.run.run_id}')
-							cnv_qc_metrics = dragen_ge.get_cnv_qc_metrics()
-							management_utils.add_dragen_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
+							if "max_cnv_calls" in checks_to_try_dict.keys():
+								logger.info (f'Putting CNV QC metrics into db for run {run_analysis.run.run_id}')
+								cnv_qc_metrics = dragen_ge.get_cnv_qc_metrics()
+								management_utils.add_dragen_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
+							else:
+								logger.info (f'No CNV metrics for this run {run_analysis.run.run_id}')
 
 							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
 							parsed_relatedness, parsed_relatedness_comment = dragen_ge.get_relatedness_metrics(run_analysis.min_relatedness_parents,
