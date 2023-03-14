@@ -1,8 +1,8 @@
 from django.test import TestCase
 import unittest
 
-from qc_database.models import AnalysisType, DragenCNVMetrics, Pipeline, Run, RunAnalysis, Sample, SampleAnalysis, WorkSheet
-from pipelines.parsers import parse_dragen_cnv_qc_metrics
+from qc_database.models import AnalysisType, CNVMetrics, Pipeline, Run, RunAnalysis, Sample, SampleAnalysis, WorkSheet
+from pipelines.parsers import parse_exome_postprocessing_cnv_qc_metrics
 
 class TestParseCNVQC(unittest.TestCase):
     
@@ -37,7 +37,7 @@ class TestParseCNVQC(unittest.TestCase):
                 "exome_depth_x_reference_count": "1"
                 }
         }
-        result = parse_dragen_cnv_qc_metrics(self.test_data)
+        result = parse_exome_postprocessing_cnv_qc_metrics(self.test_data)
         self.assertEqual(expected, result)
 
 class TestCNVModels(TestCase):
@@ -91,7 +91,7 @@ class TestCNVModels(TestCase):
         )
         self.sample_analysis_obj = SampleAnalysis.objects.get(sample=self.sample_obj)
 
-        DragenCNVMetrics.objects.create(
+        CNVMetrics.objects.create(
             sample_analysis=self.sample_analysis_obj,
             max_corr=0.99583,
             max_over_threshold=True,
@@ -104,7 +104,7 @@ class TestCNVModels(TestCase):
             exome_depth_autosomal_reference_count=8,
             exome_depth_x_reference_count=3
         )
-        self.dragen_cnv_metrics_obj = DragenCNVMetrics.objects.get(sample_analysis=self.sample_analysis_obj)
+        self.dragen_cnv_metrics_obj = CNVMetrics.objects.get(sample_analysis=self.sample_analysis_obj)
 
     def test_get_exome_depth_correlation(self):
         max_over_threshold = self.sample_analysis_obj.get_exome_depth_correlation()
@@ -130,17 +130,17 @@ class TestCNVModels(TestCase):
         self.assertEqual(x_reference_count, expected_x_reference_count)
 
     def test_passes_cnv_calling_pass(self):
-        DragenCNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(exome_depth_count=150)
+        CNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(exome_depth_count=150)
         passes_cnv_calling = self.sample_analysis_obj.passes_cnv_calling()
         self.assertTrue(passes_cnv_calling)
 
     def test_passes_cnv_calling_correlation_fail(self):
-        DragenCNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(max_over_threshold=False)
+        CNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(max_over_threshold=False)
         passes_cnv_calling = self.sample_analysis_obj.passes_cnv_calling()
         self.assertFalse(passes_cnv_calling)
 
     def test_passes_cnv_calling_cnv_fail_fail(self):
-        DragenCNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(cnv_fail=True)
+        CNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(cnv_fail=True)
         passes_cnv_calling = self.sample_analysis_obj.passes_cnv_calling()
         self.assertFalse(passes_cnv_calling)
 
@@ -149,12 +149,12 @@ class TestCNVModels(TestCase):
         self.assertFalse(passes_cnv_calling)
 
     def test_passes_cnv_calling_autosomal_reference_count_fail(self):
-        DragenCNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(exome_depth_autosomal_reference_count=1)
+        CNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(exome_depth_autosomal_reference_count=1)
         passes_cnv_calling = self.sample_analysis_obj.passes_cnv_calling()
         self.assertFalse(passes_cnv_calling)
 
     def test_passes_cnv_calling_x_reference_count_fail(self):
-        DragenCNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(exome_depth_x_reference_count=1)
+        CNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(exome_depth_x_reference_count=1)
         passes_cnv_calling = self.sample_analysis_obj.passes_cnv_calling()
         self.assertFalse(passes_cnv_calling)
 

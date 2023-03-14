@@ -502,7 +502,7 @@ def add_dragen_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
 			new_dragen_vc_obj.save()
 
 
-def add_dragen_cnv_qc_metrics(cnv_qc_dict, run_analysis_obj):
+def add_exome_postprocessing_cnv_qc_metrics(cnv_qc_dict, run_analysis_obj):
 	"""
 	Add data from the Dragen CNV QC metrics file to the database
 	"""
@@ -520,7 +520,7 @@ def add_dragen_cnv_qc_metrics(cnv_qc_dict, run_analysis_obj):
 						   pipeline = pipeline,
 						   analysis_type = run_analysis_obj.analysis_type)
 
-		existing_data = DragenCNVMetrics.objects.filter(sample_analysis = sample_analysis_obj)
+		existing_data = CNVMetrics.objects.filter(sample_analysis = sample_analysis_obj)
 
 		if len(existing_data) < 1:
 
@@ -529,7 +529,7 @@ def add_dragen_cnv_qc_metrics(cnv_qc_dict, run_analysis_obj):
 			sample_data = cnv_qc_dict[key]
 			sample_data["sample_analysis"] = sample_analysis_obj
 
-			new_dragen_cnv_qc_obj = DragenCNVMetrics(**sample_data)
+			new_dragen_cnv_qc_obj = CNVMetrics(**sample_data)
 			new_dragen_cnv_qc_obj.save()
 
 

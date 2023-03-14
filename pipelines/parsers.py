@@ -989,7 +989,7 @@ def parse_custom_coverage_metrics(custom_coverage_file):
 	return custom_coverage_dict
 
 
-def parse_dragen_cnv_qc_metrics(cnv_qc_metrics_file):
+def parse_exome_postprocessing_cnv_qc_metrics(cnv_qc_metrics_file):
 	"""
 	Parse the CNV QC metrics from the Dragen post-processing pipeline
 	"""

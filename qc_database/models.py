@@ -1129,28 +1129,28 @@ class SampleAnalysis(models.Model):
 	def get_exome_depth_correlation(self):
 		
 		if 'DragenGE' in self.pipeline.pipeline_id:
-			cnv_calling_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
+			cnv_calling_metrics = CNVMetrics.objects.get(sample_analysis=self)
 			return cnv_calling_metrics.max_over_threshold
 		
 	def get_cnv_fail(self):
 
 		if 'DragenGE' in self.pipeline.pipeline_id:
-			cnv_calling_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
+			cnv_calling_metrics = CNVMetrics.objects.get(sample_analysis=self)
 			return cnv_calling_metrics.cnv_fail
 	
 	def get_exome_depth_variant_count(self):
 		if 'DragenGE' in self.pipeline.pipeline_id:
-			cnv_calling_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
+			cnv_calling_metrics = CNVMetrics.objects.get(sample_analysis=self)
 			return cnv_calling_metrics.exome_depth_count + cnv_calling_metrics.exome_depth_xcount
 		
 	def get_exome_depth_autosomal_reference_count(self):
 		if 'DragenGE' in self.pipeline.pipeline_id:
-			cnv_calling_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
+			cnv_calling_metrics = CNVMetrics.objects.get(sample_analysis=self)
 			return cnv_calling_metrics.exome_depth_autosomal_reference_count
 		
 	def get_exome_depth_x_reference_count(self):
 		if 'DragenGE' in self.pipeline.pipeline_id:
-			cnv_calling_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
+			cnv_calling_metrics = CNVMetrics.objects.get(sample_analysis=self)
 			return cnv_calling_metrics.exome_depth_x_reference_count
 		
 	def passes_cnv_calling(self):
@@ -1710,9 +1710,9 @@ class CustomCoverageMetrics(models.Model):
 	pct_greater_160x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
 
 
-class DragenCNVMetrics(models.Model):
+class CNVMetrics(models.Model):
 	"""
-	Model for sample-level CNV calling metrics for Dragen workflows
+	Model for sample-level CNV calling metrics for Dragen GE postprocessing workflows
 	"""
 	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
 	max_corr = models.DecimalField(max_digits=8, decimal_places=3, null=True)

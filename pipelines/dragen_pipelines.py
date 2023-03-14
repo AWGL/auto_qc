@@ -202,7 +202,7 @@ class DragenGE:
 		return sample_variant_count_dict
 	
 	
-	def get_cnv_qc_metrics(self):
+	def get_postprocessing_cnv_qc_metrics(self):
 		
 		results_path = Path(self.results_dir)
 
@@ -210,7 +210,7 @@ class DragenGE:
 
 		cnv_metrics_file = list(cnv_metrics_file)[0]
 
-		cnv_metrics_qc_dict = parsers.parse_dragen_cnv_qc_metrics(cnv_metrics_file)
+		cnv_metrics_qc_dict = parsers.parse_exome_postprocessing_cnv_qc_metrics(cnv_metrics_file)
 
 		return cnv_metrics_qc_dict
 

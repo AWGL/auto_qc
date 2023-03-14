@@ -720,8 +720,8 @@ class Command(BaseCommand):
 							
 							if "max_cnv_calls" in checks_to_try_dict.keys():
 								logger.info (f'Putting CNV QC metrics into db for run {run_analysis.run.run_id}')
-								cnv_qc_metrics = dragen_ge.get_cnv_qc_metrics()
-								management_utils.add_dragen_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
+								cnv_qc_metrics = dragen_ge.get_postprocessing_cnv_qc_metrics()
+								management_utils.add_exome_postprocessing_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
 							else:
 								logger.info (f'No CNV metrics for this run {run_analysis.run.run_id}')
 
@@ -763,8 +763,8 @@ class Command(BaseCommand):
 
 							if "max_cnv_calls" in checks_to_try_dict.keys():
 								logger.info (f'Putting CNV QC metrics into db for run {run_analysis.run.run_id}')
-								cnv_qc_metrics = dragen_ge.get_cnv_qc_metrics()
-								management_utils.add_dragen_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
+								cnv_qc_metrics = dragen_ge.get_postprocessing_cnv_qc_metrics()
+								management_utils.add_exome_postprocessing_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
 							else:
 								logger.info (f'No CNV metrics for this run {run_analysis.run.run_id}')
 
