@@ -511,8 +511,6 @@ def add_exome_postprocessing_cnv_qc_metrics(cnv_qc_dict, run_analysis_obj):
 
 	for key in cnv_qc_dict:
 
-		print(f"key: {key}")
-
 		sample_obj = Sample.objects.get(sample_id=key)
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample = sample_obj,
