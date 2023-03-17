@@ -130,16 +130,19 @@ class TestCNVModels(TestCase):
         self.assertEqual(x_reference_count, expected_x_reference_count)
 
     def test_passes_cnv_calling_pass(self):
+        # update CNVMetrics object so exome depth count is in pass range
         CNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(exome_depth_count=150)
         passes_cnv_calling = self.sample_analysis_obj.passes_cnv_calling()
         self.assertTrue(passes_cnv_calling)
 
     def test_passes_cnv_calling_correlation_fail(self):
+        # update CNVMetrics object so max_over_threshold causes an overall fail
         CNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(max_over_threshold=False)
         passes_cnv_calling = self.sample_analysis_obj.passes_cnv_calling()
         self.assertFalse(passes_cnv_calling)
 
     def test_passes_cnv_calling_cnv_fail_fail(self):
+        # update CNVMetrics object so cnv_fail causes an overall fail
         CNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(cnv_fail=True)
         passes_cnv_calling = self.sample_analysis_obj.passes_cnv_calling()
         self.assertFalse(passes_cnv_calling)
@@ -149,11 +152,13 @@ class TestCNVModels(TestCase):
         self.assertFalse(passes_cnv_calling)
 
     def test_passes_cnv_calling_autosomal_reference_count_fail(self):
+        # update CNVMetrics object so exome_depth_autosomal_reference_count causes an overall fail
         CNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(exome_depth_autosomal_reference_count=1)
         passes_cnv_calling = self.sample_analysis_obj.passes_cnv_calling()
         self.assertFalse(passes_cnv_calling)
 
     def test_passes_cnv_calling_x_reference_count_fail(self):
+        # update CNVMetrics object so exome_depth_x_reference_count causes an overall fail
         CNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(exome_depth_x_reference_count=1)
         passes_cnv_calling = self.sample_analysis_obj.passes_cnv_calling()
         self.assertFalse(passes_cnv_calling)
