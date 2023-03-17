@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from auditlog.registry import auditlog
 from auditlog.models import AuditlogHistoryField
@@ -405,10 +406,16 @@ class RunAnalysis(models.Model):
 		if 'max_cnv_calls' in checks_to_do:
 
 			for sample in new_samples_list:
+				
+				try:
+					if sample.passes_cnv_calling() != True:
 
-				if sample.passes_cnv_calling() != True:
-
-					reasons_to_fail.append('CNV Calling Fail')
+						reasons_to_fail.append('CNV Calling Fail')
+				
+				except ObjectDoesNotExist:
+					# handles old runs where the check exists but CNV calling hasn't been run
+					pass
+					
 
 		# DNA
 		if 'ntc_contamination_TSO500' in checks_to_do:
@@ -1121,42 +1128,25 @@ class SampleAnalysis(models.Model):
 			return False
 
 		return True
-
-	def get_exome_depth_correlation(self):
 		
+	def get_exome_cnv_qc_metrics(self):
 		if 'DragenGE' in self.pipeline.pipeline_id:
 			cnv_calling_metrics = CNVMetrics.objects.get(sample_analysis=self)
-			return cnv_calling_metrics.max_over_threshold
-		
-	def get_cnv_fail(self):
-
-		if 'DragenGE' in self.pipeline.pipeline_id:
-			cnv_calling_metrics = CNVMetrics.objects.get(sample_analysis=self)
-			return cnv_calling_metrics.cnv_fail
-	
-	def get_exome_depth_variant_count(self):
-		if 'DragenGE' in self.pipeline.pipeline_id:
-			cnv_calling_metrics = CNVMetrics.objects.get(sample_analysis=self)
-			return cnv_calling_metrics.exome_depth_count + cnv_calling_metrics.exome_depth_xcount
-		
-	def get_exome_depth_autosomal_reference_count(self):
-		if 'DragenGE' in self.pipeline.pipeline_id:
-			cnv_calling_metrics = CNVMetrics.objects.get(sample_analysis=self)
-			return cnv_calling_metrics.exome_depth_autosomal_reference_count
-		
-	def get_exome_depth_x_reference_count(self):
-		if 'DragenGE' in self.pipeline.pipeline_id:
-			cnv_calling_metrics = CNVMetrics.objects.get(sample_analysis=self)
-			return cnv_calling_metrics.exome_depth_x_reference_count
+			return cnv_calling_metrics.max_over_threshold, \
+				cnv_calling_metrics.cnv_fail, \
+				cnv_calling_metrics.exome_depth_count + cnv_calling_metrics.exome_depth_xcount, \
+				cnv_calling_metrics.exome_depth_autosomal_reference_count, \
+				cnv_calling_metrics.exome_depth_x_reference_count
 		
 	def passes_cnv_calling(self):
 		if 'DragenGE' in self.pipeline.pipeline_id:
 			run_analysis = self.get_run_analysis()
-			if self.get_exome_depth_correlation() and not \
-			   	self.get_cnv_fail() and \
-			   	self.get_exome_depth_variant_count() <= run_analysis.max_cnv_calls and \
-				self.get_exome_depth_autosomal_reference_count() >= 2 and \
-				self.get_exome_depth_x_reference_count() >= 2:
+			max_over_threshold, cnv_fail, total_cnv_count, autosomal_reference_count, x_reference_count = self.get_exome_cnv_qc_metrics()
+			if max_over_threshold and not \
+			   	cnv_fail and \
+			   	total_cnv_count <= run_analysis.max_cnv_calls and \
+				autosomal_reference_count >= 2 and \
+				x_reference_count >= 2:
 				#TODO add a coverage cutoff
 				return True
 			else:

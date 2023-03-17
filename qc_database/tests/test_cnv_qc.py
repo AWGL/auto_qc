@@ -106,27 +106,15 @@ class TestCNVModels(TestCase):
         )
         self.dragen_cnv_metrics_obj = CNVMetrics.objects.get(sample_analysis=self.sample_analysis_obj)
 
-    def test_get_exome_depth_correlation(self):
-        max_over_threshold = self.sample_analysis_obj.get_exome_depth_correlation()
-        self.assertTrue(max_over_threshold)
-
-    def test_get_cnv_fail(self):
-        cnv_fail = self.sample_analysis_obj.get_cnv_fail()
-        self.assertFalse(cnv_fail)
-
-    def test_get_exome_depth_variant_count(self):
-        exome_depth_variant_count = self.sample_analysis_obj.get_exome_depth_variant_count()
-        expected_variant_count = 472
-        self.assertEqual(exome_depth_variant_count, expected_variant_count)
-    
-    def test_get_exome_depth_autosomal_reference_count(self):
-        autosomal_reference_count = self.sample_analysis_obj.get_exome_depth_autosomal_reference_count()
+    def test_get_exome_cnv_qc_metrics(self):
+        max_over_threshold, cnv_fail, total_cnv_count, autosomal_reference_count, x_reference_count = self.sample_analysis_obj.get_exome_cnv_qc_metrics()
+        expected_total_cnv_count = 472
         expected_autosomal_reference_count = 8
-        self.assertEqual(autosomal_reference_count, expected_autosomal_reference_count)
-
-    def test_exome_depth_x_reference_count(self):
-        x_reference_count = self.sample_analysis_obj.get_exome_depth_x_reference_count()
         expected_x_reference_count = 3
+        self.assertTrue(max_over_threshold)
+        self.assertFalse(cnv_fail)
+        self.assertEqual(total_cnv_count, expected_total_cnv_count)
+        self.assertEqual(autosomal_reference_count, expected_autosomal_reference_count)
         self.assertEqual(x_reference_count, expected_x_reference_count)
 
     def test_passes_cnv_calling_pass(self):
