@@ -204,16 +204,19 @@ class DragenGE:
 	
 	def display_cnv_qc_metrics(self):
 		
-		results_path = Path(self.results_dir)
+		try:
+			results_path = Path(self.results_dir)
 
-		cnv_metrics_file = results_path.glob(f'post_processing/results/sv_cnv/qc/{self.run_id}.cnv_qc_report.csv')
+			cnv_metrics_file = results_path.glob(f'post_processing/results/sv_cnv/qc/{self.run_id}.cnv_qc_report.csv')
 
-		cnv_metrics_file = list(cnv_metrics_file)[0]
+			cnv_metrics_file = list(cnv_metrics_file)[0]
 
-		if os.path.isfile(cnv_metrics_file):
-			return True
+			if os.path.isfile(cnv_metrics_file):
+				return True
+			else:
+				return False
 		
-		else:
+		except:
 			return False
 
 	def get_postprocessing_cnv_qc_metrics(self):

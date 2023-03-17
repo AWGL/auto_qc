@@ -520,13 +520,17 @@ def add_exome_postprocessing_cnv_qc_metrics(cnv_qc_dict, run_analysis_obj):
 
 		existing_data = CNVMetrics.objects.filter(sample_analysis = sample_analysis_obj)
 
-		if len(existing_data) < 1:
+		try:
+			if len(existing_data) < 1:
 
-			sample_data = cnv_qc_dict[key]
-			sample_data["sample_analysis"] = sample_analysis_obj
+				sample_data = cnv_qc_dict[key]
+				sample_data["sample_analysis"] = sample_analysis_obj
 
-			new_dragen_cnv_qc_obj = CNVMetrics(**sample_data)
-			new_dragen_cnv_qc_obj.save()
+				new_dragen_cnv_qc_obj = CNVMetrics(**sample_data)
+				new_dragen_cnv_qc_obj.save()
+		
+		except:
+			pass
 
 
 def add_sensitivity_metrics(sensitivity_metrics, run_analysis_obj):
