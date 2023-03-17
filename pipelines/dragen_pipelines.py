@@ -1,5 +1,6 @@
 from pathlib import Path
 import glob
+import os
 import re
 from pipelines import parsers 
 from qc_database.utils import relatedness2 
@@ -201,7 +202,20 @@ class DragenGE:
 
 		return sample_variant_count_dict
 	
-	
+	def display_cnv_qc_metrics(self):
+		
+		results_path = Path(self.results_dir)
+
+		cnv_metrics_file = results_path.glob(f'post_processing/results/sv_cnv/qc/{self.run_id}.cnv_qc_report.csv')
+
+		cnv_metrics_file = list(cnv_metrics_file)[0]
+
+		if os.path.isfile(cnv_metrics_file):
+			return True
+		
+		else:
+			return False
+
 	def get_postprocessing_cnv_qc_metrics(self):
 		
 		results_path = Path(self.results_dir)
@@ -213,8 +227,6 @@ class DragenGE:
 		cnv_metrics_qc_dict = parsers.parse_exome_postprocessing_cnv_qc_metrics(cnv_metrics_file)
 
 		return cnv_metrics_qc_dict
-
-
 
 	def get_relatedness_metrics(self, min_relatedness_parents, max_relatedness_unrelated, max_relatedness_between_parents, max_child_parent_relatedness):
 

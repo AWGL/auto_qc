@@ -522,8 +522,6 @@ def add_exome_postprocessing_cnv_qc_metrics(cnv_qc_dict, run_analysis_obj):
 
 		if len(existing_data) < 1:
 
-			print("running code!")
-
 			sample_data = cnv_qc_dict[key]
 			sample_data["sample_analysis"] = sample_analysis_obj
 

@@ -179,6 +179,7 @@ class RunAnalysis(models.Model):
 	max_child_parent_relatedness = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_on_target_reads=models.IntegerField(null=True, blank=True)
 	max_cnv_calls=models.IntegerField(null=True, blank=True)
+	display_cnv_qc_metrics=models.BooleanField(default=False)
 
 	#for TSO500 only- ntc contamination for other runs in sampleAnalysis object
 	max_ntc_contamination = models.IntegerField(null=True, blank=True)
@@ -204,7 +205,6 @@ class RunAnalysis(models.Model):
 
 		return completed.count(True), len(completed)
 
-
 	def get_n_samples_valid(self):
 
 		count = 0
@@ -217,7 +217,6 @@ class RunAnalysis(models.Model):
 		completed = [x.results_valid for x in sample_analyses]
 
 		return completed.count(True), len(completed)
-
 
 	def passes_run_level_qc(self):
 
@@ -277,7 +276,6 @@ class RunAnalysis(models.Model):
 
 		return '|'.join(list(set(worksheets)))
 
-
 	def passes_sensitivity(self):
 
 		if self.min_sensitivity == None:
@@ -306,7 +304,6 @@ class RunAnalysis(models.Model):
 
 				return False
 
-
 	def passes_relatedness(self):
 
 		relatedness_obj = RelatednessQuality.objects.filter(run_analysis = self)
@@ -316,7 +313,6 @@ class RunAnalysis(models.Model):
 			return relatedness_obj[0].results_valid, relatedness_obj[0].comment
 
 		return False, 'Oops'
-
 
 	def passes_auto_qc(self):
 		"""
@@ -504,7 +500,7 @@ class RunAnalysis(models.Model):
 		else:
 
 			return False, list(set(reasons_to_fail))
-			
+
 
 class RelatednessQuality(models.Model):
 	"""

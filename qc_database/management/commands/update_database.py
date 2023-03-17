@@ -691,6 +691,7 @@ class Command(BaseCommand):
 
 					run_complete = dragen_ge.run_is_complete()
 					run_valid = dragen_ge.run_is_valid()
+					display_cnv_qc = dragen_ge.display_cnv_qc_metrics()
 
 					if run_analysis.results_completed == False and run_complete == True:
 
@@ -718,8 +719,10 @@ class Command(BaseCommand):
 							sensitivity_metrics = dragen_ge.get_sensitivity()
 							management_utils.add_sensitivity_metrics(sensitivity_metrics, run_analysis)
 							
-							if "max_cnv_calls" in checks_to_try_dict.keys():
+							if display_cnv_qc:
 								logger.info (f'Putting CNV QC metrics into db for run {run_analysis.run.run_id}')
+								run_analysis.display_cnv_qc_metrics = True
+								run_analysis.save()
 								cnv_qc_metrics = dragen_ge.get_postprocessing_cnv_qc_metrics()
 								management_utils.add_exome_postprocessing_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
 							else:
@@ -761,8 +764,10 @@ class Command(BaseCommand):
 							sensitivity_metrics = dragen_ge.get_sensitivity()
 							management_utils.add_sensitivity_metrics(sensitivity_metrics, run_analysis)
 
-							if "max_cnv_calls" in checks_to_try_dict.keys():
+							if display_cnv_qc:
 								logger.info (f'Putting CNV QC metrics into db for run {run_analysis.run.run_id}')
+								run_analysis.display_cnv_qc_metrics = True
+								run_analysis.save()
 								cnv_qc_metrics = dragen_ge.get_postprocessing_cnv_qc_metrics()
 								management_utils.add_exome_postprocessing_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
 							else:

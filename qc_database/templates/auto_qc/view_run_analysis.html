@@ -76,7 +76,7 @@
 
 	{% endif %}
 
-	{% if 'max_cnv_calls' in checks_to_do %}
+	{% if run_analysis.display_cnv_qc_metrics %}
 
 	<tr>
 		<td>Max Number of CNVs (Warning Only) </td>
@@ -451,7 +451,7 @@
 	  {% endif %}
 
 	  
-	  {% if 'max_cnv_calls' in checks_to_do %}
+	  {% if run_analysis.display_cnv_qc_metrics %}
 
 	  <th> Passes CNV calling</th>
 
@@ -535,7 +535,7 @@
 
 			{% endif %}
 
-			{% if 'max_cnv_calls' in checks_to_do %}
+			{% if run_analysis.display_cnv_qc_metrics %}
 			<td class="table-dark">{{sample_analysis.passes_cnv_calling}}</td>
 			{% endif %}
 
@@ -693,7 +693,7 @@
 
 		{% endif %}
 
-		{% if 'max_cnv_calls' in checks_to_do %}
+		{% if run_analysis.display_cnv_qc_metrics %}
 			{% if run_analysis.analysis_type.analysis_type_id == "NonocusWES38" %}
 				{% if sample_analysis.passes_cnv_calling %}
 					<td class="table-success">{{ sample_analysis.passes_cnv_calling }}</td>
