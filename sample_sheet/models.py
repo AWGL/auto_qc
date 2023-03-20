@@ -392,7 +392,7 @@ class SampleToWorksheet(models.Model):
 	sample = models.ForeignKey('Sample', on_delete=models.PROTECT) # TODO related name
 	worksheet = models.ForeignKey('Worksheet', on_delete=models.CASCADE) # TODO related name
 	referral = models.ForeignKey('ReferralType', on_delete=models.PROTECT, default='null') #, related_name='custom_index1'
-	hpo_ids = models.CharField(max_length=200, blank=True, null=True)
+	hpo_ids = models.CharField(max_length=1000, blank=True, null=True)
 	pos = models.IntegerField()
 	index1 = models.ForeignKey('Index', on_delete=models.PROTECT, related_name='sample_index1', blank=True, null=True)
 	index2 = models.ForeignKey('Index', on_delete=models.PROTECT, related_name='sample_index2', blank=True, null=True)

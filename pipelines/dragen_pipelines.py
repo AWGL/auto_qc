@@ -1,5 +1,6 @@
 from pathlib import Path
 import glob
+import os
 import re
 from pipelines import parsers 
 from qc_database.utils import relatedness2 
@@ -45,7 +46,6 @@ class DragenGE:
 
 		return False	
 
-	
 	def run_is_valid(self):
 		"""
 		Read the file nextflow created on run end (post_processing/results/post_processing_finished.txt)
@@ -136,7 +136,6 @@ class DragenGE:
 
 		return run_sex_metrics_dict
 	
-	
 	def get_variant_calling_metrics(self):
 		
 		results_path = Path(self.results_dir)
@@ -148,8 +147,7 @@ class DragenGE:
 		parsed_variant_metrics_file = parsers.parse_dragen_vc_metrics_file(variant_metrics_file)
 
 		return parsed_variant_metrics_file  
-	
-	
+		
 	def get_alignment_metrics(self):
 		
 		results_path = Path(self.results_dir)
@@ -167,8 +165,7 @@ class DragenGE:
 			run_alignment_metrics_dict[sample] = parsed_alignment_metrics
 
 		return run_alignment_metrics_dict
-	
-	
+		
 	def get_sensitivity(self):
 		
 		results_path = Path(self.results_dir)
@@ -187,7 +184,6 @@ class DragenGE:
 
 		return parsed_sensitivity_file  
 	
-	
 	def get_variant_count_metrics(self):
 		
 		results_path = Path(self.results_dir)
@@ -205,7 +201,35 @@ class DragenGE:
 			sample_variant_count_dict[sample] = vcf_count_metrics
 
 		return sample_variant_count_dict
+	
+	def display_cnv_qc_metrics(self):
+		
+		try:
+			results_path = Path(self.results_dir)
 
+			cnv_metrics_file = results_path.glob(f'post_processing/results/sv_cnv/qc/{self.run_id}.cnv_qc_report.csv')
+
+			cnv_metrics_file = list(cnv_metrics_file)[0]
+
+			if os.path.isfile(cnv_metrics_file):
+				return True
+			else:
+				return False
+		
+		except:
+			return False
+
+	def get_postprocessing_cnv_qc_metrics(self):
+		
+		results_path = Path(self.results_dir)
+
+		cnv_metrics_file = results_path.glob(f'post_processing/results/sv_cnv/qc/{self.run_id}.cnv_qc_report.csv')
+
+		cnv_metrics_file = list(cnv_metrics_file)[0]
+
+		cnv_metrics_qc_dict = parsers.parse_exome_postprocessing_cnv_qc_metrics(cnv_metrics_file)
+
+		return cnv_metrics_qc_dict
 
 	def get_relatedness_metrics(self, min_relatedness_parents, max_relatedness_unrelated, max_relatedness_between_parents, max_child_parent_relatedness):
 

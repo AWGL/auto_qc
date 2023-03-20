@@ -60,6 +60,7 @@ def sample_sheet_parser(sample_sheet_path):
 
 	return sample_sheet_dict
 
+
 def get_run_parameters_dict(run_parameters_path):
 	"""
 	Parse the run parameters dict
@@ -72,6 +73,7 @@ def get_run_parameters_dict(run_parameters_path):
 
 	return runinfo_dict
 
+
 def get_run_info_dict(run_info_path):
 
 	# turn XML file into a dictionary
@@ -80,6 +82,7 @@ def get_run_info_dict(run_info_path):
 		run_info_dict = xmltodict.parse(f.read())
 
 	return run_info_dict
+
 
 def get_instrument_type(instrument_id):
 
@@ -167,6 +170,7 @@ def extract_data_from_run_info_dict(run_info_dict):
 	runinfo_sorted_dict['raw_runinfo_json'] = json.dumps(run_info_dict, indent=2, separators=(',', ':'))
 
 	return runinfo_sorted_dict
+
 
 def parse_interop_data(run_folder_dir, num_reads, num_lanes):
 	"""
@@ -262,7 +266,6 @@ def parse_fastqc_file(fastqc_text_file):
 		return fqcdict
 
 
-
 def parse_fastqc_file_tso500(fastqc_text_file):
 
 	with open (fastqc_text_file) as file:
@@ -288,6 +291,7 @@ def parse_fastqc_file_tso500(fastqc_text_file):
 
 		return fqcdict
 
+
 def parse_fastqc_file_cruk(fastqc_text_file, run_id):
 
 	with open (fastqc_text_file) as file:
@@ -311,6 +315,7 @@ def parse_fastqc_file_cruk(fastqc_text_file, run_id):
 				fqcdict[metrics] = result
 
 		return fqcdict
+
 
 def parse_hs_metrics_file(hs_metrics_file):
 
@@ -474,6 +479,7 @@ def parse_contamination_metrics(self_sm_contamination_file):
 
 	return contamination_metrics_dict
 
+
 def parse_qc_metrics_file(qc_metrics_file):
 
 	qc_metrics_dict = {}
@@ -504,6 +510,7 @@ def parse_qc_metrics_file(qc_metrics_file):
 		qc_metrics_dict[key.lower()] = value
 
 	return qc_metrics_dict
+
 
 def parse_alignment_metrics_file(alignments_metric_file):
 
@@ -549,6 +556,7 @@ def parse_alignment_metrics_file(alignments_metric_file):
 
 	return alignment_metrics_dicts
 	
+
 def parse_variant_detail_metrics_file(variant_detail_metrics_file):
 
 	variant_detail_metrics_dict = {}
@@ -633,12 +641,14 @@ def parse_insert_metrics_file(insert_metrics_file):
 
 	return insert_metrics_dict
 
+
 def parse_config(config_location):
 	"""
 	Parse the YAML config file.
 	"""
 	with open(config_location, 'r') as stream:
 		return yaml.safe_load(stream)
+
 
 def get_passing_variant_count(vcf_path, samples):
 	"""
@@ -713,6 +723,7 @@ def parse_dragen_sex_file(dragen_sex_file):
 	
 	return sex_dict
 
+
 def parse_dragen_vc_metrics_file(dragen_vc_metrics_file):
 	"""
 	Parse the dragen variant calling metrics file.
@@ -774,6 +785,7 @@ def parse_dragen_alignment_metrics_file(dragen_alignment_metrics_file):
 				dragen_alignment_metrics_file_dict[new_key] = value
 				
 	return dragen_alignment_metrics_file_dict
+
 
 def parse_sensitivity_file(sensitivity_file):
 	"""
@@ -891,6 +903,7 @@ def parse_fusion_contamination_metrics_file(fusion_contamination_metrics_file):
 
 	return fusion_contamination_metrics_dict
 
+
 def parse_fusion_alignment_metrics_file(fusion_alignment_metrics_file):
 
 	fusion_alignment_metrics_dict = {}
@@ -923,6 +936,7 @@ def parse_fusion_alignment_metrics_file(fusion_alignment_metrics_file):
 				fusion_alignment_metrics_dict[sample]['pct_unique_reads_aligned'] = pct_unique_reads_aligned
 
 	return fusion_alignment_metrics_dict
+
 
 def parse_ploidy_metrics_file(ploidy_metrics_file):
 	"""
@@ -973,3 +987,29 @@ def parse_custom_coverage_metrics(custom_coverage_file):
 			custom_coverage_dict[key] = value
 
 	return custom_coverage_dict
+
+
+def parse_exome_postprocessing_cnv_qc_metrics(cnv_qc_metrics_file):
+	"""
+	Parse the CNV QC metrics from the Dragen post-processing pipeline
+	"""
+
+	cnv_qc_dict = {}
+
+	with open(cnv_qc_metrics_file) as file:
+
+		cnv_dictreader = csv.DictReader(file)
+
+		for i in cnv_dictreader:
+			sample = i["sample"]
+			key = i["key"]
+			value = i["value"]
+			
+			try:
+				cnv_qc_dict[sample][key] = value
+			
+			except KeyError:
+				cnv_qc_dict[sample] = {}
+				cnv_qc_dict[sample][key] = value
+
+	return cnv_qc_dict

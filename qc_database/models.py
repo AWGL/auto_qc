@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from auditlog.registry import auditlog
 from auditlog.models import AuditlogHistoryField
@@ -14,6 +15,7 @@ class Instrument(models.Model):
 
 	def __str__(self):
 		return self.instrument_id
+
 
 class Run(models.Model):
 	"""
@@ -177,6 +179,8 @@ class RunAnalysis(models.Model):
 	max_relatedness_between_parents = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	max_child_parent_relatedness = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_on_target_reads=models.IntegerField(null=True, blank=True)
+	max_cnv_calls=models.IntegerField(null=True, blank=True)
+	display_cnv_qc_metrics=models.BooleanField(default=False)
 
 	#for TSO500 only- ntc contamination for other runs in sampleAnalysis object
 	max_ntc_contamination = models.IntegerField(null=True, blank=True)
@@ -202,7 +206,6 @@ class RunAnalysis(models.Model):
 
 		return completed.count(True), len(completed)
 
-
 	def get_n_samples_valid(self):
 
 		count = 0
@@ -215,7 +218,6 @@ class RunAnalysis(models.Model):
 		completed = [x.results_valid for x in sample_analyses]
 
 		return completed.count(True), len(completed)
-
 
 	def passes_run_level_qc(self):
 
@@ -275,7 +277,6 @@ class RunAnalysis(models.Model):
 
 		return '|'.join(list(set(worksheets)))
 
-
 	def passes_sensitivity(self):
 
 		if self.min_sensitivity == None:
@@ -304,7 +305,6 @@ class RunAnalysis(models.Model):
 
 				return False
 
-
 	def passes_relatedness(self):
 
 		relatedness_obj = RelatednessQuality.objects.filter(run_analysis = self)
@@ -314,7 +314,6 @@ class RunAnalysis(models.Model):
 			return relatedness_obj[0].results_valid, relatedness_obj[0].comment
 
 		return False, 'Oops'
-
 
 	def passes_auto_qc(self):
 		"""
@@ -403,6 +402,20 @@ class RunAnalysis(models.Model):
 				if sample.passes_ntc_contamination() != True:
 
 					reasons_to_fail.append('NTC Contamination Fail')
+
+		if 'max_cnv_calls' in checks_to_do:
+
+			for sample in new_samples_list:
+				
+				try:
+					if sample.passes_cnv_calling() != True:
+
+						reasons_to_fail.append('CNV Calling Fail')
+				
+				except ObjectDoesNotExist:
+					# handles old runs where the check exists but CNV calling hasn't been run
+					pass
+					
 
 		# DNA
 		if 'ntc_contamination_TSO500' in checks_to_do:
@@ -494,7 +507,7 @@ class RunAnalysis(models.Model):
 		else:
 
 			return False, list(set(reasons_to_fail))
-			
+
 
 class RelatednessQuality(models.Model):
 	"""
@@ -506,6 +519,7 @@ class RelatednessQuality(models.Model):
 
 	def __str__(self):
 		return str(self.run_analysis) + " - " + str(self.results_valid)
+
 
 class SampleAnalysis(models.Model):
 	"""
@@ -524,6 +538,7 @@ class SampleAnalysis(models.Model):
 	sex = models.CharField(max_length=10, null=True, blank=True)
 	contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=0.15, null=True, blank=True)
 	ntc_contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=10.0, null=True, blank=True)
+	max_cnvs_called_cutoff = models.IntegerField(null=True, blank=True)
 
 	history = AuditlogHistoryField()
 
@@ -722,7 +737,6 @@ class SampleAnalysis(models.Model):
 
 			return 'NA'
 
-
 	def get_calculated_sex(self):
 
 		if 'DragenWGS' in self.pipeline.pipeline_id:
@@ -869,10 +883,6 @@ class SampleAnalysis(models.Model):
 			except:
 				return None
 
-
-
-
-
 		return coverage.pct_of_qc_coverage_region_with_coverage_20x_inf
 
 	def passes_region_coverage_over_20(self):
@@ -914,7 +924,6 @@ class SampleAnalysis(models.Model):
 
 			return titv[0].titv_ratio
 
-
 	def passes_titv(self):
 
 		titv = self.get_titv()
@@ -938,7 +947,6 @@ class SampleAnalysis(models.Model):
 
 		return True
 
-
 	def get_aligned_reads_fusion(self):
 
 		try:
@@ -953,10 +961,6 @@ class SampleAnalysis(models.Model):
 		else:
 
 			return alignment_metrics[0]
-
-
-
-
 
 	def get_percent_ntc_tso500(self):
 
@@ -973,9 +977,6 @@ class SampleAnalysis(models.Model):
 
 			return tso500_reads[0].percent_ntc_reads
 
-
-
-
 	def get_percent_ntc_aligned_tso500(self):
 
 		try:
@@ -990,8 +991,6 @@ class SampleAnalysis(models.Model):
 		else:
 
 			return tso500_aligned_reads[0].percent_ntc_contamination
-
-
 
 	def passes_percent_ntc_tso500(self):
 
@@ -1016,7 +1015,6 @@ class SampleAnalysis(models.Model):
 
 		return False
 
-
 	def passes_percent_ntc_aligned_tso500(self):
 
 		run_analysis = self.get_run_analysis()
@@ -1040,7 +1038,6 @@ class SampleAnalysis(models.Model):
 			return None
 
 		return False
-
 
 	def get_total_pf_reads_tso500(self):
 
@@ -1071,8 +1068,6 @@ class SampleAnalysis(models.Model):
 		else:
 
 			return tso500_aligned_reads_DNA[0].aligned_reads
-
-
 
 	def get_contamination_fusion(self):
 
@@ -1133,6 +1128,30 @@ class SampleAnalysis(models.Model):
 			return False
 
 		return True
+		
+	def get_exome_cnv_qc_metrics(self):
+		if 'DragenGE' in self.pipeline.pipeline_id:
+			cnv_calling_metrics = CNVMetrics.objects.get(sample_analysis=self)
+			return cnv_calling_metrics.max_over_threshold, \
+				cnv_calling_metrics.cnv_fail, \
+				cnv_calling_metrics.exome_depth_count + cnv_calling_metrics.exome_depth_xcount, \
+				cnv_calling_metrics.exome_depth_autosomal_reference_count, \
+				cnv_calling_metrics.exome_depth_x_reference_count
+		
+	def passes_cnv_calling(self):
+		if 'DragenGE' in self.pipeline.pipeline_id:
+			run_analysis = self.get_run_analysis()
+			max_over_threshold, cnv_fail, total_cnv_count, autosomal_reference_count, x_reference_count = self.get_exome_cnv_qc_metrics()
+			if max_over_threshold and not \
+			   	cnv_fail and \
+			   	total_cnv_count <= run_analysis.max_cnv_calls and \
+				autosomal_reference_count >= 2 and \
+				x_reference_count >= 2:
+				#TODO add a coverage cutoff
+				return True
+			else:
+				return False
+
 
 class SampleFastqcData(models.Model):
 	"""
@@ -1425,6 +1444,7 @@ class InteropIndexMetrics(models.Model):
 	def __str__(self):
 		return str(self.run) + '_' + str(self.sample)
 
+
 class DragenAlignmentMetrics(models.Model):
 	"""
 	Store the dragen alignments metrics file
@@ -1497,6 +1517,7 @@ class DragenAlignmentMetrics(models.Model):
 	average_sequenced_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	estimated_sample_contamination = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	estimated_sample_contamination_standard_error = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+
 
 class DragenVariantCallingMetrics(models.Model):
 	"""
@@ -1625,7 +1646,6 @@ class FusionContamination(models.Model):
 	contamination_referral = models.BooleanField()
 
 
-
 class FusionAlignmentMetrics(models.Model):
 	"""
 	Data on SomaticFusion alignment metrics
@@ -1636,7 +1656,6 @@ class FusionAlignmentMetrics(models.Model):
 	pct_reads_aligned = models.DecimalField(max_digits=6, decimal_places=2)
 	unique_reads_aligned = models.IntegerField()
 	pct_unique_reads_aligned = models.DecimalField(max_digits=6, decimal_places=2)
-
 
 
 class Tso500Reads(models.Model):
@@ -1675,6 +1694,24 @@ class CustomCoverageMetrics(models.Model):
 	pct_greater_30x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
 	pct_greater_250x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
 	pct_greater_160x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+
+
+class CNVMetrics(models.Model):
+	"""
+	Model for sample-level CNV calling metrics for Dragen GE postprocessing workflows
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	max_corr = models.DecimalField(max_digits=8, decimal_places=3, null=True)
+	max_over_threshold = models.BooleanField()
+	n_over_threshold = models.IntegerField(null=True)
+	cnv_fail = models.BooleanField()
+	exome_depth_xcount = models.IntegerField(null=True)
+	manta_xcount = models.IntegerField(null=True)
+	manta_count = models.IntegerField(null=True)
+	exome_depth_count = models.IntegerField(null=True)
+	exome_depth_autosomal_reference_count = models.IntegerField(null=True)
+	exome_depth_x_reference_count = models.IntegerField(null=True)
+
 
 auditlog.register(RunAnalysis)
 auditlog.register(SampleAnalysis)

@@ -76,6 +76,15 @@
 
 	{% endif %}
 
+	{% if run_analysis.display_cnv_qc_metrics %}
+
+	<tr>
+		<td>CNV QC Checks </td>
+		<td>Pass/Fail</td>
+	</tr>
+
+	{% endif %}
+
 	{% if 'sensitivity' in checks_to_do %}
 
 	<tr>
@@ -432,15 +441,21 @@
 	  {% endif %}
 
 
-	{% if 'ntc_contamination_TSO500' in checks_to_do %}
+	  {% if 'ntc_contamination_TSO500' in checks_to_do %}
 
-		<th> Total pf reads</th>
-		<th> Percent NTC pf reads</th>
-		<th> Total aligned reads</th>
-		<th> Percent NTC aligned reads</th>
+	  <th> Total pf reads</th>
+	  <th> Percent NTC pf reads</th>
+	  <th> Total aligned reads</th>
+	  <th> Percent NTC aligned reads</th>
 
+	  {% endif %}
 
-	{% endif %}
+	  
+	  {% if run_analysis.display_cnv_qc_metrics %}
+
+	  <th> Passes CNV calling</th>
+
+	  {% endif %}
 
 
 	  {% if 'sex_match' in checks_to_do %}
@@ -518,6 +533,10 @@
 				<td class="table-dark">{{sample_analysis.get_total_aligned_reads_tso500}}</td>
 				<td class="table-dark">N/A</td>
 
+			{% endif %}
+
+			{% if run_analysis.display_cnv_qc_metrics %}
+			<td class="table-dark">{{sample_analysis.passes_cnv_calling}}</td>
 			{% endif %}
 
 		{% else %}
@@ -666,12 +685,22 @@
 
 		{% if 'ntc_contamination' in checks_to_do %}
 
-		{% if sample_analysis.passes_ntc_contamination == True %}
-			<td class="table-success"> {{sample_analysis.passes_ntc_contamination}} </td>
-		{% else %}
-			<td class="table-danger"> {{sample_analysis.passes_ntc_contamination}} </td>
+			{% if sample_analysis.passes_ntc_contamination == True %}
+				<td class="table-success"> {{sample_analysis.passes_ntc_contamination}} </td>
+			{% else %}
+				<td class="table-danger"> {{sample_analysis.passes_ntc_contamination}} </td>
+			{% endif %}
+
 		{% endif %}
 
+		{% if run_analysis.display_cnv_qc_metrics %}
+			{% if run_analysis.analysis_type.analysis_type_id == "NonocusWES38" %}
+				{% if sample_analysis.passes_cnv_calling %}
+					<td class="table-success">{{ sample_analysis.passes_cnv_calling }}</td>
+				{% else %}
+					<td class="table-danger">{{ sample_analysis.passes_cnv_calling }}</td>
+				{% endif %}
+			{% endif %}
 		{% endif %}
 
 		{% if 'sex_match' in checks_to_do %}

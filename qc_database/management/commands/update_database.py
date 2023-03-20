@@ -1,4 +1,5 @@
 import csv
+import os
 from pathlib import Path
 import datetime
 import logging
@@ -193,6 +194,20 @@ class Command(BaseCommand):
 								except:
 
 									raise Exception ("ERROR: NTC contamination cutoff not in config file")
+								
+							if 'max_cnv_calls' == key:
+
+								try:
+
+									max_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['max_cnvs_called_cutoff']
+
+									if created:
+
+										new_sample_analysis_obj.max_cnvs_called_cutoff = max_cnvs_called_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Max CNVs called cutoff not in config file")
 
 					new_sample_analysis_obj.sex = sex
 					new_sample_analysis_obj.save()
@@ -360,6 +375,20 @@ class Command(BaseCommand):
 								except:
 
 									raise Exception ("ERROR: max_ntc_contamination not in config file")
+								
+							if 'max_cnv_calls' in checks_to_try_dict:
+
+								try:
+
+									max_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['max_cnvs_called_cutoff']
+
+									if created:
+
+										new_run_analysis_obj.max_cnv_calls = max_cnvs_called_cutoff
+								
+								except:
+
+									raise Exception("ERROR: max_cnv_calls_cutoff not in config file")
 
 					new_run_analysis_obj.save()
 
@@ -642,6 +671,7 @@ class Command(BaseCommand):
 
 					run_complete = dragen_ge.run_is_complete()
 					run_valid = dragen_ge.run_is_valid()
+					display_cnv_qc = dragen_ge.display_cnv_qc_metrics()
 
 					if run_analysis.results_completed == False and run_complete == True:
 
@@ -668,6 +698,15 @@ class Command(BaseCommand):
 							logger.info (f'Putting sensitivity metrics into db for run {run_analysis.run.run_id}')
 							sensitivity_metrics = dragen_ge.get_sensitivity()
 							management_utils.add_sensitivity_metrics(sensitivity_metrics, run_analysis)
+							
+							if display_cnv_qc:
+								logger.info (f'Putting CNV QC metrics into db for run {run_analysis.run.run_id}')
+								run_analysis.display_cnv_qc_metrics = True
+								run_analysis.save()
+								cnv_qc_metrics = dragen_ge.get_postprocessing_cnv_qc_metrics()
+								management_utils.add_exome_postprocessing_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
+							else:
+								logger.info (f'No CNV metrics for this run {run_analysis.run.run_id}')
 
 							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
 							parsed_relatedness, parsed_relatedness_comment = dragen_ge.get_relatedness_metrics(run_analysis.min_relatedness_parents,
@@ -704,6 +743,15 @@ class Command(BaseCommand):
 							logger.info (f'Putting sensitivity metrics into db for run {run_analysis.run.run_id}')
 							sensitivity_metrics = dragen_ge.get_sensitivity()
 							management_utils.add_sensitivity_metrics(sensitivity_metrics, run_analysis)
+
+							if display_cnv_qc:
+								logger.info (f'Putting CNV QC metrics into db for run {run_analysis.run.run_id}')
+								run_analysis.display_cnv_qc_metrics = True
+								run_analysis.save()
+								cnv_qc_metrics = dragen_ge.get_postprocessing_cnv_qc_metrics()
+								management_utils.add_exome_postprocessing_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
+							else:
+								logger.info (f'No CNV metrics for this run {run_analysis.run.run_id}')
 
 							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
 							parsed_relatedness, parsed_relatedness_comment = dragen_ge.get_relatedness_metrics(run_analysis.min_relatedness_parents,
