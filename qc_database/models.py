@@ -1711,6 +1711,24 @@ class CNVMetrics(models.Model):
 	exome_depth_count = models.IntegerField(null=True)
 	exome_depth_autosomal_reference_count = models.IntegerField(null=True)
 	exome_depth_x_reference_count = models.IntegerField(null=True)
+	
+class DragenCNVMetrics(models.Model):
+	"""
+	Model for sample level CNV calling metrics from DragenWGS
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	bases_in_reference_genome = models.IntegerField(null=True, blank=True)
+	average_alignment_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	number_of_filtered_records_total = models.IntegerField(null=True, blank=True)
+	number_of_filtered_records_duplicates = models.IntegerField(null=True, blank=True)
+	number_of_filtered_records_mapq = models.IntegerField(null=True, blank=True)
+	number_of_filtered_records_unmapped = models.IntegerField(null=True, blank=True)
+	number_of_target_intervals = models.IntegerField(null=True, blank=True)
+	number_of_segments = models.IntegerField(null=True, blank=True)
+	number_of_amplifications = models.IntegerField(null=True, blank=True)
+	number_of_deletions = models.IntegerField(null=True, blank=True)
+	number_of_passing_amplifications = models.IntegerField(null=True, blank=True)
+	number_of_passing_deletions = models.IntegerField(null=True, blank=True)
 
 
 auditlog.register(RunAnalysis)

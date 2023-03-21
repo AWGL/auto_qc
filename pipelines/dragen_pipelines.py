@@ -577,3 +577,26 @@ class DragenWGS:
 				run_ploidy_metrics_dict[sample] = parsed_run_ploidy_metrics
 
 		return run_ploidy_metrics_dict
+		
+	def get_cnv_metrics(self):
+		"""
+		Get sample level CNV metrics from dragen cnv metrics file
+		"""
+		
+		results_path = Path(self.results_dir)
+		
+		dragen_cnv_metrics_dict = {}
+		
+		for sample in self.sample_names:
+		
+			cnv_metrics_file = results_path.joinpath(sample).glob(f'*{sample}.cnv_metrics.csv')
+			
+			if len(list(cnv_metrics_file)) == 1:
+			
+				cnv_file = list(cnv_metrics_file)[0]
+				
+				parsed_cnv_metrics = parsers.parse_dragen_cnv_metrics_file(cnv_file)
+				
+				dragen_cnv_metrics_dict[sample] = parsed_cnv_metrics
+		
+		return dragen_cnv_metrics_dict
