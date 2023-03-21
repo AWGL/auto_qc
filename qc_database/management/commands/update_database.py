@@ -208,6 +208,20 @@ class Command(BaseCommand):
 								except:
 
 									raise Exception ("ERROR: Max CNVs called cutoff not in config file")
+									
+							if 'min_average_coverage' == key:
+							
+								try:
+									min_average_coverage_cutoff = config_dict['pipelines'][run_config_key]['min_average_coverage']
+
+									if created:
+
+										new_sample_analysis_obj.min_average_coverage_cutoff = min_average_coverage_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Min Average Coverage cutoff not in config file")
+								
 
 					new_sample_analysis_obj.sex = sex
 					new_sample_analysis_obj.save()
@@ -389,6 +403,19 @@ class Command(BaseCommand):
 								except:
 
 									raise Exception("ERROR: max_cnv_calls_cutoff not in config file")
+									
+							if 'min_average_coverage' == key:
+							
+								try:
+									min_average_coverage_cutoff = config_dict['pipelines'][run_config_key]['min_average_coverage']
+
+									if created:
+
+										new_run_analysis_obj.min_average_coverage_cutoff = min_average_coverage_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Min Average Coverage cutoff not in config file")
 
 					new_run_analysis_obj.save()
 

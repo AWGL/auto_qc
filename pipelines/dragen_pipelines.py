@@ -591,8 +591,11 @@ class DragenWGS:
 		
 			cnv_metrics_file = results_path.joinpath(sample).glob(f'*{sample}.cnv_metrics.csv')
 			
+			
 			if len(list(cnv_metrics_file)) == 1:
 			
+				cnv_metrics_file = results_path.joinpath(sample).glob(f'*{sample}.cnv_metrics.csv')
+				
 				cnv_file = list(cnv_metrics_file)[0]
 				
 				parsed_cnv_metrics = parsers.parse_dragen_cnv_metrics_file(cnv_file)
