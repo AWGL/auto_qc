@@ -25,6 +25,7 @@ def home_auto_qc(request):
 
 	return render(request, 'auto_qc/home.html', {'run_analyses': run_analyses})
 
+
 @transaction.atomic
 @login_required
 def view_run_analysis(request, pk):
@@ -61,11 +62,61 @@ def view_run_analysis(request, pk):
 		
 		checks_to_do = checks_to_do.split(',')
 
-	form = RunAnalysisSignOffForm(run_analysis_id= run_analysis.pk, comment =run_analysis.comment)
+	#form = RunAnalysisSignOffForm(run_analysis_id= run_analysis.pk, comment =run_analysis.comment)
 	reset_form = ResetRunForm(run_analysis_id= run_analysis.pk)
 	sensitivity_form = SensitivityForm(instance = run_analysis)
 
 	if request.method == 'POST':
+
+		if 'samplefail' in request.POST:
+
+			entry_list = []
+
+			for entry in request.POST:
+
+				entry_list.append(entry)
+
+			for sample in sample_analyses:
+
+				if str(sample.pk) in entry_list:
+
+					SampleAnalysis.objects.filter(sample=sample.sample).update(sample_status='Pass')
+
+		if 'run_status' in request.POST:
+
+			status = request.POST['run_status']
+
+			if status == 'Pass':
+
+				approval = RunAnalysis.objects.get(pk=run_analysis.pk)
+				approval.manual_approval = True
+				approval.watching = False
+				approval.save()
+
+			elif status == 'Fail':
+
+				failure = RunAnalysis.objects.get(pk=run_analysis.pk)
+				failure.manual_approval = False
+				failure.watching = False
+				failure.save()
+				
+				if 'samplefail' in request.POST:
+					entry_list = []
+					for entry in request.POST:
+						entry_list.append(entry)
+					for sample in sample_analyses:
+						if str(sample.pk) in entry_list:
+							SampleAnalysis.objects.filter(sample=sample.sample).update(sample_status='Fail')
+
+		if 'run_status_comment' in request.POST:
+
+			run_comment = request.POST['run_status_comment']
+			
+			comment = RunAnalysis.objects.get(pk=run_analysis.pk)
+			comment.comment = run_comment
+			comment.save()
+
+			return redirect('home_auto_qc')
 
 		# if the user submitted the signoff form
 		if 'run-analysis-signoff-form' in request.POST:
@@ -126,11 +177,11 @@ def view_run_analysis(request, pk):
 															 'min_q30_score': min_q30_score,
 															 'max_contamination_score': max_contamination_score,
 															 'max_ntc_contamination_score': max_ntc_contamination_score,
-															 'form': form,
 															 'reset_form': reset_form,
 															 'sensitivity_form': sensitivity_form,
 															 'checks_to_do': checks_to_do,
 															 'relatedness': relatedness})
+
 
 @transaction.atomic
 @login_required
@@ -258,3 +309,10 @@ def ngs_kpis(request):
 			return response
 
 	return render(request, 'auto_qc/ngs_kpis.html', {'form': form})
+
+
+
+
+
+
+
