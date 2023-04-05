@@ -112,7 +112,6 @@ class Sample(models.Model):
 
 		return False
 
-
 class Pipeline(models.Model):
 	"""
 	A pipeline - should be pipelinename + version
@@ -524,6 +523,7 @@ class SampleAnalysis(models.Model):
 	sex = models.CharField(max_length=10, null=True, blank=True)
 	contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=0.15, null=True, blank=True)
 	ntc_contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=10.0, null=True, blank=True)
+	sample_status = models.CharField(default = 'Fail', max_length=20, choices = (('Pass','Pass'),('Fail', 'Fail')))
 
 	history = AuditlogHistoryField()
 
