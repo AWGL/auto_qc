@@ -167,7 +167,7 @@ pipelines:
     min_fastq_size: 0
     min_variants: 20
     max_variants: 80
-    min_coverage: 0.90
+    min_coverage: 0.95
 
 
   germline_enrichment_nextflow-master-IlluminaTruSightCancer:
