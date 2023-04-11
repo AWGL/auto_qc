@@ -648,40 +648,63 @@ class SampleAnalysis(models.Model):
 
 	def passes_ntc_contamination(self):
 
-		run_analysis = RunAnalysis.objects.get(run = self.run,
+		if "ctdna" not in str(self.pipeline):
+		
+			run_analysis = RunAnalysis.objects.get(run = self.run,
 											pipeline = self.pipeline,
 											analysis_type = self.analysis_type
 												)
 
-		total_reads = self.get_total_reads()
+			total_reads = self.get_total_reads()
 
-		if total_reads == None:
-
-			return 'Cannot count reads for sample.'
-
-		ntc_objs = run_analysis.get_ntc_sample(self.worksheet)
-
-		if len(ntc_objs) == 0:
-
-			return False
-
-		for ntc in ntc_objs:
-
-			ntc_reads = ntc.get_total_reads()
-
-			if self == ntc:
-
-				return 'NA'
-
-			if ntc_reads == None:
+			if total_reads == None:
 
 				return 'Cannot count reads for sample.'
 
-			if (ntc_reads * self.ntc_contamination_cutoff) > total_reads:
+			ntc_objs = run_analysis.get_ntc_sample(self.worksheet)
+	
+			if len(ntc_objs) == 0:
 
 				return False
 
-		return True
+			for ntc in ntc_objs:
+
+				ntc_reads = ntc.get_total_reads()
+	
+				if self == ntc:
+
+					return 'NA'
+
+				if ntc_reads == None:
+
+					return 'Cannot count reads for sample.'
+
+				if (ntc_reads * self.ntc_contamination_cutoff) > total_reads:
+
+					return False
+
+			return True
+			
+		else:
+		
+			try:
+				ctDNA_aligned_reads = ctDNAReads.objects.filter(sample_analysis = self)
+			except:
+				return None
+
+			if len(ctDNA_aligned_reads) != 1:
+
+				return None
+
+			else:
+				
+				if ctDNA_aligned_reads[0].percent_ntc_contamination < self.ntc_contamination_cutoff:
+				
+					return True
+					
+				else:
+					
+					return False
 
 	def get_reads_tso500(self):
 
@@ -1151,6 +1174,21 @@ class SampleAnalysis(models.Model):
 				return True
 			else:
 				return False
+				
+	def get_ctDNA_aligned_reads(self):
+	
+		try:
+			ctDNA_aligned_reads= ctDNAReads.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(ctDNA_aligned_reads) != 1:
+
+			return None
+
+		else:
+
+			return ctDNA_aligned_reads[0].aligned_reads
 
 
 class SampleFastqcData(models.Model):
@@ -1669,6 +1707,14 @@ class Tso500Reads(models.Model):
 	percent_ntc_reads = models.IntegerField(null=True)
 	aligned_reads=models.IntegerField(null=True)
 	percent_ntc_contamination=models.IntegerField(null=True)
+	
+class ctDNAReads(models.Model):
+	"""
+	Parsed read numbers from ctDNA samples
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	aligned_reads = models.IntegerField(null=True)
+	percent_ntc_contamination = models.IntegerField(null=True)
 
 
 class DragenPloidyMetrics(models.Model):
