@@ -1301,10 +1301,10 @@ class Command(BaseCommand):
 
 							if sample_valid == True:
 
-								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level TSO500 successfully.')
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level successfully.')
 
 							else:
-								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level TSO500.')
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level.')
 
 						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
 

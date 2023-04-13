@@ -1,0 +1,5 @@
+sample	completed_app	fastqc	mapped_reads	median_exon_cov	perc_1000x
+Sample1	TRUE	PASS	98449907	4317	96.6
+Sample2	TRUE	PASS	500	1898	92.9
+Sample3	FAIL	PASS	66140537	3413	95.3
+NTC-TEST	TRUE	FAIL	71	0	0.0
