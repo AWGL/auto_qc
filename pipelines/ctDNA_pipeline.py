@@ -72,7 +72,8 @@ class TSO500_ctDNA():
 		metrics_filtered = metrics_data[['sample', 'completed_app']]
 		sample_metrics = metrics_filtered[metrics_filtered['sample']==sample]
 
-		if sample_metrics['completed_app'].iloc[0] == "TRUE":
+		#Weird instance where sometimes this was read in as a string and TRUE and sometimes as a boolean and True
+		if sample_metrics['completed_app'].iloc[0] == "TRUE" or sample_metrics['completed_app'].iloc[0] == True:
 
 			return True
 
