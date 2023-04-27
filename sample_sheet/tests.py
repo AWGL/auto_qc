@@ -368,6 +368,37 @@ class TestSampleSheet(TestCase):
 
 		self.assertEqual(referral_test, 'wes~paediatric_disorders_green')
 
+	def test_ctDNA(self):
+		'''
+		tests:
+		worksheet/assay exists
+  		test upload script from utils
+			- returns True
+			- returns worksheet ID
+		models updated with worksheet information
+			- samples exist
+			- worksheet exists
+
+		'''
+		shire_filepath = 'sample_sheet/example_shire_queries/ctdna_shire_query.csv'
+
+		with open(shire_filepath) as file:
+ 			completed, message, ws, assay_name = import_worksheet_data(file)
+
+		self.assertEqual(ws, '23-1763')
+		self.assertTrue(completed)
+
+		# get worksheet info dict
+		worksheet_info = Worksheet.get_samples_from_ws(ws)
+		# extract first sample
+		test_sample = worksheet_info['1']['sample']
+		# check referral from sample to worksheets
+		sample_ws_obj = SampleToWorksheet.objects.get(sample=test_sample)
+		referral_test = sample_ws_obj.referral.name
+
+		self.assertEqual(referral_test, 'lung')
+
+
 
 	## test index import management command
 	def test_indexupload(self):
