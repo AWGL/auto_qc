@@ -16,6 +16,8 @@ pipelines:
     max_relatedness_unrelated: 0.02
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
+    min_average_coverage: 30
+    max_cnvs_called_cutoff: 300
     sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
                   '*.insert-stats.tab']
@@ -44,6 +46,8 @@ pipelines:
     max_relatedness_unrelated: 0.02
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
+    min_average_coverage: 30
+    max_cnvs_called_cutoff: 300
     sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
                   '*.insert-stats.tab']
