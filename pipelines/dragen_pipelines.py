@@ -601,5 +601,9 @@ class DragenWGS:
 				parsed_cnv_metrics = parsers.parse_dragen_cnv_metrics_file(cnv_file)
 				
 				dragen_cnv_metrics_dict[sample] = parsed_cnv_metrics
+				
+			else:
+			
+				return dragen_cnv_metrics_dict
 		
 		return dragen_cnv_metrics_dict
