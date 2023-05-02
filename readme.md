@@ -96,8 +96,8 @@ python manage.py loaddata sample_sheet/fixtures/referraltype.json
 python manage.py loaddata sample_sheet/fixtures/assay.json
 
 # Dump the assay content added in the django /admin app into the json file
-python manage.py dumpdata samplesheet.assay > sample_sheet/fixtures/assay.json 
-python manage.py dumpdata samplesheet.referraltype > sample_sheet/fixtures/referraltype.json
+python manage.py dumpdata sample_sheet.assay > sample_sheet/fixtures/assay.json 
+python manage.py dumpdata sample_sheet.referraltype > sample_sheet/fixtures/referraltype.json
 
 ```
 
