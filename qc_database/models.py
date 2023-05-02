@@ -419,6 +419,7 @@ class RunAnalysis(models.Model):
 						# handles old runs where the check exists but CNV calling hasn't been run
 						pass
 						
+		#Coverage check for WGSCNV calls only
 		if 'min_average_coverage' in checks_to_do:
 		
 			for sample in new_samples_list:
@@ -1181,7 +1182,7 @@ class SampleAnalysis(models.Model):
 			
 	def passes_average_coverage(self):
 		"""
-		Checks if average coverage > cut off - CNV metric
+		Checks if average coverage > cut off - WGS CNV metric
 		"""
 		
 		dragen_cnv_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
