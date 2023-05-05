@@ -114,7 +114,6 @@ class Sample(models.Model):
 
 		return False
 
-
 class Pipeline(models.Model):
 	"""
 	A pipeline - should be pipelinename + version
@@ -359,15 +358,20 @@ class RunAnalysis(models.Model):
 
 			return False,['Run results not valid']
 
+
+		fail_samples = []
+
 		for sample in samples:
 
 			if sample.results_completed == False:
 
 				reasons_to_fail.append('Results not complete for some samples')
+				fail_samples.append(sample.sample.sample_id)
 
 			if sample.results_valid == False:
 
 				reasons_to_fail.append('Results not valid for some samples')
+				fail_samples.append(sample.sample.sample_id)
 
 
 			if sample.sample.is_ntc() == False:
@@ -379,7 +383,6 @@ class RunAnalysis(models.Model):
 			if self.passes_run_level_qc() == False:
 
 				reasons_to_fail.append('Q30 Fail')
-
 
 		if 'relatedness' in checks_to_do:
 			
@@ -395,6 +398,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_contamination() == False:
 
 					reasons_to_fail.append('Contamination Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'ntc_contamination' in checks_to_do:
 
@@ -403,6 +407,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_ntc_contamination() != True:
 
 					reasons_to_fail.append('NTC Contamination Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'max_cnv_calls' in checks_to_do:
 
@@ -414,6 +419,7 @@ class RunAnalysis(models.Model):
 						if sample.passes_cnv_calling() != True:
 
 							reasons_to_fail.append('CNV Calling Fail')
+							fail_samples.append(sample.sample.sample_id)
 				
 					except ObjectDoesNotExist:
 						# handles old runs where the check exists but CNV calling hasn't been run
@@ -424,9 +430,10 @@ class RunAnalysis(models.Model):
 		
 			for sample in new_samples_list:
 			
-				if sample.passes_average_coverage() != True:
+				if sample.passes_average_coverage() == False:
 				
 					reasons_to_fail.append('Average Coverage Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 		# DNA
 		if 'ntc_contamination_TSO500' in checks_to_do:
@@ -438,6 +445,7 @@ class RunAnalysis(models.Model):
 					if sample_object.passes_percent_ntc_tso500() != True:
 
 						reasons_to_fail.append('NTC Contamination Fail')
+						fail_samples.append(sample.sample.sample_id)
 
 		# RNA
 		if 'reads_tso500' in checks_to_do:
@@ -447,6 +455,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_reads_tso500() != True:
 
 					reasons_to_fail.append('TSO500 Read Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'sex_match' in checks_to_do:
 
@@ -455,6 +464,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_sex_check() == False:
 
 					reasons_to_fail.append('Sex Match Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'variant_check' in checks_to_do:
 
@@ -463,13 +473,14 @@ class RunAnalysis(models.Model):
 				if sample.passes_variant_count_check() == False:
 
 					reasons_to_fail.append('Variant Count Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'sensitivity' in checks_to_do:
 
 			if self.passes_sensitivity() == False:
 
 				reasons_to_fail.append('Low Sensitivity')
-
+				
 		if 'coverage' in checks_to_do:
 			
 			for sample in new_samples_list:
@@ -477,6 +488,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_region_coverage_over_20() == False:
 
 					reasons_to_fail.append('Low Coverage >20x')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'titv' in checks_to_do:
 
@@ -485,6 +497,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_titv() == False:
 
 					reasons_to_fail.append('Titv Ratio out of range for at least one sample')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'fastqc' in checks_to_do:
 
@@ -493,6 +506,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_fastqc() == False:
 
 					reasons_to_fail.append('FASTQC Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 
 		if 'fusion_contamination' in checks_to_do:
@@ -502,6 +516,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_fusion_contamination() == False:
 
 					reasons_to_fail.append('Fusion Contamination Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'fusion_alignment' in checks_to_do:
 
@@ -509,7 +524,8 @@ class RunAnalysis(models.Model):
 
 				if sample.passes_fusion_aligned_reads_duplicates() == False:
 
-					reasons_to_fail.append('Fusion Aligned Reads Unique Fail')	
+					reasons_to_fail.append('Fusion Aligned Reads Unique Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 		if len(reasons_to_fail) ==0:
 
@@ -517,7 +533,7 @@ class RunAnalysis(models.Model):
 
 		else:
 
-			return False, list(set(reasons_to_fail))
+			return False, list(set(reasons_to_fail)), fail_samples
 
 
 class RelatednessQuality(models.Model):
@@ -551,6 +567,7 @@ class SampleAnalysis(models.Model):
 	ntc_contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=10.0, null=True, blank=True)
 	max_cnvs_called_cutoff = models.IntegerField(null=True, blank=True)
 	min_average_coverage_cutoff = models.IntegerField(null=True, blank=True)
+	sample_status = models.CharField(default = None, max_length=20, choices = (('Pass','Pass'),('Fail', 'Fail')), null=True, blank=True)
 
 	history = AuditlogHistoryField()
 
@@ -1172,20 +1189,23 @@ class SampleAnalysis(models.Model):
 		#Only do this for WGS
 		if 'DragenWGS' in self.pipeline.pipeline_id:
 			
-			dragen_cnv_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
+			dragen_cnv_metrics = DragenWGSCoverageMetrics.objects.get(sample_analysis=self)
 			
 			return dragen_cnv_metrics.average_alignment_coverage_over_genome
 			
 		else:
 		
-			return "NA"
+			return 'NA'
 			
 	def passes_average_coverage(self):
 		"""
 		Checks if average coverage > cut off - WGS CNV metric
 		"""
-		
-		dragen_cnv_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
+		try:
+			dragen_cnv_metrics = DragenWGSCoverageMetrics.objects.get(sample_analysis=self)
+		except:
+
+			return None
 		
 		if dragen_cnv_metrics.average_alignment_coverage_over_genome > self.min_average_coverage_cutoff:
 		
