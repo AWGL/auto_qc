@@ -181,6 +181,7 @@ class RunAnalysis(models.Model):
 	min_on_target_reads=models.IntegerField(null=True, blank=True)
 	max_cnv_calls=models.IntegerField(null=True, blank=True)
 	display_cnv_qc_metrics=models.BooleanField(default=False)
+	min_average_coverage_cutoff=models.IntegerField(null=True, blank=True)
 
 	#for TSO500 only- ntc contamination for other runs in sampleAnalysis object
 	max_ntc_contamination = models.IntegerField(null=True, blank=True)
@@ -407,15 +408,25 @@ class RunAnalysis(models.Model):
 
 			for sample in new_samples_list:
 				
-				try:
-					if sample.passes_cnv_calling() != True:
+				#Only hard failure for GE, just a warning in WGS
+				if 'DragenGE' in self.pipeline.pipeline_id:
+					try:
+						if sample.passes_cnv_calling() != True:
 
-						reasons_to_fail.append('CNV Calling Fail')
+							reasons_to_fail.append('CNV Calling Fail')
 				
-				except ObjectDoesNotExist:
-					# handles old runs where the check exists but CNV calling hasn't been run
-					pass
-					
+					except ObjectDoesNotExist:
+						# handles old runs where the check exists but CNV calling hasn't been run
+						pass
+						
+		#Coverage check for WGSCNV calls only
+		if 'min_average_coverage' in checks_to_do:
+		
+			for sample in new_samples_list:
+			
+				if sample.passes_average_coverage() != True:
+				
+					reasons_to_fail.append('Average Coverage Fail')
 
 		# DNA
 		if 'ntc_contamination_TSO500' in checks_to_do:
@@ -539,6 +550,7 @@ class SampleAnalysis(models.Model):
 	contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=0.15, null=True, blank=True)
 	ntc_contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=10.0, null=True, blank=True)
 	max_cnvs_called_cutoff = models.IntegerField(null=True, blank=True)
+	min_average_coverage_cutoff = models.IntegerField(null=True, blank=True)
 
 	history = AuditlogHistoryField()
 
@@ -1151,7 +1163,68 @@ class SampleAnalysis(models.Model):
 				return True
 			else:
 				return False
+				
+	def get_average_coverage(self):
+		"""
+		Average coverage metric for CNV calling
+		"""
+		
+		#Only do this for WGS
+		if 'DragenWGS' in self.pipeline.pipeline_id:
+			
+			dragen_cnv_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
+			
+			return dragen_cnv_metrics.average_alignment_coverage_over_genome
+			
+		else:
+		
+			return "NA"
+			
+	def passes_average_coverage(self):
+		"""
+		Checks if average coverage > cut off - WGS CNV metric
+		"""
+		
+		dragen_cnv_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
+		
+		if dragen_cnv_metrics.average_alignment_coverage_over_genome > self.min_average_coverage_cutoff:
+		
+			return True
+		
+		else:
+		
+			return False
+			
+	def get_cnv_count(self):
+		"""
+		Combination of passing amplifications and passing deletions
+		"""
+		
+		#Only do this for WGS:
+		if 'DragenWGS' in self.pipeline.pipeline_id:
+		
+			dragen_cnv_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
+			
+			total = dragen_cnv_metrics.number_of_passing_amplifications + dragen_cnv_metrics.number_of_passing_deletions
+			
+			return total
+			
+		else:
+		
+			return "NA"
+			
+	def passes_cnv_count(self):
+		"""
+		if total number of passing amplifcation and passing deletions is greater than cut off
+		"""
 
+		if int(self.get_cnv_count()) < int(self.max_cnvs_called_cutoff):
+		
+			return True
+			
+		else:
+		
+			return False
 
 class SampleFastqcData(models.Model):
 	"""
@@ -1711,6 +1784,25 @@ class CNVMetrics(models.Model):
 	exome_depth_count = models.IntegerField(null=True)
 	exome_depth_autosomal_reference_count = models.IntegerField(null=True)
 	exome_depth_x_reference_count = models.IntegerField(null=True)
+	
+class DragenCNVMetrics(models.Model):
+	"""
+	Model for sample level CNV calling metrics from DragenWGS
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	bases_in_reference_genome = models.IntegerField(null=True, blank=True)
+	average_alignment_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	number_of_alignment_records = models.IntegerField(null=True, blank=True)
+	number_of_filtered_records_total = models.IntegerField(null=True, blank=True)
+	number_of_filtered_records_duplicates = models.IntegerField(null=True, blank=True)
+	number_of_filtered_records_mapq = models.IntegerField(null=True, blank=True)
+	number_of_filtered_records_unmapped = models.IntegerField(null=True, blank=True)
+	number_of_target_intervals = models.IntegerField(null=True, blank=True)
+	number_of_segments = models.IntegerField(null=True, blank=True)
+	number_of_amplifications = models.IntegerField(null=True, blank=True)
+	number_of_deletions = models.IntegerField(null=True, blank=True)
+	number_of_passing_amplifications = models.IntegerField(null=True, blank=True)
+	number_of_passing_deletions = models.IntegerField(null=True, blank=True)
 
 
 auditlog.register(RunAnalysis)
