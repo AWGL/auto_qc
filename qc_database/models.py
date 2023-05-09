@@ -384,12 +384,15 @@ class RunAnalysis(models.Model):
 
 				reasons_to_fail.append('Q30 Fail')
 
+				for sample in new_samples_list:
+
+					fail_samples.append(sample.sample.sample_id)
+
 		if 'relatedness' in checks_to_do:
 			
 			if self.passes_relatedness()[0] == False:
 				
 				reasons_to_fail.append(self.passes_relatedness()[1])
-
 
 		if 'contamination' in checks_to_do:
 
@@ -419,7 +422,6 @@ class RunAnalysis(models.Model):
 						if sample.passes_cnv_calling() != True:
 
 							reasons_to_fail.append('CNV Calling Fail')
-							fail_samples.append(sample.sample.sample_id)
 				
 					except ObjectDoesNotExist:
 						# handles old runs where the check exists but CNV calling hasn't been run
@@ -433,7 +435,6 @@ class RunAnalysis(models.Model):
 				if sample.passes_average_coverage() == False:
 				
 					reasons_to_fail.append('Average Coverage Fail')
-					fail_samples.append(sample.sample.sample_id)
 
 		# DNA
 		if 'ntc_contamination_TSO500' in checks_to_do:
@@ -473,7 +474,6 @@ class RunAnalysis(models.Model):
 				if sample.passes_variant_count_check() == False:
 
 					reasons_to_fail.append('Variant Count Fail')
-					fail_samples.append(sample.sample.sample_id)
 
 		if 'sensitivity' in checks_to_do:
 
@@ -1222,8 +1222,14 @@ class SampleAnalysis(models.Model):
 		
 		#Only do this for WGS:
 		if 'DragenWGS' in self.pipeline.pipeline_id:
+
+			try:
 		
-			dragen_cnv_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
+				dragen_cnv_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
+
+			except:
+
+				return 'NA'
 			
 			total = dragen_cnv_metrics.number_of_passing_amplifications + dragen_cnv_metrics.number_of_passing_deletions
 			
@@ -1231,12 +1237,16 @@ class SampleAnalysis(models.Model):
 			
 		else:
 		
-			return "NA"
+			return 'NA'
 			
 	def passes_cnv_count(self):
 		"""
 		if total number of passing amplifcation and passing deletions is greater than cut off
 		"""
+
+		if self.get_cnv_count() == 'NA':
+
+			return None
 
 		if int(self.get_cnv_count()) < int(self.max_cnvs_called_cutoff):
 		

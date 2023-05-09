@@ -226,8 +226,6 @@
 
 <h2> Auto QC </h2>
 
-{{auto_qc}}
-
 {% if auto_qc.0 == True %}
 <div class="alert alert-success">
 
@@ -778,8 +776,12 @@
 		{% if run_analysis.watching == False %}
 			{% if sample_analysis.sample_status == 'Pass' %}
 				<td class='table-success'>{{sample_analysis.sample_status}} </td>
-			{% else %}
+			{% elif sample_analysis.sample_status == 'Fail' %}
 				<td class="table-danger">{{sample_analysis.sample_status}}</td >
+
+			{% else %}
+
+				<td>NA</td >
 			{% endif %}
 		{% endif %}
 
@@ -913,11 +915,6 @@
 </div>
 
 {% else %}
-
-
-<div class="alert alert-success">
-  {{run_analysis.comment}}
-</div>
 
 
 
