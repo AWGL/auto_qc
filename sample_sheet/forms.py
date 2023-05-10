@@ -142,8 +142,8 @@ class EditSampleDetailsForm(forms.Form):
 
 class CreateFamilyForm(forms.Form):
 	familyid = forms.ChoiceField(choices=Sample.FAMILYID_CHOICES)
-	fatherid = forms.ChoiceField(choices=[], label = 'Father sample ID')
-	motherid = forms.ChoiceField(choices=[], label = 'Mother sample ID')
+	fatherid = forms.ChoiceField(choices=[], label = 'Father sample ID', required=False)
+	motherid = forms.ChoiceField(choices=[], label = 'Mother sample ID', required=False)
 	probandid = forms.ChoiceField(choices=[], label = 'Proband sample ID')
 
 	def __init__(self, *args, **kwargs):
@@ -152,10 +152,12 @@ class CreateFamilyForm(forms.Form):
 		self.helper = FormHelper()
 		self.fields['familyid'].initial = None
 		sampleid_set = SampleToWorksheet.objects.filter(worksheet_id = self.worksheet_obj).values_list('sample', 'sample_id')
-		self.fields['fatherid'].choices=(*sampleid_set,)
-		self.fields['motherid'].choices=(*sampleid_set,)
+		sampleid_set_plus_null = tuple([(None, '----')] + list(sampleid_set))
+		self.fields['fatherid'].choices = (sampleid_set_plus_null)
+		self.fields['fatherid'].initial = None
+		self.fields['motherid'].choices = (sampleid_set_plus_null)
 		self.fields['motherid'].initial = None
-		self.fields['probandid'].choices=(*sampleid_set,)
+		self.fields['probandid'].choices = (*sampleid_set,)
 		self.fields['probandid'].initial = None
 		self.helper.form_id = 'create-family-form'
 		self.helper.form_method = 'POST'
@@ -194,7 +196,6 @@ class ClearFamilyForm(forms.Form):
 					)
 					),
 				)
-
 
 
 class ClinSciSignoffForm(forms.Form):
@@ -238,6 +239,7 @@ class ClinSciSignoffForm(forms.Form):
 					),
 				)
 
+
 class ClinSciOpenWorksheetForm(forms.Form):
 	clinsci_reopen_check = forms.BooleanField(required=False, label = 'I am sure.')
 
@@ -262,6 +264,7 @@ class ClinSciOpenWorksheetForm(forms.Form):
 					)
 					),
 				)
+
 
 class TechteamSignoffForm(forms.Form):
 	techteam_worksheet_checked = forms.BooleanField(required=False, label = 'Manual check')
@@ -288,6 +291,7 @@ class TechteamSignoffForm(forms.Form):
 					),
 				)
 
+
 class TechteamOpenWorksheetForm(forms.Form):
 	techteam_reopen_check = forms.BooleanField(required=False, label = 'I am sure.')
 
@@ -312,6 +316,7 @@ class TechteamOpenWorksheetForm(forms.Form):
 					)
 					),
 				)
+
 
 class ResetIndexForm(forms.Form):
 	reset_index_check = forms.BooleanField(required=False, label = 'I am sure.')
