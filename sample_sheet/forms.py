@@ -99,6 +99,7 @@ class EditSampleNotesForm(forms.Form):
 
 
 class EditSampleDetailsForm(forms.Form):
+	urgent = forms.BooleanField(label="Tick if this sample is urgent and requires rapid WGS", required=False)
 	pos = forms.IntegerField(min_value=1)
 	referral_type = forms.ModelChoiceField(queryset=ReferralType.objects.all(), label="Referral Type")
 	gender = forms.ChoiceField(choices=Sample.SEX_CHOICES, label="Gender")
@@ -114,6 +115,7 @@ class EditSampleDetailsForm(forms.Form):
 		self.fields['hpo_ids'].initial = self.sample_details_obj.hpo_ids
 		referral_choices = ReferralType.objects.filter(assay = self.sample_details_obj.worksheet.worksheet_test).order_by('name').values_list('name', 'name')
 		self.fields['referral_type'].choices = (*referral_choices,)
+		self.fields['urgent'].initial = self.sample_details_obj.urgent
 		self.helper.form_id = 'sample-details-form'
 		self.helper.form_method = 'POST'
 		self.helper.add_input(
@@ -123,6 +125,7 @@ class EditSampleDetailsForm(forms.Form):
 		if str(self.sample_details_obj.worksheet.worksheet_test) in (['WGS','WES']):
 
 			self.helper.layout = Layout(
+				Field('urgent'),
 				Hidden('sample_details_obj', self.sample_details_obj.id),
 				Hidden('pos', self.sample_details_obj.pos),
 				Field('referral_type'),
@@ -132,6 +135,7 @@ class EditSampleDetailsForm(forms.Form):
 
 		else:
 			self.helper.layout = Layout(
+				Hidden('urgent'),
 				Hidden('sample_details_obj', self.sample_details_obj.id),
 				Hidden('pos', self.sample_details_obj.pos),
 				Field('referral_type'),
@@ -204,6 +208,7 @@ class ClinSciSignoffForm(forms.Form):
 	sex_checked = forms.BooleanField(required=False, label = 'Sex check')
 	hpo_checked = forms.BooleanField(required=False, label = 'HPO check')
 	family_checked = forms.BooleanField(required=False, label = 'Family check')
+	urgency_checked = forms.BooleanField(required=False, label= 'Urgency check')
 
 	def __init__(self, *args, **kwargs):
 		self.worksheet_obj = kwargs.pop('worksheet_obj')
@@ -230,6 +235,10 @@ class ClinSciSignoffForm(forms.Form):
 					Field('family_checked'),
 						style="text-align: center"
 					),
+				Div(
+					Field('urgency_checked'),
+					style="text-align: center"
+				),
 				Div(
 					ButtonHolder(
 						Submit('submit', 'Sign Off', css_class='btn btn-success w-50')

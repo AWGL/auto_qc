@@ -364,6 +364,7 @@ def generate_ss_data_dict(worksheet, position_offset=0):
                             'Affected' : values['affected'],
                             'FamilyPos' : values['familypos'],
                             'Index_Well' : values['sample_obj'].index1.index_well,
+                            'Urgent': values['sample_obj'].urgent,
         }
         ## if second index exists add values to dictionary, else make ''
         if values['index2']:

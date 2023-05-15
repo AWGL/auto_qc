@@ -26,6 +26,7 @@ class Command(BaseCommand):
         ## hardcoded description column dictionary. added to and edited before writing csv file
         description_dict = {
                         'WGS' : 'pipelineName=DragenWGS;pipelineVersion=master;panel=WGS;',
+                        'FastWGS': 'pipelineName=DragenWGS;pipelineVersion=master;panel=FastWGS;',
                         'TSO500RNA' : 'pipelineName=TSO500;pipelineVersion=master;',
                         'TSO500DNA' : 'pipelineName=TSO500;pipelineVersion=master;',
                         'Myeloid' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=TruSightMyeloid;',
@@ -121,7 +122,7 @@ class Command(BaseCommand):
 
             ## generate description field
             ## if wings generate sex and family info then add to description field
-            if assay == "WGS":
+            if assay == "WGS" or assay == "FastWGS":
 
                 ## format sex part. no semicolon in case its on a singleton/NTC
                 if values['Sex'] == 'Male':
@@ -187,6 +188,9 @@ class Command(BaseCommand):
                     fam_desc = ''
                     affected_desc = ''
 
+                ## if sample is urgent update panel to FastWGS
+                if values['Urgent']:
+                    assay = 'FastWGS'
 
                 ## build description field for WINGS
                 description_field = f'{description_dict[assay]}{sex_desc}{referral_desc}{hpo_desc}{fam_desc}{affected_desc}'

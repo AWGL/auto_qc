@@ -24,6 +24,7 @@
             <th scope="col">Family Position</th>
             <th scope="col">Affected</th>
             <th scope="col">HPO IDs</th>
+            <th scope="col">Urgent</th>
             {% endif %}
 
             <th scope="col"></th>
@@ -37,7 +38,6 @@
             <td>{{ sample.sample }}</td>
             <td>{{ sample.referral }}</td>
             <td>{{ sample.sex }}</td>
-
 
             <!-- only display family and affected information if wings -->
             {% if worksheet_info.assay_name in "WGS WINGS WES" %}
@@ -82,6 +82,13 @@
               </td>
 
 
+            {% endif %}
+
+            <!-- formatting for urgent column -->
+            {% if sample.sample_obj.urgent %}
+              <td>Yes</td>
+            {% else %}
+              <td>-</td>
             {% endif %}
 
             <!-- if signed off then remove buttons -->
