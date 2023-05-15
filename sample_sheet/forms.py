@@ -121,8 +121,8 @@ class EditSampleDetailsForm(forms.Form):
 		self.helper.add_input(
 			Submit('submit', 'Update', css_class='btn btn-outline-light w-25 buttons1')
 		)
-		# if wes or wgs then show hpo option
-		if str(self.sample_details_obj.worksheet.worksheet_test) in (['WGS','WES']):
+		# if wgs then show hpo option and urgent option
+		if str(self.sample_details_obj.worksheet.worksheet_test) in (['WGS']):
 
 			self.helper.layout = Layout(
 				Field('urgent'),
@@ -133,9 +133,21 @@ class EditSampleDetailsForm(forms.Form):
 				Field('gender'),
 			)
 
+		# if wes then show hpo option
+		elif str(self.sample_details_obj.worksheet.worksheet_test) in (['WES']):
+
+			self.helper.layout = Layout(
+				Hidden('urgent', self.sample_details_obj.urgent),
+				Hidden('sample_details_obj', self.sample_details_obj.id),
+				Hidden('pos', self.sample_details_obj.pos),
+				Field('referral_type'),
+				Field('hpo_ids'),
+				Field('gender'),
+			)
+
 		else:
 			self.helper.layout = Layout(
-				Hidden('urgent'),
+				Hidden('urgent', self.sample_details_obj.urgent),
 				Hidden('sample_details_obj', self.sample_details_obj.id),
 				Hidden('pos', self.sample_details_obj.pos),
 				Field('referral_type'),
