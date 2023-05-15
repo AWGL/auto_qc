@@ -24,8 +24,12 @@
             <th scope="col">Family Position</th>
             <th scope="col">Affected</th>
             <th scope="col">HPO IDs</th>
+            {% if worksheet_info.assay_name == "WGS" %}
             <th scope="col">Urgent</th>
             {% endif %}
+            {% endif %}
+
+            
 
             <th scope="col"></th>
           </tr>
@@ -85,10 +89,12 @@
             {% endif %}
 
             <!-- formatting for urgent column -->
+            {% if worksheet_info.assay_name in "WGS WINGS" %}
             {% if sample.sample_obj.urgent %}
               <td>Yes</td>
             {% else %}
               <td>-</td>
+            {% endif %}
             {% endif %}
 
             <!-- if signed off then remove buttons -->
