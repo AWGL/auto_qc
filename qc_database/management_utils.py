@@ -675,8 +675,34 @@ def add_dragen_ploidy_metrics(dragen_ploidy_metrics, run_analysis_obj):
 
 			new_dragen_ploidy_metrics_obj = DragenPloidyMetrics(sample_analysis=sample_analysis_obj, ploidy_estimation=sample_data['ploidy_estimation'])
 			new_dragen_ploidy_metrics_obj.save()
+			
+def add_dragen_cnv_metrics(dragen_cnv_metrics_dict, run_analysis_obj):
+	"""
+	Add data from dragen sample CNV metrics file to database
+	"""
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+	
+	for key in dragen_cnv_metrics_dict:
+	
+		sample_obj = Sample.objects.get(sample_id=key)
+		
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+									run=run,
+									pipeline=pipeline,
+									analysis_type=run_analysis_obj.analysis_type)
 
-
+		existing_data = DragenCNVMetrics.objects.filter(sample_analysis=sample_analysis_obj)
+		
+		if len(existing_data) < 1:
+			
+			sample_data = dragen_cnv_metrics_dict[key]
+			
+			sample_data['sample_analysis'] = sample_analysis_obj
+			
+			new_dragen_cnv_metrics_obj = DragenCNVMetrics(**sample_data)
+			new_dragen_cnv_metrics_obj.save()
+				
 def add_fusion_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
 	"""
 	Add data from fusion contamination file to database

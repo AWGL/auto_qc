@@ -212,6 +212,20 @@ class Command(BaseCommand):
 								except:
 
 									raise Exception ("ERROR: Max CNVs called cutoff not in config file")
+									
+							if 'min_average_coverage' == key:
+							
+								try:
+									min_average_coverage_cutoff = config_dict['pipelines'][run_config_key]['min_average_coverage']
+
+									if created:
+
+										new_sample_analysis_obj.min_average_coverage_cutoff = min_average_coverage_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Min Average Coverage cutoff not in config file")
+								
 
 					new_sample_analysis_obj.sex = sex
 					new_sample_analysis_obj.save()
@@ -393,6 +407,19 @@ class Command(BaseCommand):
 								except:
 
 									raise Exception("ERROR: max_cnv_calls_cutoff not in config file")
+									
+							if 'min_average_coverage' == key:
+							
+								try:
+									min_average_coverage_cutoff = config_dict['pipelines'][run_config_key]['min_average_coverage']
+
+									if created:
+
+										new_run_analysis_obj.min_average_coverage_cutoff = min_average_coverage_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Min Average Coverage cutoff not in config file")
 
 					new_run_analysis_obj.save()
 
@@ -870,6 +897,10 @@ class Command(BaseCommand):
 							logger.info (f'Putting ploidy metrics into db for run {run_analysis.run.run_id}')
 							dragen_ploidy_metrics_dict = dragen_wgs.get_ploidy_metrics()
 							management_utils.add_dragen_ploidy_metrics(dragen_ploidy_metrics_dict, run_analysis)
+							
+							logger.info(f'Putting CNV metrics into db for run {run_analysis.run.run_id}')
+							dragen_cnv_metrics_dict = dragen_wgs.get_cnv_metrics()
+							management_utils.add_dragen_cnv_metrics(dragen_cnv_metrics_dict, run_analysis)
 
 						else:
 
@@ -906,6 +937,11 @@ class Command(BaseCommand):
 							logger.info (f'Putting ploidy metrics into db for run {run_analysis.run.run_id}')
 							dragen_ploidy_metrics_dict = dragen_wgs.get_ploidy_metrics()
 							management_utils.add_dragen_ploidy_metrics(dragen_ploidy_metrics_dict, run_analysis)
+							
+							logger.info(f'Putting CNV metrics into db for run {run_analysis.run.run_id}')
+							dragen_cnv_metrics_dict = dragen_wgs.get_cnv_metrics()
+							management_utils.add_dragen_cnv_metrics(dragen_cnv_metrics_dict, run_analysis)
+
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
@@ -1254,11 +1290,11 @@ class Command(BaseCommand):
 					run_analysis.results_valid = run_valid
 
 					run_analysis.save()
-					
+
 				# ctDNA
 				elif 'tso500_ctdna' in run_analysis.pipeline.pipeline_id:
 
-					run_id=run_analysis.run.run_id
+					run_id = run_analysis.run.run_id
 					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
 
 					if run_config_key not in config_dict['pipelines']:
