@@ -380,7 +380,7 @@ class TestSampleSheet(TestCase):
 			- worksheet exists
 
 		'''
-		shire_filepath = 'sample_sheet/example_shire_queries/ctdna_shire_query.csv'
+		shire_filepath = 'sample_sheet/example_shire_queries/ctdna_shire_query2.csv'
 
 		with open(shire_filepath) as file:
  			completed, message, ws, assay_name = import_worksheet_data(file)
