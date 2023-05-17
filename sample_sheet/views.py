@@ -530,18 +530,24 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					print('samples were unique and family id selected')
 
 					## edit father details
-					fathersample_obj = Sample.objects.get(sampleid = cleaned_data['fatherid'])
-					fathersample_obj.familyid = cleaned_data['familyid']
-					fathersample_obj.familypos = 'Father'
-					fathersample_obj.affected = False
-					fathersample_obj.save()
+					if cleaned_data['fatherid']:
+						fathersample_obj = Sample.objects.get(sampleid = cleaned_data['fatherid'])
+						fathersample_obj.familyid = cleaned_data['familyid']
+						fathersample_obj.familypos = 'Father'
+						fathersample_obj.affected = False
+						fathersample_obj.save()
+					else:
+						print('duo - no sample for father')
 
 					## edit mother details
-					mothersample_obj = Sample.objects.get(sampleid = cleaned_data['motherid'])
-					mothersample_obj.familyid = cleaned_data['familyid']
-					mothersample_obj.familypos = 'Mother'
-					mothersample_obj.affected = False
-					mothersample_obj.save()
+					if cleaned_data['motherid']:
+						mothersample_obj = Sample.objects.get(sampleid = cleaned_data['motherid'])
+						mothersample_obj.familyid = cleaned_data['familyid']
+						mothersample_obj.familypos = 'Mother'
+						mothersample_obj.affected = False
+						mothersample_obj.save()
+					else:
+						print('duo - no sample for mother')
 
 					## edit proband details
 					probandsample_obj = Sample.objects.get(sampleid = cleaned_data['probandid'])
