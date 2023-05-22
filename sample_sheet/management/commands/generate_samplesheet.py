@@ -422,13 +422,11 @@ class Command(BaseCommand):
             samplesheet_row_list = []
 
             ## iterate through header list and create a line per sample
-            print(values)
             for col_header in data_headers:
 
                 if col_header == 'Description':
                     samplesheet_row_list.append(description_field)
                 else:
-                    print(values[col_header])
                     samplesheet_row_list.append(values[col_header])
 
             ## for each sample, turn list of data into a csv delimited line and add to samplesheet header
