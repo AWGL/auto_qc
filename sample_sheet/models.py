@@ -362,7 +362,6 @@ class Worksheet(models.Model):
 		return self.worksheet_id
 
 
-
 class ReferralType(models.Model):
 	"""
 	A referral type from Shire
@@ -399,6 +398,7 @@ class SampleToWorksheet(models.Model):
 	pool = models.CharField(max_length=2, choices=POOL_CHOICES, default='Y')
 	edited = models.BooleanField(default=False)
 	notes = models.CharField(max_length=200, blank=True, null=True)
+	urgent = models.BooleanField(default=False, null=True, blank=True)
 
 	def __str__(self):
 
@@ -432,4 +432,3 @@ class SampleToWorksheet(models.Model):
 			return hpo_id_tuple_list
 
 		return None
-

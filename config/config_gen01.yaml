@@ -44,7 +44,7 @@ pipelines:
 
   DragenWGS-development-WGS:
     results_dir: '/mnt/wren_results/results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, max_cnv_calls]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
@@ -58,6 +58,8 @@ pipelines:
     max_relatedness_unrelated: 0.02
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
+    min_average_coverage: 30
+    max_cnvs_called_cutoff: 300
     sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
                   '*.insert-stats.tab']
@@ -73,7 +75,7 @@ pipelines:
 
   DragenWGS-master-WGS:
     results_dir: '/mnt/wren_results/results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, max_cnv_calls]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
@@ -87,6 +89,8 @@ pipelines:
     max_relatedness_unrelated: 0.02
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
+    min_average_coverage: 30
+    max_cnvs_called_cutoff: 300
     sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
                   '*.insert-stats.tab']
@@ -102,7 +106,7 @@ pipelines:
 
   DragenWGS-development-FastWGS:
     results_dir: '/mnt/wren_results/results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, max_cnv_calls]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
@@ -116,6 +120,8 @@ pipelines:
     max_relatedness_unrelated: 0.02
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
+    min_average_coverage: 30
+    max_cnvs_called_cutoff: 300
     sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
                   '*.insert-stats.tab']
@@ -131,7 +137,7 @@ pipelines:
 
   DragenWGS-master-FastWGS:
     results_dir: '/mnt/wren_results/results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, max_cnv_calls]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
@@ -145,6 +151,8 @@ pipelines:
     max_relatedness_unrelated: 0.02
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
+    min_average_coverage: 30
+    max_cnvs_called_cutoff: 300
     sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
                   '*.insert-stats.tab']
@@ -167,7 +175,7 @@ pipelines:
     min_fastq_size: 0
     min_variants: 20
     max_variants: 80
-    min_coverage: 0.90
+    min_coverage: 0.95
 
 
   germline_enrichment_nextflow-master-IlluminaTruSightCancer:
@@ -181,11 +189,12 @@ pipelines:
     max_variants: 500
 
   DragenGE-master-NonocusWES38:
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, coverage, relatedness, max_cnv_calls]
     results_dir:  '/mnt/wren_results/results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, coverage, relatedness]
     min_q30_score: 0.75
     contamination_cutoff: 0.10
     ntc_contamination_cutoff: 10
+    max_cnvs_called_cutoff: 1000000000000
     min_sensitivity: 0.95
     min_fastq_size: 1000000
     min_variants: 50000
@@ -202,11 +211,12 @@ pipelines:
     post_sample_files: []
 
   DragenGE-development-NonocusWES38:
-    results_dir:  '/mnt/wren_results/results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, coverage, relatedness]
+    results_dir:  '/mnt/wren_results/results/' 
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, coverage, relatedness, max_cnv_calls]
     min_q30_score: 0.75
     contamination_cutoff: 0.10
     ntc_contamination_cutoff: 10
+    max_cnvs_called_cutoff: 1000000000000
     min_sensitivity: 0.95
     min_fastq_size: 1000000
     min_variants: 50000

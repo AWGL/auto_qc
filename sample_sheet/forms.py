@@ -99,6 +99,7 @@ class EditSampleNotesForm(forms.Form):
 
 
 class EditSampleDetailsForm(forms.Form):
+	urgent = forms.BooleanField(label="Tick if this sample is urgent and requires rapid WGS", required=False)
 	pos = forms.IntegerField(min_value=1)
 	referral_type = forms.ModelChoiceField(queryset=ReferralType.objects.all(), label="Referral Type")
 	gender = forms.ChoiceField(choices=Sample.SEX_CHOICES, label="Gender")
@@ -114,15 +115,29 @@ class EditSampleDetailsForm(forms.Form):
 		self.fields['hpo_ids'].initial = self.sample_details_obj.hpo_ids
 		referral_choices = ReferralType.objects.filter(assay = self.sample_details_obj.worksheet.worksheet_test).order_by('name').values_list('name', 'name')
 		self.fields['referral_type'].choices = (*referral_choices,)
+		self.fields['urgent'].initial = self.sample_details_obj.urgent
 		self.helper.form_id = 'sample-details-form'
 		self.helper.form_method = 'POST'
 		self.helper.add_input(
 			Submit('submit', 'Update', css_class='btn btn-outline-light w-25 buttons1')
 		)
-		# if wes or wgs then show hpo option
-		if str(self.sample_details_obj.worksheet.worksheet_test) in (['WGS','WES']):
+		# if wgs then show hpo option and urgent option
+		if str(self.sample_details_obj.worksheet.worksheet_test) in (['WGS']):
 
 			self.helper.layout = Layout(
+				Field('urgent'),
+				Hidden('sample_details_obj', self.sample_details_obj.id),
+				Hidden('pos', self.sample_details_obj.pos),
+				Field('referral_type'),
+				Field('hpo_ids'),
+				Field('gender'),
+			)
+
+		# if wes then show hpo option
+		elif str(self.sample_details_obj.worksheet.worksheet_test) in (['WES']):
+
+			self.helper.layout = Layout(
+				Hidden('urgent', self.sample_details_obj.urgent),
 				Hidden('sample_details_obj', self.sample_details_obj.id),
 				Hidden('pos', self.sample_details_obj.pos),
 				Field('referral_type'),
@@ -132,6 +147,7 @@ class EditSampleDetailsForm(forms.Form):
 
 		else:
 			self.helper.layout = Layout(
+				Hidden('urgent', self.sample_details_obj.urgent),
 				Hidden('sample_details_obj', self.sample_details_obj.id),
 				Hidden('pos', self.sample_details_obj.pos),
 				Field('referral_type'),
@@ -142,8 +158,8 @@ class EditSampleDetailsForm(forms.Form):
 
 class CreateFamilyForm(forms.Form):
 	familyid = forms.ChoiceField(choices=Sample.FAMILYID_CHOICES)
-	fatherid = forms.ChoiceField(choices=[], label = 'Father sample ID')
-	motherid = forms.ChoiceField(choices=[], label = 'Mother sample ID')
+	fatherid = forms.ChoiceField(choices=[], label = 'Father sample ID', required=False)
+	motherid = forms.ChoiceField(choices=[], label = 'Mother sample ID', required=False)
 	probandid = forms.ChoiceField(choices=[], label = 'Proband sample ID')
 
 	def __init__(self, *args, **kwargs):
@@ -152,10 +168,12 @@ class CreateFamilyForm(forms.Form):
 		self.helper = FormHelper()
 		self.fields['familyid'].initial = None
 		sampleid_set = SampleToWorksheet.objects.filter(worksheet_id = self.worksheet_obj).values_list('sample', 'sample_id')
-		self.fields['fatherid'].choices=(*sampleid_set,)
-		self.fields['motherid'].choices=(*sampleid_set,)
+		sampleid_set_plus_null = tuple([(None, '----')] + list(sampleid_set))
+		self.fields['fatherid'].choices = (sampleid_set_plus_null)
+		self.fields['fatherid'].initial = None
+		self.fields['motherid'].choices = (sampleid_set_plus_null)
 		self.fields['motherid'].initial = None
-		self.fields['probandid'].choices=(*sampleid_set,)
+		self.fields['probandid'].choices = (*sampleid_set,)
 		self.fields['probandid'].initial = None
 		self.helper.form_id = 'create-family-form'
 		self.helper.form_method = 'POST'
@@ -196,13 +214,13 @@ class ClearFamilyForm(forms.Form):
 				)
 
 
-
 class ClinSciSignoffForm(forms.Form):
 
 	clinsci_worksheet_checked = forms.BooleanField(required=False, label = 'Manual check')
 	sex_checked = forms.BooleanField(required=False, label = 'Sex check')
 	hpo_checked = forms.BooleanField(required=False, label = 'HPO check')
 	family_checked = forms.BooleanField(required=False, label = 'Family check')
+	urgency_checked = forms.BooleanField(required=False, label= 'Urgency check')
 
 	def __init__(self, *args, **kwargs):
 		self.worksheet_obj = kwargs.pop('worksheet_obj')
@@ -230,6 +248,10 @@ class ClinSciSignoffForm(forms.Form):
 						style="text-align: center"
 					),
 				Div(
+					Field('urgency_checked'),
+					style="text-align: center"
+				),
+				Div(
 					ButtonHolder(
 						Submit('submit', 'Sign Off', css_class='btn btn-success w-50')
 						),
@@ -237,6 +259,7 @@ class ClinSciSignoffForm(forms.Form):
 					)
 					),
 				)
+
 
 class ClinSciOpenWorksheetForm(forms.Form):
 	clinsci_reopen_check = forms.BooleanField(required=False, label = 'I am sure.')
@@ -263,6 +286,7 @@ class ClinSciOpenWorksheetForm(forms.Form):
 					),
 				)
 
+
 class TechteamSignoffForm(forms.Form):
 	techteam_worksheet_checked = forms.BooleanField(required=False, label = 'Manual check')
 
@@ -288,6 +312,7 @@ class TechteamSignoffForm(forms.Form):
 					),
 				)
 
+
 class TechteamOpenWorksheetForm(forms.Form):
 	techteam_reopen_check = forms.BooleanField(required=False, label = 'I am sure.')
 
@@ -312,6 +337,7 @@ class TechteamOpenWorksheetForm(forms.Form):
 					)
 					),
 				)
+
 
 class ResetIndexForm(forms.Form):
 	reset_index_check = forms.BooleanField(required=False, label = 'I am sure.')
