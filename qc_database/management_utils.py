@@ -860,3 +860,30 @@ def add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, al
 			new_reads_obj = Tso500Reads(sample_analysis = sample_analysis_obj, aligned_reads=aligned_reads, percent_ntc_contamination=ntc_contamination_aligned_reads, total_pf_reads=total_pf_reads, percent_ntc_reads= sample_data)
 
 			new_reads_obj.save()
+			
+def add_ctdna_ntc_contamination(aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis_obj):
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+	
+	for key in aligned_reads_dict:
+		
+		sample_obj = Sample.objects.get(sample_id=key)
+
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
+		
+		existing_data = ctDNAReads.objects.filter(sample_analysis= sample_analysis_obj)
+		
+		if len(existing_data) < 1:
+
+			aligned_reads = aligned_reads_dict[key]
+
+			ntc_contamination_aligned_reads=ntc_contamination_aligned_reads_dict[key]
+
+			new_reads_obj = ctDNAReads(sample_analysis = sample_analysis_obj, aligned_reads=aligned_reads, percent_ntc_contamination=ntc_contamination_aligned_reads)
+
+			new_reads_obj.save()

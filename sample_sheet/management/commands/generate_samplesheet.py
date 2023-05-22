@@ -35,7 +35,8 @@ class Command(BaseCommand):
                         'TruSightOne' : 'pipelineName=DragenGE;pipelineVersion=master;panel=IlluminaTruSightOne;',
                         'BRCA' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=NGHS-102X;',
                         'CRM' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=NGHS-101X;',
-                        'WES' : 'pipelineName=DragenGE;pipelineVersion=master;panel=NonocusWES38;'
+                        'WES' : 'pipelineName=DragenGE;pipelineVersion=master;panel=NonocusWES38;',
+			'ctDNA' : 'pipelineName=tso500_ctdna;pipelineVersion=master;'
         }
 
 
@@ -387,6 +388,34 @@ class Command(BaseCommand):
                 ## build description field for WINGS
                 description_field = f'{description_dict[assay]}{sex_desc}{referral_desc}{hpo_desc}{fam_desc}{affected_desc}'
 
+
+            ## if TSO500RNA or DNA is main assay, add DNA/RNA field to dict for relevant samples.
+            elif assay == 'ctDNA':
+
+                type_dict = {
+                            'ctDNA' : 'DNA',
+                }
+
+                ## match values wsid with type_dict for sample type column. add to data dict
+                '''
+                output example:
+                {'20-6582': 'DNA'}
+
+                '''
+                worksheet_type_dict = {}
+                for a, b in zip(worksheets, assays):
+                    worksheet_type_dict[a] = type_dict[b]
+
+                ## copy whole of values and change
+                changed_values = values
+                changed_values['Sample_Type'] = worksheet_type_dict[values['Sample_Plate']]
+                changed_values['Sample_Well'] = values['Index_Well']
+
+                ## update main dict
+                ss_data_dict[pos].update(changed_values)
+
+
+                description_field = f'{description_dict[assay]}referral={values["Referral"]}'
 
 
             ## have a capture to create a warning description field if not picked up as an assay

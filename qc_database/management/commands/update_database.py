@@ -9,7 +9,7 @@ from django.conf import settings
 from django.db import transaction
 
 from qc_database.models import *
-from pipelines import dragen_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines, TSO500_pipeline
+from pipelines import dragen_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines, TSO500_pipeline, ctDNA_pipeline
 from qc_database import management_utils
 
 class Command(BaseCommand):
@@ -126,6 +126,10 @@ class Command(BaseCommand):
 
 						panel = sample_sheet_data[sample]['Sample_Type']
 						panel = 'TSO500_' + panel
+						
+					elif pipeline == 'tso500_ctdna':
+					
+						panel = 'ctDNA'
 
 					else:
 
@@ -467,6 +471,10 @@ class Command(BaseCommand):
 
 					run_data_dir = Path(results_dir)
 
+				elif 'ctdna' in run_config_key:
+				
+					run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id+"/tso500_ctdna/")
+				
 				else:
 
 					run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id, run_analysis.analysis_type.analysis_type_id)
@@ -1277,6 +1285,111 @@ class Command(BaseCommand):
 							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
 							ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict= tso500.ntc_contamination()
 							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
+
+					run_analysis.results_completed = run_complete
+					run_analysis.results_valid = run_valid
+
+					run_analysis.save()
+
+				# ctDNA
+				elif 'tso500_ctdna' in run_analysis.pipeline.pipeline_id:
+
+					run_id = run_analysis.run.run_id
+					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+
+					if run_config_key not in config_dict['pipelines']:
+
+						ctDNA = ctDNA_pipeline.TSO500_ctDNA(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id,
+															sample_completed_files=['*_fusion_check.csv', '*_variants.tsv', '*_coverage.json'],
+															run_completed_files = ['postprocessing_complete.txt'],
+															metrics_file =['QC_combined.txt']
+															)
+					else:
+
+						sample_completed_files = config_dict['pipelines'][run_config_key]['sample_completed_files']
+						run_completed_files = config_dict['pipelines'][run_config_key]['run_completed_files']
+						metrics_file = config_dict['pipelines'][run_config_key]['metrics_file']
+
+						ctDNA = ctDNA_pipeline.TSO500_ctDNA(results_dir = run_data_dir,
+    															sample_completed_files=sample_completed_files,
+    															run_completed_files=run_completed_files,
+    															metrics_file= metrics_file,
+															run_id = run_analysis.run.run_id,
+															sample_names=sample_ids,
+															)
+
+					for sample in sample_ids:
+
+						sample_complete = ctDNA.sample_is_complete(sample)
+
+						sample_valid = ctDNA.sample_is_valid(sample)
+						
+						sample_obj = Sample.objects.get(sample_id = sample)
+
+						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
+																		run = run_analysis.run,
+																		pipeline = run_analysis.pipeline,
+																		analysis_type_id=run_analysis.analysis_type)
+
+						if sample_analysis_obj.results_completed == False and sample_complete == True:
+
+							if sample_valid == True:
+
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level successfully.')
+
+							else:
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level.')
+
+						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
+
+							logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now completed successfully.')
+
+			
+						sample_analysis_obj.results_completed = sample_complete
+						sample_analysis_obj.results_valid = sample_valid
+						sample_analysis_obj.save()
+
+					run_complete = ctDNA.run_is_complete()
+					
+					if run_complete == True:
+					
+						run_valid = True
+						
+					else:
+					
+						run_valid = False
+
+					if run_analysis.results_completed == False and run_complete == True:
+
+						if run_valid == True:
+
+							logger.info (f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = ctDNA.get_fastqc_data()
+							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							
+							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
+							aligned_reads_dict, ntc_contamination_aligned_reads_dict= ctDNA.ntc_contamination()
+							management_utils.add_ctdna_ntc_contamination(aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
+
+						else:
+
+							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+
+					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
+
+							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_dict = ctDNA.get_fastqc_data()
+							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							
+							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
+							aligned_reads_dict, ntc_contamination_aligned_reads_dict= ctDNA.ntc_contamination()
+							management_utils.add_ctdna_ntc_contamination(aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid

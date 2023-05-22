@@ -258,4 +258,11 @@ pipelines:
     metrics_file: ['RNA_QC_combined.txt']
 
 
-
+  tso500_ctdna-master-ctDNA:
+    results_dir: '/mnt/wren_results/results/'
+    min_q30_score: 0.8
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, ntc_contamination]
+    sample_completed_files: ['*_fusion_check.csv', '*_variants.tsv', '*_coverage.json']
+    run_completed_files: ['postprocessing_complete.txt']
+    metrics_file: ['QC_combined.txt']
