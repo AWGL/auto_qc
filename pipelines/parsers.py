@@ -967,7 +967,35 @@ def parse_ploidy_metrics_file(ploidy_metrics_file):
 				dragen_ploidy_metrics_file_dict[new_key] = value
 				
 	return dragen_ploidy_metrics_file_dict
-
+	
+def parse_dragen_cnv_metrics_file(cnv_file):
+	"""
+	Parse the dragen sample level CNV metrics file
+	"""
+	
+	dragen_cnv_metrics_file_dict = {}
+	
+	with open(cnv_file) as file:
+	
+		dragen_cnv_file = csv.reader(file, delimiter=',')
+		
+		for row in dragen_cnv_file:
+		
+			prefix = row[0]
+			key = row[2]
+			value = row[3]
+			
+			#Reformat key to remove spaces and brackets and make lower case
+			
+			new_key = key.translate(str.maketrans('', '', string.punctuation.replace('_','')))
+			
+			new_key = new_key.lower().replace(' ', '_').replace('__','_')
+			
+			if prefix == 'CNV SUMMARY':
+			
+				dragen_cnv_metrics_file_dict[new_key] = value
+	
+	return dragen_cnv_metrics_file_dict
 
 def parse_custom_coverage_metrics(custom_coverage_file):
 	"""

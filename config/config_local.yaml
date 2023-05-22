@@ -2,20 +2,22 @@ pipelines:
 
   DragenWGS-master-WGS:
     results_dir: '/media/joseph/Storage/data/dragen_results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, max_cnv_calls]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
     min_variants: 4700000
     max_variants: 7000000
-    min_titv: 1.87
-    max_titv: 1.95
+    min_titv: 1.0
+    max_titv: 3.0
     min_coverage: 93
     min_relatedness_parents: 0.2
     max_relatedness_unrelated: 0.02
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
+    min_average_coverage: 30
+    max_cnvs_called_cutoff: 300
     sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
                   '*.insert-stats.tab']
@@ -30,20 +32,22 @@ pipelines:
     post_sample_files: []
 
   DragenWGS-master-FastWGS:
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, max_cnv_calls]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 1000000
     min_variants: 4700000
     max_variants: 7000000
-    min_titv: 1.87
-    max_titv: 1.95
+    min_titv: 1.0
+    max_titv: 3.0
     min_coverage: 93
     min_relatedness_parents: 0.2
     max_relatedness_unrelated: 0.02
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
+    min_average_coverage: 30
+    max_cnvs_called_cutoff: 300
     sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
                   '*.insert-stats.tab']
@@ -156,7 +160,7 @@ pipelines:
 
   DragenGE-master-IlluminaTruSightOne:
     results_dir:  '/media/joseph/Storage/data/dragen_results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, coverage, relatedness]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, coverage, relatedness, max_cnv_calls]
     min_q30_score: 0.75
     contamination_cutoff: 0.10
     ntc_contamination_cutoff: 10
@@ -174,3 +178,16 @@ pipelines:
     run_expected_files: []
     run_not_expected_files: []
     post_sample_files: []
+
+
+  tso500_ctdna-master-ctDNA:
+    results_dir: '/home/niamh/data/ctdna_results'
+    min_q30_score: 0.8
+    ntc_contamination_cutoff: 10
+    qc_checks: [pct_q30, fastqc, ntc_contamination_TSO500]
+    min_fastq_size: 0
+    sample_completed_files: ['*variants.tsv', '*_coverage.json']
+    sample_valid_files: ['QC_combined.txt']
+    run_completed_files: ['contamination-*.csv']
+    run_expected_files: ['QC_combined.txt','completed_samples.txt' ]
+    metrics_file: ['QC_combined.txt']

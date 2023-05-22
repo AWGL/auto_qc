@@ -247,6 +247,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 		clin_sci_form.fields['sex_checked'].widget = forms.HiddenInput()
 		clin_sci_form.fields['hpo_checked'].widget = forms.HiddenInput()
 		clin_sci_form.fields['family_checked'].widget = forms.HiddenInput()
+		clin_sci_form.fields['urgency_checked'].widget = forms.HiddenInput()
 
 
 	## add to context dict for template
@@ -288,6 +289,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 		'clear_family_form' : ClearFamilyForm(worksheet_obj=worksheet_obj),
 		'advanced_download_form' : AdvancedDownloadForm(worksheet_obj=worksheet_obj),
 	}
+
 
 	## when request is submitted
 	if request.method == 'POST':
@@ -446,6 +448,30 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 				cleaned_data = edit_details.cleaned_data
 
+				## edit urgency if changed
+				if cleaned_data['urgent'] != sample_ws_obj.urgent:
+					sample_ws_obj.urgent = cleaned_data['urgent']
+					sample_ws_obj.save()
+
+					## if the sample is now urgent, set up the NTC and the family members
+					if sample_ws_obj.urgent:
+
+						## Other family members need setting as urgent for FastWGS if the structure is set up
+						if sample_ws_obj.sample.familyid:
+							family = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__familyid=sample_ws_obj.sample.familyid)
+							for member in family:
+								member.urgent = True
+								member.save()
+
+						## NTC also needs setting as urgent for FastWGS
+						ntc = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__sampleid__startswith="NTC")
+						## sense check - there should only be one NTC
+						if len(ntc) == 1:
+							ntc[0].urgent = True
+							ntc[0].save()
+						else:
+							print("Error! There should be 1 NTC per worklist")
+
 				## edit referral if changed
 				if cleaned_data['referral_type'] != sample_ws_obj.referral:
 
@@ -530,18 +556,24 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					print('samples were unique and family id selected')
 
 					## edit father details
-					fathersample_obj = Sample.objects.get(sampleid = cleaned_data['fatherid'])
-					fathersample_obj.familyid = cleaned_data['familyid']
-					fathersample_obj.familypos = 'Father'
-					fathersample_obj.affected = False
-					fathersample_obj.save()
+					if cleaned_data['fatherid']:
+						fathersample_obj = Sample.objects.get(sampleid = cleaned_data['fatherid'])
+						fathersample_obj.familyid = cleaned_data['familyid']
+						fathersample_obj.familypos = 'Father'
+						fathersample_obj.affected = False
+						fathersample_obj.save()
+					else:
+						print('duo - no sample for father')
 
 					## edit mother details
-					mothersample_obj = Sample.objects.get(sampleid = cleaned_data['motherid'])
-					mothersample_obj.familyid = cleaned_data['familyid']
-					mothersample_obj.familypos = 'Mother'
-					mothersample_obj.affected = False
-					mothersample_obj.save()
+					if cleaned_data['motherid']:
+						mothersample_obj = Sample.objects.get(sampleid = cleaned_data['motherid'])
+						mothersample_obj.familyid = cleaned_data['familyid']
+						mothersample_obj.familypos = 'Mother'
+						mothersample_obj.affected = False
+						mothersample_obj.save()
+					else:
+						print('duo - no sample for mother')
 
 					## edit proband details
 					probandsample_obj = Sample.objects.get(sampleid = cleaned_data['probandid'])
@@ -593,9 +625,10 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 				sex_checked = cleaned_data['sex_checked']
 				hpo_checked = cleaned_data['hpo_checked']
 				family_checked = cleaned_data['family_checked']
+				urgency_checked = cleaned_data['urgency_checked']
 
 				# if clinsci manual check tick box is done before clicking 'sign off'
-				if (main_checked and assay.assay_name != 'WGS') or (assay.assay_name == 'WGS' and main_checked and hpo_checked and family_checked and sex_checked):
+				if (main_checked and assay.assay_name != 'WGS') or (assay.assay_name == 'WGS' and main_checked and hpo_checked and family_checked and sex_checked and urgency_checked):
 
 					# all sign off related fields are changed
 					worksheet_obj.clinsci_manual_check = True

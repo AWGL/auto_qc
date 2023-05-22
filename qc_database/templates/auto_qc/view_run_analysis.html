@@ -84,6 +84,18 @@
 	</tr>
 
 	{% endif %}
+	
+	{% if 'min_average_coverage' in checks_to_do %}
+	
+	<tr>
+		<td> Minimum Average Coverage for CNVs</td>
+		<td> {{run_analysis.min_average_coverage_cutoff}}</td>
+	</tr>
+	<tr>
+		<td> Maximum CNV Count (Warning Only)</td>
+		<td> {{run_analysis.max_cnv_calls}}</td>
+	</tr>
+	{% endif %}
 
 	{% if 'sensitivity' in checks_to_do %}
 
@@ -381,7 +393,6 @@
 
 {% if run_analysis.analysis_type.analysis_type_id != "NIPT" %}
 
-
 <h2> Sample Level QC </h2>
 
 
@@ -444,13 +455,13 @@
 
 	  {% endif %}
 
-
 	  {% if 'ntc_contamination_TSO500' in checks_to_do %}
 
 	  <th> Total pf reads</th>
 	  <th> Percent NTC pf reads</th>
 	  <th> Total aligned reads</th>
 	  <th> Percent NTC aligned reads</th>
+
 
 	  {% endif %}
 
@@ -460,6 +471,14 @@
 	  <th> Passes CNV calling</th>
 
 	  {% endif %}
+	  
+	  {% if 'min_average_coverage' in checks_to_do %}
+	  
+	  <th> Average Coverage </th>
+	  
+	  <th> CNV Count </th>
+	  
+	  {% endif %}
 
 
 	  {% if 'sex_match' in checks_to_do %}
@@ -468,8 +487,20 @@
 	  <th>Calculated Sex</th>
 
 	  {% endif %}
+	  {% if run_analysis.watching == False %}
+	  	<th>Sample Status</th>
+	  {% endif %}
+	  {% if run_analysis.watching == True %}
+	  <th>Pass Sample?</th>
+	  {% endif %}
 	</tr>
   </thead>
+
+   <form method="post">
+
+   	{% csrf_token %}
+
+   <input type="hidden" id="samplefail" name="samplefail" value="samplefail"> 
 
   <tbody>
 	{% for sample_analysis in sample_analyses %}
@@ -497,6 +528,7 @@
 			
 			<td class="table-dark"> {{sample_analysis.get_ctDNA_aligned_reads}} </td>
 
+
 			{% endif %}
 
 
@@ -522,6 +554,12 @@
 			{% if 'ntc_contamination' in checks_to_do %}
 			<td class="table-dark"> {{sample_analysis.passes_ntc_contamination}} </td>
 			{% endif %}
+			
+			{% if 'min_average_coverage' in checks_to_do %}
+			<td class="table-dark">NA</td>
+			<td class="table-dark">NA</td>
+			
+			{% endif %}
 
 			{% if 'sex_match' in checks_to_do %}
 			<td class="table-dark"> {{sample_analysis.get_sex}} </td>
@@ -543,12 +581,17 @@
 
 			{% endif %}
 
+
 			{% if run_analysis.display_cnv_qc_metrics %}
 			<td class="table-dark">{{sample_analysis.passes_cnv_calling}}</td>
+
+
+
 			{% endif %}
 
+			<td class="table-dark"> </td>
+			
 		{% else %}
-
 
 		<td> {{sample_analysis.sample.sample_id}} </td>
 		<td> {{sample_analysis.worksheet}} </td>
@@ -714,7 +757,22 @@
 				{% endif %}
 			{% endif %}
 		{% endif %}
-
+		
+		{% if 'min_average_coverage' in checks_to_do %}
+		
+			{% if sample_analysis.passes_average_coverage %}
+			<td class="table-success">{{ sample_analysis.get_average_coverage }}</td>
+			{% else %}
+			<td class="table-danger">{{ sample_analysis.get_average_coverage }}</td>
+			{% endif %}
+			
+			{% if sample_analysis.passes_cnv_count %}
+			<td class="table-success">{{ sample_analysis.get_cnv_count }}</td>
+			{% else %}
+			<td class="table-warning">{{ sample_analysis.get_cnv_count }}</td>
+			{% endif %}
+			
+		{% endif %}
 		{% if 'sex_match' in checks_to_do %}
 
 		{% if sample_analysis.passes_sex_check == True %}
@@ -727,100 +785,151 @@
 
 		{% endif %}
 
-	{% endif %}
+		{% if run_analysis.watching == False %}
+			{% if sample_analysis.sample_status == 'Pass' %}
+				<td class='table-success'>{{sample_analysis.sample_status}} </td>
+			{% elif sample_analysis.sample_status == 'Fail' %}
+				<td class="table-danger">{{sample_analysis.sample_status}}</td >
 
+			{% else %}
+
+				<td>NA</td >
+			{% endif %}
+		{% endif %}
+
+		{% if run_analysis.watching == True %}
+
+			{% if sample_analysis.sample_status == 'Pass' %}
+			<td>   <input type="checkbox" id="{{sample_analysis.pk}}" name="{{sample_analysis.pk}}" value="{{sample_analysis.pk}}" checked> </td>
+
+			{% elif sample_analysis.sample_status == 'Fail' %}
+
+			<td>   <input type="checkbox" id="{{sample_analysis.pk}}" name="{{sample_analysis.pk}}" value="{{sample_analysis.pk}}"> </td>
+
+			{% elif sample_analysis.sample_status == None %}
+
+				{% if sample_analysis.sample.sample_id in auto_qc.2 or run_analysis.results_completed == False or run_analysis.results_valid == False %}
+
+				<td>   <input type="checkbox" id="{{sample_analysis.pk}}" name="{{sample_analysis.pk}}" value="{{sample_analysis.pk}}"> </td>
+
+				{% else %}
+
+				<td>   <input type="checkbox" id="{{sample_analysis.pk}}" name="{{sample_analysis.pk}}" value="{{sample_analysis.pk}}" checked>   </td>
+
+				{% endif %}
+
+			{% endif %}
+		{% endif %}
+
+	{% endif %}
 	</tr>
 	{% endfor %}
   </tbody>
 
 
 </table>
+
 
 <h2> Bioinformatics QC </h2>
 
+<div class="bioinformatics_table" >
 
-<table id="run_analysis" class="table table-hover table-bordered table-sm">
+	<table id="run_analysis" class="table table-hover table-bordered table-sm" >
 
-  <thead>
-	<tr>
-	  <th>Sample</th>
-	  <th>Demultiplexing Complete</th>
-	  <th>Demultiplexing Valid</th>
-	  <th>Sample Level Pipeline Complete</th>
-	  <th>Sample Level Pipeline Valid</th>
-	  <th>Run Level Pipeline Complete</th>
-	  <th>Run Level Pipeline Valid</th>
-	</tr>
-  </thead>
+	  <thead>
+		<tr>
+		  <th>Sample</th>
+		  <th>Demultiplexing Complete</th>
+		  <th>Demultiplexing Valid</th>
+		  <th>Sample Level Pipeline Complete</th>
+		  <th>Sample Level Pipeline Valid</th>
+		  <th>Run Level Pipeline Complete</th>
+		  <th>Run Level Pipeline Valid</th>
+		</tr>
+	  </thead>
 
-  <tbody>
-	{% for sample_analysis in sample_analyses %}
-	<tr>
-
-
-		<td> {{sample_analysis.sample.sample_id}} </td>
+	  <tbody>
+		{% for sample_analysis in sample_analyses %}
+		<tr>
 
 
-		{% if sample_analysis.get_run_analysis.demultiplexing_completed == True %}
-			<td class="table-success"> {{sample_analysis.get_run_analysis.demultiplexing_completed}} </td>
-		{% else %}
-			<td class="table-danger"> {{sample_analysis.get_run_analysis.demultiplexing_completed}} </td>
-		{% endif %}
-
-		{% if sample_analysis.get_run_analysis.demultiplexing_valid == True %}
-			<td class="table-success"> {{sample_analysis.get_run_analysis.demultiplexing_completed}} </td>
-		{% else %}
-			<td class="table-danger"> {{sample_analysis.get_run_analysis.demultiplexing_valid}} </td>
-		{% endif %}
-
-		{% if sample_analysis.results_completed == True %}
-			<td class="table-success"> {{sample_analysis.results_completed}} </td>
-		{% else %}
-			<td class="table-danger"> {{sample_analysis.results_completed}} </td>
-		{% endif %}
-
-		{% if sample_analysis.results_valid == True %}
-			<td class="table-success"> {{sample_analysis.results_valid}} </td>
-		{% else %}
-			<td class="table-danger"> {{sample_analysis.results_valid}} </td>
-		{% endif %}
-
-		{% if sample_analysis.get_run_analysis.results_completed == True %}
-			<td class="table-success"> {{sample_analysis.get_run_analysis.results_completed}} </td>
-		{% else %}
-			<td class="table-danger"> {{sample_analysis.get_run_analysis.results_completed}} </td>
-		{% endif %}
-
-		{% if sample_analysis.get_run_analysis.results_valid == True %}
-			<td class="table-success"> {{sample_analysis.get_run_analysis.results_valid}} </td>
-		{% else %}
-			<td class="table-danger"> {{sample_analysis.get_run_analysis.results_valid}} </td>
-		{% endif %}
-
-	</tr>
-	{% endfor %}
-  </tbody>
+			<td> {{sample_analysis.sample.sample_id}} </td>
 
 
-</table>
+			{% if sample_analysis.get_run_analysis.demultiplexing_completed == True %}
+				<td class="table-success"> {{sample_analysis.get_run_analysis.demultiplexing_completed}} </td>
+			{% else %}
+				<td class="table-danger"> {{sample_analysis.get_run_analysis.demultiplexing_completed}} </td>
+			{% endif %}
 
+			{% if sample_analysis.get_run_analysis.demultiplexing_valid == True %}
+				<td class="table-success"> {{sample_analysis.get_run_analysis.demultiplexing_completed}} </td>
+			{% else %}
+				<td class="table-danger"> {{sample_analysis.get_run_analysis.demultiplexing_valid}} </td>
+			{% endif %}
 
+			{% if sample_analysis.results_completed == True %}
+				<td class="table-success"> {{sample_analysis.results_completed}} </td>
+			{% else %}
+				<td class="table-danger"> {{sample_analysis.results_completed}} </td>
+			{% endif %}
 
+			{% if sample_analysis.results_valid == True %}
+				<td class="table-success"> {{sample_analysis.results_valid}} </td>
+			{% else %}
+				<td class="table-danger"> {{sample_analysis.results_valid}} </td>
+			{% endif %}
 
-	{% if run_analysis.watching == True and run_analysis.analysis_type.analysis_type_id == 'IlluminaTruSightOne' and run_analysis.pipeline.pipeline_id == 'GermlineEnrichment-2.5.3' %}
-	<center>
-  		<div>
+			{% if sample_analysis.get_run_analysis.results_completed == True %}
+				<td class="table-success"> {{sample_analysis.get_run_analysis.results_completed}} </td>
+			{% else %}
+				<td class="table-danger"> {{sample_analysis.get_run_analysis.results_completed}} </td>
+			{% endif %}
 
-	<br>
-	{% crispy sensitivity_form %}
+			{% if sample_analysis.get_run_analysis.results_valid == True %}
+				<td class="table-success"> {{sample_analysis.get_run_analysis.results_valid}} </td>
+			{% else %}
+				<td class="table-danger"> {{sample_analysis.get_run_analysis.results_valid}} </td>
+			{% endif %}
 
+		</tr>
+		{% endfor %}
+	  </tbody>
+	</table>
 
+<br>
+<br>
+
+<div>	
+	{% if run_analysis.watching == True %}
+		<label name='run_status' for='run_status'> Approval </label> &nbsp
+
+		<select name='run_status' id='run_status' class="btn btn dropdown-toggle">
+			<option value="Pass">Pass</option>
+			<option value="Fail">Fail</option>
+		</select>
+		<br>
+		</br>
+		<div>
+		</div>
+		<label style= "float: left" for='run_status_comment'> Comment</label> &nbsp
+			<textarea name='run_status_comment'id='run_status_comment'  class="form-control"  required> {{run_analysis.comment}} </textarea>
+
+		<br>
+	</br>
+	<div class = "text-center">
+		<button type="submit" class="btn btn-success submit-selected text-center">Finalise</button>
+	</div>
 </div>
-</center>
 
-	<hr>
-	{% endif %}
+{% else %}
 
+
+
+{% endif %}
+
+
+</form>
 
 
 {% endif %}
@@ -838,10 +947,10 @@
 
 	{% if run_analysis.watching == True %}
 	
-	{% crispy form %}
+
 
 	{% else %}
-	<hr>
+	<br>
 
 	{% crispy reset_form %}
 
@@ -857,9 +966,26 @@
 </div>
 </center>
 
+<!-- JAVASCRIPT -->
+<!-- Script to hide and show Bioinformatics QC Table -->
+<script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
 
-
-
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var bioinformatics_table = this.nextElementSibling;
+    if (bioinformatics_table.style.display === "block") {
+      bioinformatics_table.style.display = "none";
+    } else {
+      bioinformatics_table.style.display = "block";
+    }
+  });
+}
+</script>
 
 
 {% endblock %}
+
+

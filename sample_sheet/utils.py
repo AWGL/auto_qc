@@ -37,6 +37,7 @@ def import_worksheet_data(filepath):
                         'TruSight One CES panel' : 'TruSightOne',
                         'FH NGS Panel v1' : 'FH',
                         'Nonacus WES' : 'WES',
+			'TSO500 ctDNA panel' : 'ctDNA',
     }
 
 
@@ -158,7 +159,7 @@ def import_worksheet_data(filepath):
         if debug_notes:
             print('worksheet is not already on database')
 
-    
+
     ## upload data
     for ws, samples in query_dict.items():
 
@@ -248,8 +249,13 @@ def import_worksheet_data(filepath):
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
             elif referral_formatted == 'endometrial':
-                 referral_name = 'endometrial-pole'
-                 shire_referral_name = sample['REASON_FOR_REFERRAL']
+                referral_name = 'endometrial-pole'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
+
+            ## rewrite KRAS+NRAS referral in shire to be ras for worksheet continuity 
+            elif referral_formatted == 'kras+nras':
+                referral_name = 'ras'
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
 
             ## add ws level overwrite for some assays (except NTC)
             elif not sample['LABNO'].startswith('NTC'):
@@ -273,7 +279,7 @@ def import_worksheet_data(filepath):
                     referral_name = 'null'
                     shire_referral_name = 'null' # N/A
 
-                ## no overwrite, default to lowercase no blankspace
+                 ## no overwrite, default to lowercase no blankspace
                 else:
                     referral_name = referral_formatted
                     shire_referral_name = sample['REASON_FOR_REFERRAL']
@@ -364,6 +370,7 @@ def generate_ss_data_dict(worksheet, position_offset=0):
                             'Affected' : values['affected'],
                             'FamilyPos' : values['familypos'],
                             'Index_Well' : values['sample_obj'].index1.index_well,
+                            'Urgent': values['sample_obj'].urgent,
         }
         ## if second index exists add values to dictionary, else make ''
         if values['index2']:
