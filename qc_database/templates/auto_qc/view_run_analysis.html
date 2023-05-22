@@ -796,16 +796,13 @@
 
 			{% elif sample_analysis.sample_status == None %}
 
-
-				{% if sample_analysis.sample.sample_id in auto_qc.2 %}
+				{% if sample_analysis.sample.sample_id in auto_qc.2 or run_analysis.results_completed == False %}
 
 				<td>   <input type="checkbox" id="{{sample_analysis.pk}}" name="{{sample_analysis.pk}}" value="{{sample_analysis.pk}}"> </td>
 
 				{% else %}
 
-
 				<td>   <input type="checkbox" id="{{sample_analysis.pk}}" name="{{sample_analysis.pk}}" value="{{sample_analysis.pk}}" checked>   </td>
-
 
 				{% endif %}
 
@@ -823,8 +820,7 @@
 
 <h2> Bioinformatics QC </h2>
 
-<button type="button" class="collapsible btn btn-primary" >Show/Hide Bioinformatics QC Table</button>
-<div class="bioinformatics_table" style="display:none">
+<div class="bioinformatics_table" >
 
 	<table id="run_analysis" class="table table-hover table-bordered table-sm" >
 
@@ -888,15 +884,15 @@
 		{% endfor %}
 	  </tbody>
 	</table>
-</div>
+
 <br>
 <br>
 
 <div>	
 	{% if run_analysis.watching == True %}
-		<label name='run_status' for='run_status'> Approval* </label> &nbsp
+		<label name='run_status' for='run_status'> Approval </label> &nbsp
 
-		<select name='run_status' id='run_status' class="btn btn-info dropdown-toggle">
+		<select name='run_status' id='run_status' class="btn btn dropdown-toggle">
 			<option value="Pass">Pass</option>
 			<option value="Fail">Fail</option>
 		</select>
@@ -905,7 +901,7 @@
 		<div>
 		</div>
 		<label style= "float: left" for='run_status_comment'> Comment</label> &nbsp
-			<textarea name='run_status_comment'id='run_status_comment' style="float:none;width:60%;"  required> {{run_analysis.comment}} </textarea>
+			<textarea name='run_status_comment'id='run_status_comment'  class="form-control"  required> {{run_analysis.comment}} </textarea>
 
 		<br>
 	</br>
