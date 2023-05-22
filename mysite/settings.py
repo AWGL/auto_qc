@@ -17,7 +17,7 @@ deploy_location = 'gen01'
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-CONFIG_PATH = '/home/niamh/auto_qc/config/config_local.yaml'
+CONFIG_PATH = 'config/config.yaml'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
