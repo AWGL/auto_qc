@@ -94,6 +94,8 @@ def view_run_analysis(request, pk):
 				approval = RunAnalysis.objects.get(pk=run_analysis.pk)
 				approval.manual_approval = True
 				approval.watching = False
+				approval.signoff_user = request.user
+				approval.signoff_date = dt.now()
 				approval.save()
 
 			elif status == 'Fail':
@@ -101,6 +103,8 @@ def view_run_analysis(request, pk):
 				failure = RunAnalysis.objects.get(pk=run_analysis.pk)
 				failure.manual_approval = False
 				failure.watching = False
+				failure.signoff_user = request.user
+				failure.signoff_date = dt.now()
 				failure.save()
 				
 				if 'samplefail' in request.POST:
