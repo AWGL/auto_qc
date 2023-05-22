@@ -1206,6 +1206,10 @@ class SampleAnalysis(models.Model):
 		except:
 
 			return None
+
+		if self.min_average_coverage_cutoff is None:
+
+			return None
 		
 		if dragen_cnv_metrics.average_alignment_coverage_over_genome > self.min_average_coverage_cutoff:
 		
