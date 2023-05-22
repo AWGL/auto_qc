@@ -796,7 +796,7 @@
 
 			{% elif sample_analysis.sample_status == None %}
 
-				{% if sample_analysis.sample.sample_id in auto_qc.2 or run_analysis.results_completed == False %}
+				{% if sample_analysis.sample.sample_id in auto_qc.2 or run_analysis.results_completed == False or run_analysis.results_valid %}
 
 				<td>   <input type="checkbox" id="{{sample_analysis.pk}}" name="{{sample_analysis.pk}}" value="{{sample_analysis.pk}}"> </td>
 
