@@ -417,10 +417,14 @@
 	  	<th> Pct > 20x</th>
 	  {% endif %}
 
-	  {% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" and run_analysis.pipeline.pipeline_id != "TSO500-master" %}
+	  {% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" and run_analysis.pipeline.pipeline_id != "TSO500-master" and run_analysis.pipeline.pipeline_id != "tso500_ctdna-master" %}
 
 	  <th>Total Reads</th>
 	  <th>Total Variants</th>
+	  
+	  {% elif run_analysis.pipeline.pipeline_id == "tso500_ctdna-master" %}
+	  
+	  <th>Aligned Reads</th>
 
 	  {% endif %}
 
@@ -515,10 +519,14 @@
 			<td class="table-dark"> {{sample_analysis.get_region_coverage_over_20}} </td>
 			{% endif %}
 
-			{% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" and run_analysis.pipeline.pipeline_id != "TSO500-master" %}
+			{% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" and run_analysis.pipeline.pipeline_id != "TSO500-master" and run_analysis.pipeline.pipeline_id != "tso500_ctdna-master" %}
 
 			<td class="table-dark"> {{sample_analysis.get_total_reads}} </td>
 			<td class="table-dark"> {{sample_analysis.get_variant_count}} </td>
+			
+			{% elif run_analysis.pipeline.pipeline_id == "tso500_ctdna-master" %}
+			
+			<td class="table-dark"> {{sample_analysis.get_ctDNA_aligned_reads}} </td>
 
 
 			{% endif %}
@@ -619,7 +627,7 @@
 			
 		{% endif %}
 
-		{% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" and run_analysis.pipeline.pipeline_id != "TSO500-master" %}
+		{% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" and run_analysis.pipeline.pipeline_id != "TSO500-master" and run_analysis.pipeline.pipeline_id != "tso500_ctdna-master" %}
 
 		<td> {{sample_analysis.get_total_reads}} </td>
 
@@ -630,7 +638,11 @@
 		{% else %}
 			<td class="table-warning"> {{sample_analysis.get_variant_count}} </td>
 		{% endif %}
-
+		
+		{% elif run_analysis.pipeline.pipeline_id == "tso500_ctdna-master" %}
+		
+		<td> {{sample_analysis.get_ctDNA_aligned_reads}} </td>
+		
 		{% endif %}
 
 		{% if 'contamination' in checks_to_do %}
