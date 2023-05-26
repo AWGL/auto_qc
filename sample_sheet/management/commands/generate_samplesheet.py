@@ -392,28 +392,12 @@ class Command(BaseCommand):
             ## if TSO500RNA or DNA is main assay, add DNA/RNA field to dict for relevant samples.
             elif assay == 'ctDNA':
 
-                type_dict = {
-                            'ctDNA' : 'DNA',
-                }
-
-                ## match values wsid with type_dict for sample type column. add to data dict
-                '''
-                output example:
-                {'20-6582': 'DNA'}
-
-                '''
-                worksheet_type_dict = {}
-                for a, b in zip(worksheets, assays):
-                    worksheet_type_dict[a] = type_dict[b]
-
-                ## copy whole of values and change
-                changed_values = values
-                changed_values['Sample_Type'] = worksheet_type_dict[values['Sample_Plate']]
-                changed_values['Sample_Well'] = values['Index_Well']
+                values['Sample_Type'] = 'DNA'
+                values['Index_ID'] = values['Index_Well']
+                values['Sample_Well'] = str(pos)
 
                 ## update main dict
-                ss_data_dict[pos].update(changed_values)
-
+                ss_data_dict[pos].update(values)
 
                 description_field = f'{description_dict[assay]}referral={values["Referral"]}'
 
