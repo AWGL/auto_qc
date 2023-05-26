@@ -28,7 +28,7 @@ class TestAutoQC(TestCase):
 		first_interop.save()
 
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Q30 Fail']))
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Q30 Fail'],['19M07162', '19M07267', '19M07040', '19M07041', '19M07167', '19M07203', '19M07356', '19M07411', '19M07039', '19M07048', '19M07121', '19M07234', '19M07084', '19M07098', '19M07173', '19M07248', '19M07398', '19M07333', '19M06586', '19M07251', '19M07089', '19M07435', '19M07436']))
 
 	
 	def test_fastqc_fail(self):
@@ -50,7 +50,7 @@ class TestAutoQC(TestCase):
 		first_fastqc.basic_statistics = 'FAIL'
 		first_fastqc.save()
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['FASTQC Fail']))
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['FASTQC Fail'],['19M07162']))
 	
 
 	
@@ -71,7 +71,7 @@ class TestAutoQC(TestCase):
 		contamination.freemix = 0.25
 		contamination.save()
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Contamination Fail']))
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Contamination Fail'],['19M07162']))
 	
 
 	def test_ntc_contamination_fail(self):
@@ -91,7 +91,7 @@ class TestAutoQC(TestCase):
 		hs_metrics.total_reads = 10000
 		hs_metrics.save()
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['NTC Contamination Fail']))
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['NTC Contamination Fail'],['19M07162']))
 
 
 	def test_sex_match_fail(self):
@@ -111,7 +111,7 @@ class TestAutoQC(TestCase):
 		sex.calculated_sex = 'FEMALE'
 		sex.save()
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Sex Match Fail']))
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Sex Match Fail'],['19M07162']))
 
 	def test_variant_count_fail(self):
 
@@ -130,4 +130,4 @@ class TestAutoQC(TestCase):
 		sex.calculated_sex = 'FEMALE'
 		sex.save()
 
-		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Sex Match Fail']))
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Sex Match Fail'],['19M07162']))
