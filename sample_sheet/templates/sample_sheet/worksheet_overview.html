@@ -8,8 +8,8 @@
         <th scope="col">Sample</th>
         <th scope="col">Referral</th>
         <th scope="col">Sex</th>
-        <th scope="col" style="background-color: lightgrey; border-left: 2px solid">Notes</th>
-        <th scope="col" style="background-color: lightgrey;"></th>
+        <th scope="col" style="background-color: #DEF2F1; border-left: 2px solid">Notes</th>
+        <th scope="col" style="background-color: #DEF2F1;"></th>
       </tr>
     </thead>
     <tbody>
@@ -19,8 +19,8 @@
         <td>{{ sample.sample }}</td>
         <td>{{ sample.referral }}</td>
         <td>{{ sample.sex }}</td>
-        <td style="background-color: lightgrey; border-left: 2px solid">{{ sample.notes }}</td>
-        <td style="text-align:right; background-color: lightgrey;" data-bs-toggle="modal" data-bs-target="#edit-sample-notes-{{ pos }}">
+        <td style="background-color: #DEF2F1; border-left: 2px solid">{{ sample.notes }}</td>
+        <td style="text-align:right; background-color: #DEF2F1;" data-bs-toggle="modal" data-bs-target="#edit-sample-notes-{{ pos }}">
         <button class="btn btn-light btn-sm">
           <span class="fa fa-edit"></span>
         </button>
@@ -43,7 +43,7 @@
 <div class="modal fade" id="edit-sample-notes-{{ pos }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
-      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+      <div class="modal-header" style="background-color: #3AA7A9; color: white;">
         <h5>Edit worksheet sample notes| {{ sample.sample }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>

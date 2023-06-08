@@ -230,8 +230,8 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 	## lookup dictionary to render tick/cross etc, depending on status
 	status_html_lookup = {
-		'complete': '<span class="fa fa-check" style="width:20px;color:green"></span>',
-		'incomplete': '<span class="fa fa-times" style="width:20px;color:red"></span>',
+		'complete': '<span class="fa fa-check" style="width:20px;color:black"></span>',
+		'incomplete': '<span class="fa fa-times" style="width:20px;color:black"></span>',
 	}
 
 	## get correct download button, depending on status
