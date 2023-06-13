@@ -194,7 +194,7 @@ pipelines:
     min_q30_score: 0.75
     contamination_cutoff: 0.10
     ntc_contamination_cutoff: 10
-    max_cnvs_called_cutoff: 1000000000000
+    max_cnvs_called_cutoff: 100000
     min_sensitivity: 0.95
     min_fastq_size: 1000000
     min_variants: 50000
@@ -216,7 +216,7 @@ pipelines:
     min_q30_score: 0.75
     contamination_cutoff: 0.10
     ntc_contamination_cutoff: 10
-    max_cnvs_called_cutoff: 1000000000000
+    max_cnvs_called_cutoff: 100000
     min_sensitivity: 0.95
     min_fastq_size: 1000000
     min_variants: 50000
