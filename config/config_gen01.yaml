@@ -44,7 +44,7 @@ pipelines:
 
   DragenWGS-development-WGS:
     results_dir: '/mnt/wren_results/results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, max_cnv_calls]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, cnv_call_range]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
@@ -59,6 +59,7 @@ pipelines:
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
     min_average_coverage: 30
+    min_cnvs_called_cutoff: 50
     max_cnvs_called_cutoff: 300
     sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
@@ -75,7 +76,7 @@ pipelines:
 
   DragenWGS-master-WGS:
     results_dir: '/mnt/wren_results/results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, max_cnv_calls]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, cnv_call_range]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
@@ -90,6 +91,7 @@ pipelines:
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
     min_average_coverage: 30
+    min_cnvs_called_cutoff: 50
     max_cnvs_called_cutoff: 300
     sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
@@ -106,7 +108,7 @@ pipelines:
 
   DragenWGS-development-FastWGS:
     results_dir: '/mnt/wren_results/results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, max_cnv_calls]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, cnv_call_range]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
@@ -121,6 +123,7 @@ pipelines:
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
     min_average_coverage: 30
+    min_cnvs_called_cutoff: 50
     max_cnvs_called_cutoff: 300
     sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
@@ -137,7 +140,7 @@ pipelines:
 
   DragenWGS-master-FastWGS:
     results_dir: '/mnt/wren_results/results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, max_cnv_calls]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, cnv_call_range]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
@@ -152,6 +155,7 @@ pipelines:
     max_relatedness_between_parents: 0.02
     max_child_parent_relatedness: 0.4
     min_average_coverage: 30
+    min_cnvs_called_cutoff: 50
     max_cnvs_called_cutoff: 300
     sample_expected_files: ['*.cram',
                   '*.mapping_metrics.csv',
