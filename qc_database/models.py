@@ -586,7 +586,21 @@ class SampleAnalysis(models.Model):
 
 		if len(fastqc_objs) == 0:
 
-			return None
+			fastqc_objs = SampleDragenFastqcData.objects.filter(sample_analysis=self)
+			
+			if len(fastqc_objs) == 0:
+
+				return None
+			
+			else:
+
+				for fastqc in fastqc_objs:
+
+					if fastqc.overall_pass_fail == 'FAIL':
+
+						return False
+					
+				return True
 
 		for fastqc in fastqc_objs:
 
@@ -611,6 +625,7 @@ class SampleAnalysis(models.Model):
 				return False
 
 		return True
+
 
 	def get_total_reads(self):
 
@@ -1297,6 +1312,7 @@ class SampleAnalysis(models.Model):
 		
 			return False
 
+
 class SampleFastqcData(models.Model):
 	"""
 	Model to store data from the FastQC output, there will be one entry per fastq file.
@@ -1320,6 +1336,21 @@ class SampleFastqcData(models.Model):
 
 	def __str__(self):
 		return f'{self.sample_analysis}_{self.read_number}_{self.lane}'
+
+
+class SampleDragenFastqcData(models.Model):
+	"""
+	Model to store data from the Dragen FastQC output, there will be a single entry per sample analysis
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE, null=True)
+	overall_pass_fail = models.CharField(max_length=10, null=True)
+	coverage_pass_fail = models.CharField(max_length=10, null=True)
+	per_base_sequence_quality = models.CharField(max_length=10, null=True)
+	per_sequence_quality_score = models.CharField(max_length=10, null=True)
+	per_base_n_content = models.CharField(max_length=10, null=True)
+
+	def __str__(self):
+		return f'{self.sample_analysis} is a FastQC {self.overall_pass_fail}'
 
 
 class SampleHsMetrics(models.Model):

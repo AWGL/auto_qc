@@ -315,6 +315,50 @@ def parse_fastqc_file_cruk(fastqc_text_file, run_id):
 				fqcdict[metrics] = result
 
 		return fqcdict
+	
+
+def parse_dragen_fastqc_file(dragen_fastqc_file):
+
+	with open(dragen_fastqc_file, "r") as f:
+
+		fastqcfile = f.readlines()
+
+		fastqcdict = {
+			"overall_pass_fail": None,
+			"coverage_pass_fail": None,
+			"per_base_sequence_quality": None,
+			"per_sequence_quality_score": None,
+			"per_base_n_content": None
+		}
+
+		overall_pass_fail = fastqcfile[0]
+		fastqcdict["overall_pass_fail"] = overall_pass_fail
+
+		## if it's an overall pass, everything has passed
+		if overall_pass_fail == "PASS":
+			for key, value in fastqcdict.items():
+				if not value:
+					fastqcdict[key] = "PASS"
+		
+		## if it's an overall fail, parse the errors
+		if overall_pass_fail == "FAIL":
+
+			errors = " ".join(fastqcfile[1:])
+			if "Too few reads" in errors:
+				fastqcdict["coverage_pass_fail"] = "FAIL"
+			if "Failed on per base N content" in errors:
+				fastqcdict["per_base_n_content"] = "FAIL"
+			if "Failed on per base sequence quality" in errors:
+				fastqcdict["per_base_sequence_quality"] = "FAIL"
+			if "Failed on per sequence quality" in errors:
+				fastqcdict["per_sequence_quality"] = "FAIL"
+			
+			# anything else that's not failed has passed
+			for key, value in fastqcdict.items():
+				if not value:
+					fastqcdict[key] = "PASS"
+
+		return fastqcdict
 
 
 def parse_hs_metrics_file(hs_metrics_file):
