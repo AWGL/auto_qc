@@ -1368,8 +1368,13 @@ class Command(BaseCommand):
 							logger.info (f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
 							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-							fastqc_dict = ctDNA.get_fastqc_data()
-							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							fastqc_metrics = ctDNA.determine_fastqc_metrics()
+							if fastqc_metrics == "FastQC":
+								fastqc_dict = ctDNA.get_fastqc_data()
+								management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							elif fastqc_metrics == "DragenFastQC":
+								fastqc_dict = ctDNA.get_dragen_fastqc_data()
+								management_utils.add_dragen_fastqc_data(fastqc_dict, run_analysis)
 							
 							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
 							aligned_reads_dict, ntc_contamination_aligned_reads_dict= ctDNA.ntc_contamination()
@@ -1382,10 +1387,15 @@ class Command(BaseCommand):
 					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
 
 							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-
+							
 							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-							fastqc_dict = ctDNA.get_fastqc_data()
-							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							fastqc_metrics = ctDNA.determine_fastqc_metrics()
+							if fastqc_metrics == "FastQC":
+								fastqc_dict = ctDNA.get_fastqc_data()
+								management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							elif fastqc_metrics == "DragenFastQC":
+								fastqc_dict = ctDNA.get_dragen_fastqc_data()
+								management_utils.add_dragen_fastqc_data(fastqc_dict, run_analysis)
 							
 							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
 							aligned_reads_dict, ntc_contamination_aligned_reads_dict= ctDNA.ntc_contamination()

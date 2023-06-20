@@ -127,6 +127,33 @@ def add_fastqc_data(fastqc_dict, run_analysis_obj):
 				new_fastqc_obj.save()
 
 
+def add_dragen_fastqc_data(dragen_fastqc_dict, run_analysis_obj):
+	"""
+	Add data from dragen fastqc metrics to the database
+	"""
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in dragen_fastqc_dict:
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+						   								run=run,
+														pipeline=pipeline,
+														analysis_type=run_analysis_obj.analysis_type)
+		
+		sample_data = dragen_fastqc_dict[key]
+
+		existing_data = SampleDragenFastqcData.objects.filter(sample_analysis=sample_analysis_obj)
+
+		if len(existing_data) < 1:
+			sample_data['sample_analysis'] = sample_analysis_obj
+			new_dragen_fastqc_obj = SampleDragenFastqcData(**sample_data)
+			new_dragen_fastqc_obj.save()
+
+
 def add_hs_metrics(hs_metrics_dict, run_analysis_obj):
 	"""
 	Add data from picard hs metrics files to database.
