@@ -178,6 +178,7 @@ class RunAnalysis(models.Model):
 	max_relatedness_between_parents = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	max_child_parent_relatedness = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_on_target_reads=models.IntegerField(null=True, blank=True)
+	min_cnv_calls=models.IntegerField(null=True, blank=True, default=0)
 	max_cnv_calls=models.IntegerField(null=True, blank=True)
 	display_cnv_qc_metrics=models.BooleanField(default=False)
 	min_average_coverage_cutoff=models.IntegerField(null=True, blank=True)
@@ -565,6 +566,7 @@ class SampleAnalysis(models.Model):
 	sex = models.CharField(max_length=10, null=True, blank=True)
 	contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=0.15, null=True, blank=True)
 	ntc_contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=10.0, null=True, blank=True)
+	min_cnvs_called_cutoff = models.IntegerField(null=True, blank=True, default=0)
 	max_cnvs_called_cutoff = models.IntegerField(null=True, blank=True)
 	min_average_coverage_cutoff = models.IntegerField(null=True, blank=True)
 	sample_status = models.CharField(default = None, max_length=20, choices = (('Pass','Pass'),('Fail', 'Fail')), null=True, blank=True)
@@ -1297,14 +1299,14 @@ class SampleAnalysis(models.Model):
 			
 	def passes_cnv_count(self):
 		"""
-		if total number of passing amplifcation and passing deletions is greater than cut off
+		if total number of passing amplifcation and passing deletions is within range of min and max cnv calls
 		"""
 
 		if self.get_cnv_count() == 'NA':
 
 			return None
 
-		if int(self.get_cnv_count()) < int(self.max_cnvs_called_cutoff):
+		if (int(self.get_cnv_count()) < int(self.max_cnvs_called_cutoff)) and (int(self.get_cnv_count()) > int(self.min_cnvs_called_cutoff)):
 		
 			return True
 			

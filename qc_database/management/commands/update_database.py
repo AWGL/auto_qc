@@ -213,6 +213,22 @@ class Command(BaseCommand):
 
 									raise Exception ("ERROR: Max CNVs called cutoff not in config file")
 									
+							if 'cnv_call_range' == key:
+
+								try:
+
+									max_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['max_cnvs_called_cutoff']
+									min_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['min_cnvs_called_cutoff']
+
+									if created:
+
+										new_sample_analysis_obj.max_cnvs_called_cutoff = max_cnvs_called_cutoff
+										new_sample_analysis_obj.min_cnvs_called_cutoff = min_cnvs_called_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Min or Max CNVs called cutoff not in config file")
+									
 							if 'min_average_coverage' == key:
 							
 								try:
@@ -407,6 +423,22 @@ class Command(BaseCommand):
 								except:
 
 									raise Exception("ERROR: max_cnv_calls_cutoff not in config file")
+									
+							if 'cnv_call_range' in checks_to_try_dict:
+
+								try:
+
+									max_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['max_cnvs_called_cutoff']
+									min_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['min_cnvs_called_cutoff']
+
+									if created:
+
+										new_run_analysis_obj.max_cnv_calls = max_cnvs_called_cutoff
+										new_run_analysis_obj.min_cnv_calls = min_cnvs_called_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Min or Max CNVs called cutoff not in config file")
 									
 							if 'min_average_coverage' == key:
 							
