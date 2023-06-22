@@ -22,12 +22,7 @@ pipelines:
                   '*.mapping_metrics.csv',
                   '*.insert-stats.tab']
     sample_not_expected_files: []
-    run_expected_files: ['*.hard-filtered.vcf.gz',
-                  '*.vc_metrics.csv',
-                 'post_processing/results/relatedness/*.relatedness2',
-                 'post_processing/results/annotated_vcf/*.vcf.gz',
-                 'post_processing/results/database_config/*_config.csv',
-               ]
+    run_expected_files: ['post_processing/results/post_processing_finished.txt']
     run_not_expected_files: []
     post_sample_files: []
 
@@ -52,11 +47,7 @@ pipelines:
                   '*.mapping_metrics.csv',
                   '*.insert-stats.tab']
     sample_not_expected_files: []
-    run_expected_files: ['*.hard-filtered.vcf.gz',
-                  '*.vc_metrics.csv',
-                 'post_processing/results/relatedness/*.relatedness2',
-                 'post_processing/results/annotated_vcf/*.vcf.gz',
-                 'post_processing/results/database_config/*_config.csv',
+    run_expected_files: ['post_processing/results/post_processing_finished.txt']
                ]
     run_not_expected_files: []
     post_sample_files: []
