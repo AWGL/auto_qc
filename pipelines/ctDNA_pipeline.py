@@ -167,9 +167,25 @@ class TSO500_ctDNA():
 		return aligned_reads_dict, ntc_contamination_aligned_reads_dict
 	
 
+	def determine_fastqc_metrics(self):
+		"""
+		Determine if FastQC or DragenFastQC has been used to determine FastQC metrics
+		"""
+
+		results_path = Path(self.results_dir)
+		dragen_fastqc_metrics_files = glob.glob(f'{results_path}/post_processing/FastQC/*-dragen_fastq_qc.txt')
+
+		if len(dragen_fastqc_metrics_files) >= 1:
+			fastqc_metrics = "DragenFastQC"
+		else:
+			fastqc_metrics = "FastQC"
+
+		return fastqc_metrics
+
+
 	def get_fastqc_data(self):
 		"""
-		Get the FASTQC data for TSO500 ctDNA
+		Get the FASTQC data for TSO500 ctDNA from FastQC files
 		"""
 
 		fastqc_dict = {}
@@ -213,6 +229,25 @@ class TSO500_ctDNA():
 
 			fastqc_dict[sample] = sample_fastqc_list
 
+		return fastqc_dict
+
+	def get_dragen_fastqc_data(self):
+		"""
+		Get FastQC data from the dragen FastQC metrics for ctDNA
+		"""
+
+		fastqc_dict = {}
+
+		for sample in self.sample_names:
+
+			results_path = Path(self.results_dir)
+
+			dragen_fastqc_metrics_file = f'{results_path}/post_processing/FastQC/{self.run_id}-{sample}-dragen_fastq_qc.txt'
+
+			parsed_dragen_fastqc_data = parsers.parse_dragen_fastqc_file(dragen_fastqc_metrics_file)
+
+			fastqc_dict[sample] = parsed_dragen_fastqc_data
+		
 		return fastqc_dict
 
 

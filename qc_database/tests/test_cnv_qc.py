@@ -1,7 +1,7 @@
 from django.test import TestCase
 import unittest
 
-from qc_database.models import AnalysisType, CNVMetrics, Pipeline, Run, RunAnalysis, Sample, SampleAnalysis, WorkSheet, DragenCNVMetrics
+from qc_database.models import AnalysisType, CNVMetrics, Pipeline, Run, RunAnalysis, Sample, SampleAnalysis, WorkSheet, DragenCNVMetrics, DragenWGSCoverageMetrics
 from pipelines.parsers import parse_exome_postprocessing_cnv_qc_metrics, parse_dragen_cnv_metrics_file
 
 class TestParseCNVQC(unittest.TestCase):
@@ -216,6 +216,11 @@ class test_WGS_cnv_checks(unittest.TestCase):
             sample_id = "sample_2"
         )
         self.sample2_obj = Sample.objects.get(sample_id="sample_2")
+        
+        Sample.objects.create(
+            sample_id = "sample_3"
+        )
+        self.sample3_obj = Sample.objects.get(sample_id="sample_3")
 
         Pipeline.objects.create(
             pipeline_id = "DragenWGS-master"
@@ -236,6 +241,7 @@ class test_WGS_cnv_checks(unittest.TestCase):
             run=self.run_obj,
             pipeline=self.pipeline_obj,
             analysis_type=self.analysis_type_obj,
+            min_cnv_calls=50,
             max_cnv_calls=300,
             min_average_coverage_cutoff=30
         )
@@ -251,6 +257,7 @@ class test_WGS_cnv_checks(unittest.TestCase):
             sex="male",
             contamination_cutoff=10,
             ntc_contamination_cutoff=10,
+            min_cnvs_called_cutoff=50,
             max_cnvs_called_cutoff=300,
             min_average_coverage_cutoff=30
         )
@@ -267,10 +274,28 @@ class test_WGS_cnv_checks(unittest.TestCase):
             sex="male",
             contamination_cutoff=10,
             ntc_contamination_cutoff=10,
+            min_cnvs_called_cutoff=50,
             max_cnvs_called_cutoff=300,
             min_average_coverage_cutoff=30
         )
-        self.sample_analysis_obj_2 = SampleAnalysis.objects.get(sample=self.sample2_obj)  
+        self.sample_analysis_obj_2 = SampleAnalysis.objects.get(sample=self.sample2_obj) 
+        
+        SampleAnalysis.objects.create(
+            sample=self.sample3_obj,
+            run=self.run_obj,
+            pipeline=self.pipeline_obj,
+            analysis_type=self.analysis_type_obj,
+            worksheet=self.worksheet_obj,
+            results_completed=True,
+            results_valid=True,
+            sex="male",
+            contamination_cutoff=10,
+            ntc_contamination_cutoff=10,
+            min_cnvs_called_cutoff=50,
+            max_cnvs_called_cutoff=300,
+            min_average_coverage_cutoff=30
+        )
+        self.sample_analysis_obj_3 = SampleAnalysis.objects.get(sample=self.sample3_obj)  
         
         DragenCNVMetrics.objects.create(
             sample_analysis = self.sample_analysis_obj_1,
@@ -280,6 +305,12 @@ class test_WGS_cnv_checks(unittest.TestCase):
         )
         self.dragen_cnv_metrics_1 = DragenCNVMetrics.objects.get(sample_analysis=self.sample_analysis_obj_1)
         
+        DragenWGSCoverageMetrics.objects.create(
+            sample_analysis = self.sample_analysis_obj_1,
+            average_alignment_coverage_over_genome = 26.65,
+        )
+        self.dragen_cov_metrics_1 = DragenWGSCoverageMetrics.objects.get(sample_analysis=self.sample_analysis_obj_1)
+        
         DragenCNVMetrics.objects.create(
             sample_analysis = self.sample_analysis_obj_2,
             average_alignment_coverage_over_genome = 47.54,
@@ -287,23 +318,50 @@ class test_WGS_cnv_checks(unittest.TestCase):
             number_of_passing_deletions = 200
         )
         self.dragen_cnv_metrics_2 = DragenCNVMetrics.objects.get(sample_analysis=self.sample_analysis_obj_2)
+        
+        DragenWGSCoverageMetrics.objects.create(
+            sample_analysis = self.sample_analysis_obj_2,
+            average_alignment_coverage_over_genome = 47.54,
+        )
+        self.dragen_cov_metrics_2 = DragenWGSCoverageMetrics.objects.get(sample_analysis=self.sample_analysis_obj_2)
+        
+        DragenCNVMetrics.objects.create(
+            sample_analysis = self.sample_analysis_obj_3,
+            average_alignment_coverage_over_genome = 47.54,
+            number_of_passing_amplifications = 10,
+            number_of_passing_deletions = 10
+        )
+        self.dragen_cnv_metrics_3 = DragenCNVMetrics.objects.get(sample_analysis=self.sample_analysis_obj_3)
+        
+        DragenWGSCoverageMetrics.objects.create(
+            sample_analysis = self.sample_analysis_obj_3,
+            average_alignment_coverage_over_genome = 47.54,
+        )
+        self.dragen_cov_metrics_3 = DragenWGSCoverageMetrics.objects.get(sample_analysis=self.sample_analysis_obj_3)
     
     def test_cnv_checks(self):
         """
         Test that CNV metrics populate models correctly and tests pass/fail as expected
         """
+        #Fail as <30
         passes_cnv_coverage_1 = self.sample_analysis_obj_1.passes_average_coverage()
         self.assertFalse(passes_cnv_coverage_1)
-
+	
+	#Pass as >30
         passes_cnv_coverage_2 = self.sample_analysis_obj_2.passes_average_coverage()
         self.assertTrue(passes_cnv_coverage_2)
         
+        #Pass as between 50-300
         passes_cnv_count_1 = self.sample_analysis_obj_1.passes_cnv_count()
         self.assertTrue(passes_cnv_count_1)
         
+        #Fail as >300
         passes_cnv_count_2 = self.sample_analysis_obj_2.passes_cnv_count()
         self.assertFalse(passes_cnv_count_2)
         
+        #Fail as <50
+        passes_cnv_count_3 = self.sample_analysis_obj_3.passes_cnv_count()
+        self.assertFalse(passes_cnv_count_3)
 
 if __name__ == "__main__":
     unittest.main()
