@@ -178,6 +178,7 @@ class RunAnalysis(models.Model):
 	max_relatedness_between_parents = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	max_child_parent_relatedness = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_on_target_reads=models.IntegerField(null=True, blank=True)
+	min_cnv_calls=models.IntegerField(null=True, blank=True, default=0)
 	max_cnv_calls=models.IntegerField(null=True, blank=True)
 	display_cnv_qc_metrics=models.BooleanField(default=False)
 	min_average_coverage_cutoff=models.IntegerField(null=True, blank=True)
@@ -565,6 +566,7 @@ class SampleAnalysis(models.Model):
 	sex = models.CharField(max_length=10, null=True, blank=True)
 	contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=0.15, null=True, blank=True)
 	ntc_contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=10.0, null=True, blank=True)
+	min_cnvs_called_cutoff = models.IntegerField(null=True, blank=True, default=0)
 	max_cnvs_called_cutoff = models.IntegerField(null=True, blank=True)
 	min_average_coverage_cutoff = models.IntegerField(null=True, blank=True)
 	sample_status = models.CharField(default = None, max_length=20, choices = (('Pass','Pass'),('Fail', 'Fail')), null=True, blank=True)
@@ -586,7 +588,21 @@ class SampleAnalysis(models.Model):
 
 		if len(fastqc_objs) == 0:
 
-			return None
+			fastqc_objs = SampleDragenFastqcData.objects.filter(sample_analysis=self)
+			
+			if len(fastqc_objs) == 0:
+
+				return None
+			
+			else:
+
+				for fastqc in fastqc_objs:
+
+					if fastqc.overall_pass_fail == 'FAIL':
+
+						return False
+					
+				return True
 
 		for fastqc in fastqc_objs:
 
@@ -611,6 +627,7 @@ class SampleAnalysis(models.Model):
 				return False
 
 		return True
+
 
 	def get_total_reads(self):
 
@@ -1282,20 +1299,21 @@ class SampleAnalysis(models.Model):
 			
 	def passes_cnv_count(self):
 		"""
-		if total number of passing amplifcation and passing deletions is greater than cut off
+		if total number of passing amplifcation and passing deletions is within range of min and max cnv calls
 		"""
 
 		if self.get_cnv_count() == 'NA':
 
 			return None
 
-		if int(self.get_cnv_count()) < int(self.max_cnvs_called_cutoff):
+		if (int(self.get_cnv_count()) < int(self.max_cnvs_called_cutoff)) and (int(self.get_cnv_count()) > int(self.min_cnvs_called_cutoff)):
 		
 			return True
 			
 		else:
 		
 			return False
+
 
 class SampleFastqcData(models.Model):
 	"""
@@ -1320,6 +1338,21 @@ class SampleFastqcData(models.Model):
 
 	def __str__(self):
 		return f'{self.sample_analysis}_{self.read_number}_{self.lane}'
+
+
+class SampleDragenFastqcData(models.Model):
+	"""
+	Model to store data from the Dragen FastQC output, there will be a single entry per sample analysis
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE, null=True)
+	overall_pass_fail = models.CharField(max_length=10, null=True)
+	coverage_pass_fail = models.CharField(max_length=10, null=True)
+	per_base_sequence_quality = models.CharField(max_length=10, null=True)
+	per_sequence_quality_score = models.CharField(max_length=10, null=True)
+	per_base_n_content = models.CharField(max_length=10, null=True)
+
+	def __str__(self):
+		return f'{self.sample_analysis} is a FastQC {self.overall_pass_fail}'
 
 
 class SampleHsMetrics(models.Model):

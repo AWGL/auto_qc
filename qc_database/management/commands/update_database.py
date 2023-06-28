@@ -213,6 +213,22 @@ class Command(BaseCommand):
 
 									raise Exception ("ERROR: Max CNVs called cutoff not in config file")
 									
+							if 'cnv_call_range' == key:
+
+								try:
+
+									max_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['max_cnvs_called_cutoff']
+									min_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['min_cnvs_called_cutoff']
+
+									if created:
+
+										new_sample_analysis_obj.max_cnvs_called_cutoff = max_cnvs_called_cutoff
+										new_sample_analysis_obj.min_cnvs_called_cutoff = min_cnvs_called_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Min or Max CNVs called cutoff not in config file")
+									
 							if 'min_average_coverage' == key:
 							
 								try:
@@ -407,6 +423,22 @@ class Command(BaseCommand):
 								except:
 
 									raise Exception("ERROR: max_cnv_calls_cutoff not in config file")
+									
+							if 'cnv_call_range' in checks_to_try_dict:
+
+								try:
+
+									max_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['max_cnvs_called_cutoff']
+									min_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['min_cnvs_called_cutoff']
+
+									if created:
+
+										new_run_analysis_obj.max_cnv_calls = max_cnvs_called_cutoff
+										new_run_analysis_obj.min_cnv_calls = min_cnvs_called_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Min or Max CNVs called cutoff not in config file")
 									
 							if 'min_average_coverage' == key:
 							
@@ -1368,8 +1400,13 @@ class Command(BaseCommand):
 							logger.info (f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
 							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-							fastqc_dict = ctDNA.get_fastqc_data()
-							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							fastqc_metrics = ctDNA.determine_fastqc_metrics()
+							if fastqc_metrics == "FastQC":
+								fastqc_dict = ctDNA.get_fastqc_data()
+								management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							elif fastqc_metrics == "DragenFastQC":
+								fastqc_dict = ctDNA.get_dragen_fastqc_data()
+								management_utils.add_dragen_fastqc_data(fastqc_dict, run_analysis)
 							
 							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
 							aligned_reads_dict, ntc_contamination_aligned_reads_dict= ctDNA.ntc_contamination()
@@ -1382,10 +1419,15 @@ class Command(BaseCommand):
 					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
 
 							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
-
+							
 							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
-							fastqc_dict = ctDNA.get_fastqc_data()
-							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							fastqc_metrics = ctDNA.determine_fastqc_metrics()
+							if fastqc_metrics == "FastQC":
+								fastqc_dict = ctDNA.get_fastqc_data()
+								management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							elif fastqc_metrics == "DragenFastQC":
+								fastqc_dict = ctDNA.get_dragen_fastqc_data()
+								management_utils.add_dragen_fastqc_data(fastqc_dict, run_analysis)
 							
 							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
 							aligned_reads_dict, ntc_contamination_aligned_reads_dict= ctDNA.ntc_contamination()

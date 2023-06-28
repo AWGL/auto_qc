@@ -265,7 +265,7 @@ class DragenWGS:
 				sample_not_expected_files =[],
 				run_not_expected_files= [],
 				post_sample_files = [],
-				run_complete_marker  = 'post_processing_finished.txt',
+				run_complete_marker  = 'post_processing/results/post_processing_finished.txt',
 				sample_complete_marker  = 'post_processing_finished.txt'
 				):
 
@@ -369,26 +369,9 @@ class DragenWGS:
 
 		results_path = Path(self.results_dir)
 
-		new_path = False
+		marker = results_path.glob(self.run_complete_marker)
 		
-		for i in self.run_expected_files:
-
-			if 'post_processing' in i:
-
-				new_path = True
-				break
-
-		if new_path:
-
-			results_path = results_path.joinpath('post_processing/results/')
-
-		else:
-
-			results_path = results_path.joinpath('results')
-
-		marker = results_path.glob(self.sample_complete_marker)
-
-		if len(list(marker)) >= 1:
+		if len(list(marker)) == 1:
 
 			return True
 
@@ -397,34 +380,30 @@ class DragenWGS:
 
 	def run_is_valid(self):
 		"""
-		Look for files which have to be present for a run level pipeline to have completed \
-		correctly.
-
-		Look for files which if present indicate the pipeline has not finished correctly e.g. intermediate files.
+		Read the file nextflow creates at the end of the run (post_processing/results/post_processing_finished.txt and check if it says fail or success. 
 		"""
 
-		results_path = Path(self.results_dir)
-
-		# check files we want to be there are there
-		for file in self.run_expected_files:
+		if self.run_is_complete():
+		
+			results_path = Path(self.results_dir)
 			
-			found_file = results_path.glob(file)
-
-			if len(list(found_file)) != 1:
-								
-				return False
-
-		# check file we do not want to be there are not there
-		for file in self.run_not_expected_files:
+			marker = results_path.glob(self.run_complete_marker)
 			
-
-			found_file = results_path.glob(file)
-
-			if len(list(found_file)) > 0:
-
-				return False
+			marker = list(marker)[0]
 			
-		return True
+			#last line in file
+			last_report = ''
+			
+			with open(marker, 'r') as outfile:
+			
+				for x in outfile:
+					last_report = x.strip()
+					
+			if 'success' in last_report:
+			
+				return True
+				
+		return False
 
 	def run_and_samples_complete(self):
 			"""
