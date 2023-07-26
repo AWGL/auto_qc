@@ -5,7 +5,7 @@
 
 
 <nav class="navbar navbar-custom">
-    <a href="{% url 'view_worksheets' worksheet_info.assay_slug %}"><button type="button" class="w-100 btn btn-outline-light position-relative start-50"><span class="fa fa-arrow-alt-circle-left" style="width:  30px;color: white"></span>Back to Worksheets</button></a>
+    <a href="{% url 'view_worksheets' worksheet_info.assay_slug %}"><button type="button" class="w-100 btn btn-outline-dark position-relative start-50"><span class="fa fa-arrow-alt-circle-left" style="width: 30px;color: #17252A"></span>Back to Worksheets</button></a>
 </nav>
 
 <div class="container">
@@ -19,8 +19,8 @@
             <br>
         </div>
         <div class="col-6 rounded-3">
-            <div class="row rounded-3" style="background-color: #ffa23f">
-                <table class="table" style="width: 100%; color: white;">
+            <div class="row rounded-3" style="background-color: #DEF2F1">
+                <table class="table" style="width: 100%; color: #17252A;">
                     <thead>
                         <th scope="col">Check</th>
                         <th scope="col">Status</th>
@@ -39,7 +39,7 @@
             <div class="row justify-content-center">
                 <div class="col-5">
                     {% if worksheet_checks.clin_sci.overall == 'complete' and worksheet_checks.tech_team.overall == 'complete' %}
-                    <button data-bs-toggle="modal" data-bs-target="#download-samplesheet" class="btn btn-success" style="background-color: #28b463 !important;">
+                    <button data-bs-toggle="modal" data-bs-target="#download-samplesheet" class="btn btn-success">
                       <span class="fa fa-file-download" style="width: 30px; color: white;"></span>
                       Download samplesheet
                     </button>
@@ -90,7 +90,7 @@
 <div class="modal fade" id="download-samplesheet" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
-      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+      <div class="modal-header" style="background-color: #2B7A78; color: white;">
         <h5>Download worksheet</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
@@ -114,7 +114,7 @@
 <div class="modal fade" id="download-advanced" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
-      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+      <div class="modal-header" style="background-color: #2B7A78; color: white;">
         <h5>Download worksheet - Advanced Input</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>

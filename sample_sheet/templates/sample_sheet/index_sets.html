@@ -3,7 +3,7 @@
 
 {% block content %}
 <nav class="navbar navbar-custom">
-    <a href="{% url 'home_samplesheet' %}"><button type="button" class="w-100 btn btn-outline-light position-relative start-50"><span class="fa fa-arrow-alt-circle-left" style="width:  30px;color: white"></span>Back to Services</button></a>
+    <a href="{% url 'home_samplesheet' %}"><button type="button" class="w-100 btn btn-outline-dark position-relative start-50"><span class="fa fa-arrow-alt-circle-left" style="width: 30px; color: #17252A"></span>Back to Services</button></a>
 </nav>
 
 <br>
@@ -13,7 +13,7 @@
       <h3><center>Index sets</center></h3>
       <br>
 
-      <table id="indexset_table" class="table table-hover">
+      <table id="indexset_table" class="table table-hover" style="color: #17252A; font-family: Arial">
         <thead>
           <tr>
             <th scope="col">Name</th>
@@ -26,7 +26,7 @@
           {% for set in index_sets %}
           <tr>
             <td>
-              <a class="btn btn-info buttons1 btn-outline-light" href="{% url 'indexdetail' set.set_name %}" role="button">
+              <a class="btn btn-info buttons1 btn-outline-light" style="color: ##def2f1" href="{% url 'indexdetail' set.set_name %}" role="button">
                 <span class="fa fa-search"></span>
               </a>
               &ensp;

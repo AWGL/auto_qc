@@ -6,12 +6,14 @@ from django.db import models
 
 # Create your models here.
 class Assay (models.Model):
+
 	assay_slug = models.CharField(max_length=20, primary_key=True)
 	assay_name = models.CharField(max_length=20)
 	enable_coupled_worksheets = models.BooleanField(default=False, null=True, blank=True)
 	coupled_worksheet_assay = models.OneToOneField('Assay', on_delete=models.SET_NULL, null = True, blank = True)
 
 	def __str__(self):
+		
 		return self.assay_name
 
 
@@ -19,24 +21,23 @@ class Index(models.Model):
 	"""
 	Sequence of an individual index
 	"""
-	#id = models.AutoField(primary_key=True)
 	index_name = models.CharField(max_length=20)
 	index_well = models.CharField(max_length=5, blank=True, null=True)
 	sequence = models.CharField(max_length=20)
 	i7_or_i5 = models.CharField(max_length=2)
 
 	class Meta:
-		# unique_together = ('index_name', 'i7_or_i5')
-		constraints = [
-		models.UniqueConstraint(fields=['index_name', 'i7_or_i5'], name='unique_index')]
+
+		constraints = [models.UniqueConstraint(fields=['index_name', 'i7_or_i5'], name='unique_index')]
 
 	def reverse_complement(self):
-		"Make reverse complement of index sequence"
+
 		tab = str.maketrans('ATGC', 'TACG')
+
 		return self.sequence.translate(tab)[::-1]
 
 	def __str__(self):
-		# return f'{self.index_name}_{self.i7_or_i5}'
+
 		return str(self.index_name)
 
 
@@ -50,7 +51,7 @@ class IndexSet(models.Model):
 	product = models.CharField(max_length=20, blank=True, null=True)
 
 	def get_vendor_index_set(self):
-		"Get a queryset of all indexes in this set"
+
 		return IndexToIndexSet.objects.filter(index_set=self).order_by('index_pos')
 
 	def __str__(self):
@@ -61,13 +62,13 @@ class IndexToIndexSet(models.Model):
 	"""
 	Map indexes to vendor index set
 	"""
-	#id = models.AutoField(primary_key=True)
 	index1 = models.ForeignKey('Index', on_delete=models.PROTECT, related_name='vendor_index1')
 	index2 = models.ForeignKey('Index', on_delete=models.PROTECT, related_name='vendor_index2', blank=True, null=True)
 	index_set = models.ForeignKey('IndexSet', on_delete=models.CASCADE)
 	index_pos = models.IntegerField()
 
 	def __str__(self):
+
 		return f'{self.index_set}_{self.index1}'
 
 
@@ -94,11 +95,13 @@ class Sample(models.Model):
 		('FAM008', 'FAM008'),
 		('FAM009', 'FAM009'),
 	]
+
 	FAMILYPOS_CHOICES = [
 		('Father', 'Father'),
 		('Mother', 'Mother'),
 		('Proband', 'Proband'),
 	]
+
 	sampleid = models.CharField(max_length=20, primary_key=True)
 	sex = models.CharField(max_length=1, choices=SEX_CHOICES)
 	familyid = models.CharField(max_length=20, choices=FAMILYID_CHOICES, default=None, null=True, blank=True)
@@ -106,6 +109,7 @@ class Sample(models.Model):
 	affected = models.BooleanField(null=True, blank=True, default=False)
 
 	def __str__(self):
+
 		return self.sampleid
 
 
@@ -139,12 +143,17 @@ class Worksheet(models.Model):
 
 
 	def get_samples_from_ws(self):
-		"Get a dictionary of samples in a worksheet, ordered by position"
+		"""
+		Get a dictionary of samples in a worksheet, ordered by position
+		"""
+
 		samples = SampleToWorksheet.objects.filter(worksheet=self).order_by('pos')
 
 		# format as dict
 		sample_dict = {}
+
 		for s in samples:
+
 			sample_dict[str(s.pos)] = {
 				'sample': s.sample.sampleid, 
 				'referral': s.referral.name,
@@ -161,16 +170,25 @@ class Worksheet(models.Model):
 				'sample_obj': s,
 				'edited': s.edited
 			}
+
 		return sample_dict
 
 
 	def get_ws_status(self):
-		"get status of worksheet, either Incomplete or Signed Off"
+		"""
+		get status of worksheet, either Incomplete or Signed Off
+		"""
+
 		ws_data = Worksheet.objects.get(worksheet_id=self)
+
 		if ws_data.clinsci_manual_check and ws_data.techteam_manual_check:
+
 			status = "Signed Off"
+
 		else:
+
 			status = "Incomplete"
+
 		return status
 
 
@@ -263,6 +281,7 @@ class Worksheet(models.Model):
 
 
 	def get_clinsci_check_status(self):
+
 		# get sample ws data
 		sample_ws_data = SampleToWorksheet.objects.filter(worksheet=self).order_by('pos')
 
@@ -335,23 +354,25 @@ class Worksheet(models.Model):
 		return clinsci_checks_status
 
 	def dropdown_str(self):
+
 		return f'{self.worksheet_id}_test'
 
 	def __str__(self):
-		return self.worksheet_id
 
+		return self.worksheet_id
 
 
 class ReferralType(models.Model):
 	"""
 	A referral type from Shire
 	"""
-	# code = models.CharField(max_length=6
+
 	name = models.CharField(max_length=100, primary_key=True)
 	shire_name = models.CharField(max_length=100, null=True, blank=True)
 	assay = models.ManyToManyField('Assay')
 
 	def __str__(self):
+
 		return self.name
 
 
@@ -360,29 +381,37 @@ class SampleToWorksheet(models.Model):
 	Map samples onto worksheets.
 	this is sample AND worksheet specific
 	"""
+
 	POOL_CHOICES = [
 		('Y', 'Include in pool'),
 		('N1', 'Not in pool - skip index'),
 		('N2', 'Not in pool - include index'),
 	]
+
 	sample = models.ForeignKey('Sample', on_delete=models.PROTECT) # TODO related name
 	worksheet = models.ForeignKey('Worksheet', on_delete=models.CASCADE) # TODO related name
 	referral = models.ForeignKey('ReferralType', on_delete=models.PROTECT, default='null') #, related_name='custom_index1'
-	hpo_ids = models.CharField(max_length=200, blank=True, null=True)
+	hpo_ids = models.CharField(max_length=1000, blank=True, null=True)
 	pos = models.IntegerField()
 	index1 = models.ForeignKey('Index', on_delete=models.PROTECT, related_name='sample_index1', blank=True, null=True)
 	index2 = models.ForeignKey('Index', on_delete=models.PROTECT, related_name='sample_index2', blank=True, null=True)
 	pool = models.CharField(max_length=2, choices=POOL_CHOICES, default='Y')
 	edited = models.BooleanField(default=False)
 	notes = models.CharField(max_length=200, blank=True, null=True)
+	urgent = models.BooleanField(default=False, null=True, blank=True)
 
 	def __str__(self):
+
 		return f'{self.pos}_{self.worksheet}_{self.sample}'
 
 	def reload_skipped_indexes(self):
+
 		return None
 
 	def get_hpo_ids(self):
+		"""
+		Return all HPO terms
+		"""
 
 		if self.hpo_ids is not None:
 
@@ -403,4 +432,3 @@ class SampleToWorksheet(models.Model):
 			return hpo_id_tuple_list
 
 		return None
-

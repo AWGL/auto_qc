@@ -32,7 +32,11 @@ source activate auto_qc
 
 python manage.py migrate
 
+# For Auto QC database 
 python manage.py makemigrations qc_database
+
+#For SampleSheet Generator
+python manage.py makemigrations sample_sheet
 
 python manage.py migrate
 ```
@@ -79,6 +83,26 @@ python manage.py test
 python manage.py runserver
 ```
 
+## Login Locally
+
+```
+python manage.py createsuperuser
+```
+
+## Adding fixtures to the SampleSheet Generator 
+
+```
+python manage.py loaddata sample_sheet/fixtures/referraltype.json 
+python manage.py loaddata sample_sheet/fixtures/assay.json
+
+# Dump the assay content added in the django /admin app into the json file
+python manage.py dumpdata sample_sheet.assay > sample_sheet/fixtures/assay.json 
+python manage.py dumpdata sample_sheet.referraltype > sample_sheet/fixtures/referraltype.json
+
+```
+
+#
+##
 ## FAQ
 
 ## References

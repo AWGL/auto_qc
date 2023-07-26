@@ -24,7 +24,12 @@
             <th scope="col">Family Position</th>
             <th scope="col">Affected</th>
             <th scope="col">HPO IDs</th>
+            {% if worksheet_info.assay_name == "WGS" %}
+            <th scope="col">Urgent</th>
             {% endif %}
+            {% endif %}
+
+            
 
             <th scope="col"></th>
           </tr>
@@ -37,7 +42,6 @@
             <td>{{ sample.sample }}</td>
             <td>{{ sample.referral }}</td>
             <td>{{ sample.sex }}</td>
-
 
             <!-- only display family and affected information if wings -->
             {% if worksheet_info.assay_name in "WGS WINGS WES" %}
@@ -82,6 +86,15 @@
               </td>
 
 
+            {% endif %}
+
+            <!-- formatting for urgent column -->
+            {% if worksheet_info.assay_name in "WGS WINGS" %}
+            {% if sample.sample_obj.urgent %}
+              <td>Yes</td>
+            {% else %}
+              <td>-</td>
+            {% endif %}
             {% endif %}
 
             <!-- if signed off then remove buttons -->
@@ -185,7 +198,7 @@
 <div class="modal fade" id="create-family" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
-      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+      <div class="modal-header" style="background-color: #3AA7A9; color: white;">
         <h5>Create a family</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
@@ -203,7 +216,7 @@
 <div class="modal fade" id="clear-family" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
-      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+      <div class="modal-header" style="background-color: #3AA7A9; color: white;">
         <h5>Clear family information</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
@@ -222,7 +235,7 @@
 <div class="modal fade" id="edit-sample-{{ pos }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
-      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+      <div class="modal-header" style="background-color: #3AA7A9; color: white;">
         <h5>Edit worksheet sample details | {{ sample.sample }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
@@ -238,7 +251,7 @@
 <div class="modal fade" id="reopen-clinsci-worksheet" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
-      <div class="modal-header" style="background-color: #ff7a33; color: white;">
+      <div class="modal-header" style="background-color: #3AA7A9; color: white;">
         <h5>Reopen worksheet</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>

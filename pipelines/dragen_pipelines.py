@@ -1,5 +1,6 @@
 from pathlib import Path
 import glob
+import os
 import re
 from pipelines import parsers 
 from qc_database.utils import relatedness2 
@@ -45,7 +46,6 @@ class DragenGE:
 
 		return False	
 
-	
 	def run_is_valid(self):
 		"""
 		Read the file nextflow created on run end (post_processing/results/post_processing_finished.txt)
@@ -136,7 +136,6 @@ class DragenGE:
 
 		return run_sex_metrics_dict
 	
-	
 	def get_variant_calling_metrics(self):
 		
 		results_path = Path(self.results_dir)
@@ -148,8 +147,7 @@ class DragenGE:
 		parsed_variant_metrics_file = parsers.parse_dragen_vc_metrics_file(variant_metrics_file)
 
 		return parsed_variant_metrics_file  
-	
-	
+		
 	def get_alignment_metrics(self):
 		
 		results_path = Path(self.results_dir)
@@ -161,14 +159,13 @@ class DragenGE:
 			alignment_metrics_file = results_path.joinpath(sample).glob(f'*{sample}.mapping_metrics.csv')
 
 			alignment_metrics_file = list(alignment_metrics_file)[0]
-			
+
 			parsed_alignment_metrics = parsers.parse_dragen_alignment_metrics_file(alignment_metrics_file)
 
 			run_alignment_metrics_dict[sample] = parsed_alignment_metrics
 
 		return run_alignment_metrics_dict
-	
-	
+		
 	def get_sensitivity(self):
 		
 		results_path = Path(self.results_dir)
@@ -187,7 +184,6 @@ class DragenGE:
 
 		return parsed_sensitivity_file  
 	
-	
 	def get_variant_count_metrics(self):
 		
 		results_path = Path(self.results_dir)
@@ -205,7 +201,35 @@ class DragenGE:
 			sample_variant_count_dict[sample] = vcf_count_metrics
 
 		return sample_variant_count_dict
+	
+	def display_cnv_qc_metrics(self):
+		
+		try:
+			results_path = Path(self.results_dir)
 
+			cnv_metrics_file = results_path.glob(f'post_processing/results/sv_cnv/qc/{self.run_id}.cnv_qc_report.csv')
+
+			cnv_metrics_file = list(cnv_metrics_file)[0]
+
+			if os.path.isfile(cnv_metrics_file):
+				return True
+			else:
+				return False
+		
+		except:
+			return False
+
+	def get_postprocessing_cnv_qc_metrics(self):
+		
+		results_path = Path(self.results_dir)
+
+		cnv_metrics_file = results_path.glob(f'post_processing/results/sv_cnv/qc/{self.run_id}.cnv_qc_report.csv')
+
+		cnv_metrics_file = list(cnv_metrics_file)[0]
+
+		cnv_metrics_qc_dict = parsers.parse_exome_postprocessing_cnv_qc_metrics(cnv_metrics_file)
+
+		return cnv_metrics_qc_dict
 
 	def get_relatedness_metrics(self, min_relatedness_parents, max_relatedness_unrelated, max_relatedness_between_parents, max_child_parent_relatedness):
 
@@ -241,7 +265,7 @@ class DragenWGS:
 				sample_not_expected_files =[],
 				run_not_expected_files= [],
 				post_sample_files = [],
-				run_complete_marker  = 'post_processing_finished.txt',
+				run_complete_marker  = 'post_processing/results/post_processing_finished.txt',
 				sample_complete_marker  = 'post_processing_finished.txt'
 				):
 
@@ -345,26 +369,9 @@ class DragenWGS:
 
 		results_path = Path(self.results_dir)
 
-		new_path = False
+		marker = results_path.glob(self.run_complete_marker)
 		
-		for i in self.run_expected_files:
-
-			if 'post_processing' in i:
-
-				new_path = True
-				break
-
-		if new_path:
-
-			results_path = results_path.joinpath('post_processing/results/')
-
-		else:
-
-			results_path = results_path.joinpath('results')
-
-		marker = results_path.glob(self.sample_complete_marker)
-
-		if len(list(marker)) >= 1:
+		if len(list(marker)) == 1:
 
 			return True
 
@@ -373,34 +380,30 @@ class DragenWGS:
 
 	def run_is_valid(self):
 		"""
-		Look for files which have to be present for a run level pipeline to have completed \
-		correctly.
-
-		Look for files which if present indicate the pipeline has not finished correctly e.g. intermediate files.
+		Read the file nextflow creates at the end of the run (post_processing/results/post_processing_finished.txt and check if it says fail or success. 
 		"""
 
-		results_path = Path(self.results_dir)
-
-		# check files we want to be there are there
-		for file in self.run_expected_files:
+		if self.run_is_complete():
+		
+			results_path = Path(self.results_dir)
 			
-			found_file = results_path.glob(file)
-
-			if len(list(found_file)) != 1:
-								
-				return False
-
-		# check file we do not want to be there are not there
-		for file in self.run_not_expected_files:
+			marker = results_path.glob(self.run_complete_marker)
 			
-
-			found_file = results_path.glob(file)
-
-			if len(list(found_file)) > 0:
-
-				return False
+			marker = list(marker)[0]
 			
-		return True
+			#last line in file
+			last_report = ''
+			
+			with open(marker, 'r') as outfile:
+			
+				for x in outfile:
+					last_report = x.strip()
+					
+			if 'success' in last_report:
+			
+				return True
+				
+		return False
 
 	def run_and_samples_complete(self):
 			"""
@@ -553,3 +556,33 @@ class DragenWGS:
 				run_ploidy_metrics_dict[sample] = parsed_run_ploidy_metrics
 
 		return run_ploidy_metrics_dict
+		
+	def get_cnv_metrics(self):
+		"""
+		Get sample level CNV metrics from dragen cnv metrics file
+		"""
+		
+		results_path = Path(self.results_dir)
+		
+		dragen_cnv_metrics_dict = {}
+		
+		for sample in self.sample_names:
+		
+			cnv_metrics_file = results_path.joinpath(sample).glob(f'*{sample}.cnv_metrics.csv')
+			
+			
+			if len(list(cnv_metrics_file)) == 1:
+			
+				cnv_metrics_file = results_path.joinpath(sample).glob(f'*{sample}.cnv_metrics.csv')
+				
+				cnv_file = list(cnv_metrics_file)[0]
+				
+				parsed_cnv_metrics = parsers.parse_dragen_cnv_metrics_file(cnv_file)
+				
+				dragen_cnv_metrics_dict[sample] = parsed_cnv_metrics
+				
+			else:
+			
+				return dragen_cnv_metrics_dict
+		
+		return dragen_cnv_metrics_dict

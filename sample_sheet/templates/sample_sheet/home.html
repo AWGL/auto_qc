@@ -8,18 +8,22 @@
 <br>
 <br>
 
-<h2><center>Select a service from the options below or <a style="color: orange" href="{% url 'upload' %}">create a new samplesheet</a></center></h2>
+<h2><center><a style="color: #17252A"><strong>Select a service from the options below or</strong></a> <a style="color: #2b7a78" href="{% url 'upload' %}"><strong>create a new samplesheet</strong></a></center></h2>
+<br>
+<br>
 <br>
 
 <div class="container">
 	<div class="row">
 		<div class="col">
-			<h3><u>Constitutional:</u></h3>
-			<div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
+			<h3><a style="color: #17252A"><strong>Constitutional:</strong></a></h3>
+			<div class="row row-cols-1 row-cols-md-4 mb-4 text-center">
 				<div class="col">
 					<div class="card-body">
             			<a href="{% url 'view_worksheets' 'trusightone' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">TruSight One</button></a>
           			</div>
+			</div>
+			<div class="col">
         			<div class="card-body">
             			<a href="{% url 'view_worksheets' 'wes' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">WES</button></a>
           			</div>
@@ -41,8 +45,8 @@
 	<br>
 	<div class="row">
 		<div class="col">
-			<h3><u>Cancer:</u></h3>
-			<div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
+			<h3><a style="color: #17252A"><strong>Cancer:</strong></a></h3>
+			<div class="row row-cols-1 row-cols-md-4 mb-4 text-center">
 				<div class="col">
 					<div class="card-body">
             			<a href="{% url 'view_worksheets' 'tso500dna' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">TSO500 DNA</button></a>
@@ -67,6 +71,11 @@
             			<a href="{% url 'view_worksheets' 'trusightcancer' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">TruSight Cancer</button></a>
           			</div>
     			</div>
+			<div class="col">
+					<div class="card-body">
+					<a href="{% url 'view_worksheets' 'ctdna' %}"><button type="button" class="w-100 btn btn-lg btn-outline-light buttons1">ctDNA</button></a>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>

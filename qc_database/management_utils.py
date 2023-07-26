@@ -126,6 +126,34 @@ def add_fastqc_data(fastqc_dict, run_analysis_obj):
 				new_fastqc_obj = SampleFastqcData(**read)
 				new_fastqc_obj.save()
 
+
+def add_dragen_fastqc_data(dragen_fastqc_dict, run_analysis_obj):
+	"""
+	Add data from dragen fastqc metrics to the database
+	"""
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in dragen_fastqc_dict:
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+						   								run=run,
+														pipeline=pipeline,
+														analysis_type=run_analysis_obj.analysis_type)
+		
+		sample_data = dragen_fastqc_dict[key]
+
+		existing_data = SampleDragenFastqcData.objects.filter(sample_analysis=sample_analysis_obj)
+
+		if len(existing_data) < 1:
+			sample_data['sample_analysis'] = sample_analysis_obj
+			new_dragen_fastqc_obj = SampleDragenFastqcData(**sample_data)
+			new_dragen_fastqc_obj.save()
+
+
 def add_hs_metrics(hs_metrics_dict, run_analysis_obj):
 	"""
 	Add data from picard hs metrics files to database.
@@ -164,6 +192,7 @@ def add_hs_metrics(hs_metrics_dict, run_analysis_obj):
 			new_hsmetrics_obj = SampleHsMetrics(**sample_data)
 			new_hsmetrics_obj.save()
 
+
 def add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis_obj):
 	"""
 	Add data from depth of coverage summary files to database.
@@ -191,7 +220,6 @@ def add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis_obj):
 			sample_data['sample_analysis'] = sample_analysis_obj
 			new_depth_obj = SampleDepthofCoverageMetrics(**sample_data)
 			new_depth_obj.save()
-
 
 
 def add_duplication_metrics(duplication_metrics_dict, run_analysis_obj):
@@ -227,7 +255,8 @@ def add_duplication_metrics(duplication_metrics_dict, run_analysis_obj):
 
 			new_duplication_obj = DuplicationMetrics(**sample_data)
 			new_duplication_obj.save()
-		
+
+
 def add_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
 	"""
 	Add data from contamination summary files to database.
@@ -264,6 +293,7 @@ def add_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
 
 			new_contamination_obj = ContaminationMetrics(**sample_data)
 			new_contamination_obj.save()
+
 
 def add_sex_metrics(qc_metrics_dict, run_analysis_obj, sex_key):
 	"""
@@ -367,6 +397,7 @@ def add_dragen_alignment_metrics(alignment_metrics_dict, run_analysis_obj):
 			new_dragen_alignment_obj = DragenAlignmentMetrics(**sample_data)
 			new_dragen_alignment_obj.save()
 
+
 def add_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
 	"""
 	Add data from picard variant calling metrics files to database.
@@ -402,6 +433,7 @@ def add_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
 
 			new_variant_obj = VariantCallingMetrics(**sample_data)
 			new_variant_obj.save()
+
 
 def add_insert_metrics(insert_metrics_dict, run_analysis_obj):
 	"""
@@ -461,6 +493,7 @@ def add_variant_count_metrics(variant_count_metrics_dict, run_analysis_obj):
 			new_count_obj = VCFVariantCount(sample_analysis = sample_analysis_obj, variant_count= sample_data)
 			new_count_obj.save()
 
+
 def add_dragen_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
 	"""
 	Add data from the Dragen Variant Calling metrics files to database.
@@ -495,6 +528,38 @@ def add_dragen_variant_calling_metrics(variant_metrics_dict, run_analysis_obj):
 			new_dragen_vc_obj = DragenVariantCallingMetrics(**sample_data)
 			new_dragen_vc_obj.save()
 
+
+def add_exome_postprocessing_cnv_qc_metrics(cnv_qc_dict, run_analysis_obj):
+	"""
+	Add data from the Dragen CNV QC metrics file to the database
+	"""
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+
+	for key in cnv_qc_dict:
+
+		sample_obj = Sample.objects.get(sample_id=key)
+
+		sample_analysis_obj = SampleAnalysis.objects.get(sample = sample_obj,
+						   run = run,
+						   pipeline = pipeline,
+						   analysis_type = run_analysis_obj.analysis_type)
+
+		existing_data = CNVMetrics.objects.filter(sample_analysis = sample_analysis_obj)
+
+		try:
+			if len(existing_data) < 1:
+
+				sample_data = cnv_qc_dict[key]
+				sample_data["sample_analysis"] = sample_analysis_obj
+
+				new_dragen_cnv_qc_obj = CNVMetrics(**sample_data)
+				new_dragen_cnv_qc_obj.save()
+		
+		except:
+			pass
+
+
 def add_sensitivity_metrics(sensitivity_metrics, run_analysis_obj):
 	"""
 	Add sensitivity data for a run
@@ -516,6 +581,7 @@ def add_sensitivity_metrics(sensitivity_metrics, run_analysis_obj):
 		run_analysis_obj.sensitivity_user = User.objects.get(pk=1)
 
 	run_analysis_obj.save()
+
 
 def add_dragen_wgs_coverage_metrics(dragen_wgs_coverage_metrics, run_analysis_obj):
 
@@ -558,6 +624,7 @@ def add_dragen_wgs_coverage_metrics(dragen_wgs_coverage_metrics, run_analysis_ob
 
 			new_dragen_wgs_cov_obj = DragenWGSCoverageMetrics(**sample_data)
 			new_dragen_wgs_cov_obj.save()
+
 
 def add_dragen_exonic_coverage_metrics(dragen_exonic_coverage_metrics, run_analysis_obj):
 
@@ -635,8 +702,34 @@ def add_dragen_ploidy_metrics(dragen_ploidy_metrics, run_analysis_obj):
 
 			new_dragen_ploidy_metrics_obj = DragenPloidyMetrics(sample_analysis=sample_analysis_obj, ploidy_estimation=sample_data['ploidy_estimation'])
 			new_dragen_ploidy_metrics_obj.save()
+			
+def add_dragen_cnv_metrics(dragen_cnv_metrics_dict, run_analysis_obj):
+	"""
+	Add data from dragen sample CNV metrics file to database
+	"""
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+	
+	for key in dragen_cnv_metrics_dict:
+	
+		sample_obj = Sample.objects.get(sample_id=key)
+		
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+									run=run,
+									pipeline=pipeline,
+									analysis_type=run_analysis_obj.analysis_type)
 
-
+		existing_data = DragenCNVMetrics.objects.filter(sample_analysis=sample_analysis_obj)
+		
+		if len(existing_data) < 1:
+			
+			sample_data = dragen_cnv_metrics_dict[key]
+			
+			sample_data['sample_analysis'] = sample_analysis_obj
+			
+			new_dragen_cnv_metrics_obj = DragenCNVMetrics(**sample_data)
+			new_dragen_cnv_metrics_obj.save()
+				
 def add_fusion_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
 	"""
 	Add data from fusion contamination file to database
@@ -724,8 +817,6 @@ def add_custom_coverage_metrics(coverage_metrics_dict, run_analysis_obj):
 			new_custom_coverage_obj.save()
 
 
-
-
 def add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_analysis_obj):
 	"""
 	Add data relatedness metrics file to database
@@ -736,9 +827,10 @@ def add_relatedness_metrics(parsed_relatedness, parsed_relatedness_comment, run_
 
 	if len(relatedness_data) < 1:
 
-		 new_relatedness_obj = RelatednessQuality(results_valid=parsed_relatedness, comment=' | '.join(parsed_relatedness_comment), run_analysis=run_analysis_obj)
+		new_relatedness_obj = RelatednessQuality(results_valid=parsed_relatedness, comment=' | '.join(parsed_relatedness_comment), run_analysis=run_analysis_obj)
 
-		 new_relatedness_obj.save()
+		new_relatedness_obj.save()
+
 
 def add_tso500_reads(reads_dict, run_analysis_obj):
 
@@ -763,7 +855,6 @@ def add_tso500_reads(reads_dict, run_analysis_obj):
 			new_reads_obj = Tso500Reads(sample_analysis = sample_analysis_obj, total_on_target_reads= reads)
 			
 			new_reads_obj.save()
-
 
 
 def add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis_obj):
@@ -796,6 +887,30 @@ def add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, al
 			new_reads_obj = Tso500Reads(sample_analysis = sample_analysis_obj, aligned_reads=aligned_reads, percent_ntc_contamination=ntc_contamination_aligned_reads, total_pf_reads=total_pf_reads, percent_ntc_reads= sample_data)
 
 			new_reads_obj.save()
+			
+def add_ctdna_ntc_contamination(aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis_obj):
+
+	pipeline = run_analysis_obj.pipeline
+	run = run_analysis_obj.run
+	
+	for key in aligned_reads_dict:
+		
+		sample_obj = Sample.objects.get(sample_id=key)
 
 
+		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
+														run=run,
+														pipeline = pipeline,
+														analysis_type = run_analysis_obj.analysis_type)
+		
+		existing_data = ctDNAReads.objects.filter(sample_analysis= sample_analysis_obj)
+		
+		if len(existing_data) < 1:
 
+			aligned_reads = aligned_reads_dict[key]
+
+			ntc_contamination_aligned_reads=ntc_contamination_aligned_reads_dict[key]
+
+			new_reads_obj = ctDNAReads(sample_analysis = sample_analysis_obj, aligned_reads=aligned_reads, percent_ntc_contamination=ntc_contamination_aligned_reads)
+
+			new_reads_obj.save()

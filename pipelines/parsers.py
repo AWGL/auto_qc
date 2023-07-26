@@ -60,6 +60,7 @@ def sample_sheet_parser(sample_sheet_path):
 
 	return sample_sheet_dict
 
+
 def get_run_parameters_dict(run_parameters_path):
 	"""
 	Parse the run parameters dict
@@ -72,6 +73,7 @@ def get_run_parameters_dict(run_parameters_path):
 
 	return runinfo_dict
 
+
 def get_run_info_dict(run_info_path):
 
 	# turn XML file into a dictionary
@@ -80,6 +82,7 @@ def get_run_info_dict(run_info_path):
 		run_info_dict = xmltodict.parse(f.read())
 
 	return run_info_dict
+
 
 def get_instrument_type(instrument_id):
 
@@ -167,6 +170,7 @@ def extract_data_from_run_info_dict(run_info_dict):
 	runinfo_sorted_dict['raw_runinfo_json'] = json.dumps(run_info_dict, indent=2, separators=(',', ':'))
 
 	return runinfo_sorted_dict
+
 
 def parse_interop_data(run_folder_dir, num_reads, num_lanes):
 	"""
@@ -262,7 +266,6 @@ def parse_fastqc_file(fastqc_text_file):
 		return fqcdict
 
 
-
 def parse_fastqc_file_tso500(fastqc_text_file):
 
 	with open (fastqc_text_file) as file:
@@ -288,6 +291,7 @@ def parse_fastqc_file_tso500(fastqc_text_file):
 
 		return fqcdict
 
+
 def parse_fastqc_file_cruk(fastqc_text_file, run_id):
 
 	with open (fastqc_text_file) as file:
@@ -311,6 +315,51 @@ def parse_fastqc_file_cruk(fastqc_text_file, run_id):
 				fqcdict[metrics] = result
 
 		return fqcdict
+	
+
+def parse_dragen_fastqc_file(dragen_fastqc_file):
+
+	with open(dragen_fastqc_file, "r") as f:
+
+		fastqcfile = f.readlines()
+
+		fastqcdict = {
+			"overall_pass_fail": None,
+			"coverage_pass_fail": None,
+			"per_base_sequence_quality": None,
+			"per_sequence_quality_score": None,
+			"per_base_n_content": None
+		}
+
+		overall_pass_fail = fastqcfile[0]
+		fastqcdict["overall_pass_fail"] = overall_pass_fail
+
+		## if it's an overall pass, everything has passed
+		if overall_pass_fail == "PASS":
+			for key, value in fastqcdict.items():
+				if not value:
+					fastqcdict[key] = "PASS"
+		
+		## if it's an overall fail, parse the errors
+		if overall_pass_fail == "FAIL":
+
+			errors = " ".join(fastqcfile[1:])
+			if "Too few reads" in errors:
+				fastqcdict["coverage_pass_fail"] = "FAIL"
+			if "Failed on per base N content" in errors:
+				fastqcdict["per_base_n_content"] = "FAIL"
+			if "Failed on per base sequence quality" in errors:
+				fastqcdict["per_base_sequence_quality"] = "FAIL"
+			if "Failed on per sequence quality" in errors:
+				fastqcdict["per_sequence_quality"] = "FAIL"
+			
+			# anything else that's not failed has passed
+			for key, value in fastqcdict.items():
+				if not value:
+					fastqcdict[key] = "PASS"
+
+		return fastqcdict
+
 
 def parse_hs_metrics_file(hs_metrics_file):
 
@@ -474,6 +523,7 @@ def parse_contamination_metrics(self_sm_contamination_file):
 
 	return contamination_metrics_dict
 
+
 def parse_qc_metrics_file(qc_metrics_file):
 
 	qc_metrics_dict = {}
@@ -504,6 +554,7 @@ def parse_qc_metrics_file(qc_metrics_file):
 		qc_metrics_dict[key.lower()] = value
 
 	return qc_metrics_dict
+
 
 def parse_alignment_metrics_file(alignments_metric_file):
 
@@ -549,6 +600,7 @@ def parse_alignment_metrics_file(alignments_metric_file):
 
 	return alignment_metrics_dicts
 	
+
 def parse_variant_detail_metrics_file(variant_detail_metrics_file):
 
 	variant_detail_metrics_dict = {}
@@ -633,12 +685,14 @@ def parse_insert_metrics_file(insert_metrics_file):
 
 	return insert_metrics_dict
 
+
 def parse_config(config_location):
 	"""
 	Parse the YAML config file.
 	"""
 	with open(config_location, 'r') as stream:
 		return yaml.safe_load(stream)
+
 
 def get_passing_variant_count(vcf_path, samples):
 	"""
@@ -713,6 +767,7 @@ def parse_dragen_sex_file(dragen_sex_file):
 	
 	return sex_dict
 
+
 def parse_dragen_vc_metrics_file(dragen_vc_metrics_file):
 	"""
 	Parse the dragen variant calling metrics file.
@@ -774,6 +829,7 @@ def parse_dragen_alignment_metrics_file(dragen_alignment_metrics_file):
 				dragen_alignment_metrics_file_dict[new_key] = value
 				
 	return dragen_alignment_metrics_file_dict
+
 
 def parse_sensitivity_file(sensitivity_file):
 	"""
@@ -891,6 +947,7 @@ def parse_fusion_contamination_metrics_file(fusion_contamination_metrics_file):
 
 	return fusion_contamination_metrics_dict
 
+
 def parse_fusion_alignment_metrics_file(fusion_alignment_metrics_file):
 
 	fusion_alignment_metrics_dict = {}
@@ -924,6 +981,7 @@ def parse_fusion_alignment_metrics_file(fusion_alignment_metrics_file):
 
 	return fusion_alignment_metrics_dict
 
+
 def parse_ploidy_metrics_file(ploidy_metrics_file):
 	"""
 	Parse the dragen ploidy metrics file.
@@ -953,7 +1011,35 @@ def parse_ploidy_metrics_file(ploidy_metrics_file):
 				dragen_ploidy_metrics_file_dict[new_key] = value
 				
 	return dragen_ploidy_metrics_file_dict
-
+	
+def parse_dragen_cnv_metrics_file(cnv_file):
+	"""
+	Parse the dragen sample level CNV metrics file
+	"""
+	
+	dragen_cnv_metrics_file_dict = {}
+	
+	with open(cnv_file) as file:
+	
+		dragen_cnv_file = csv.reader(file, delimiter=',')
+		
+		for row in dragen_cnv_file:
+		
+			prefix = row[0]
+			key = row[2]
+			value = row[3]
+			
+			#Reformat key to remove spaces and brackets and make lower case
+			
+			new_key = key.translate(str.maketrans('', '', string.punctuation.replace('_','')))
+			
+			new_key = new_key.lower().replace(' ', '_').replace('__','_')
+			
+			if prefix == 'CNV SUMMARY':
+			
+				dragen_cnv_metrics_file_dict[new_key] = value
+	
+	return dragen_cnv_metrics_file_dict
 
 def parse_custom_coverage_metrics(custom_coverage_file):
 	"""
@@ -973,3 +1059,29 @@ def parse_custom_coverage_metrics(custom_coverage_file):
 			custom_coverage_dict[key] = value
 
 	return custom_coverage_dict
+
+
+def parse_exome_postprocessing_cnv_qc_metrics(cnv_qc_metrics_file):
+	"""
+	Parse the CNV QC metrics from the Dragen post-processing pipeline
+	"""
+
+	cnv_qc_dict = {}
+
+	with open(cnv_qc_metrics_file) as file:
+
+		cnv_dictreader = csv.DictReader(file)
+
+		for i in cnv_dictreader:
+			sample = i["sample"]
+			key = i["key"]
+			value = i["value"]
+			
+			try:
+				cnv_qc_dict[sample][key] = value
+			
+			except KeyError:
+				cnv_qc_dict[sample] = {}
+				cnv_qc_dict[sample][key] = value
+
+	return cnv_qc_dict

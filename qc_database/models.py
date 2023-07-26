@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from auditlog.registry import auditlog
 from auditlog.models import AuditlogHistoryField
@@ -14,6 +15,7 @@ class Instrument(models.Model):
 
 	def __str__(self):
 		return self.instrument_id
+
 
 class Run(models.Model):
 	"""
@@ -112,7 +114,6 @@ class Sample(models.Model):
 
 		return False
 
-
 class Pipeline(models.Model):
 	"""
 	A pipeline - should be pipelinename + version
@@ -177,6 +178,10 @@ class RunAnalysis(models.Model):
 	max_relatedness_between_parents = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	max_child_parent_relatedness = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
 	min_on_target_reads=models.IntegerField(null=True, blank=True)
+	min_cnv_calls=models.IntegerField(null=True, blank=True, default=0)
+	max_cnv_calls=models.IntegerField(null=True, blank=True)
+	display_cnv_qc_metrics=models.BooleanField(default=False)
+	min_average_coverage_cutoff=models.IntegerField(null=True, blank=True)
 
 	#for TSO500 only- ntc contamination for other runs in sampleAnalysis object
 	max_ntc_contamination = models.IntegerField(null=True, blank=True)
@@ -202,7 +207,6 @@ class RunAnalysis(models.Model):
 
 		return completed.count(True), len(completed)
 
-
 	def get_n_samples_valid(self):
 
 		count = 0
@@ -215,7 +219,6 @@ class RunAnalysis(models.Model):
 		completed = [x.results_valid for x in sample_analyses]
 
 		return completed.count(True), len(completed)
-
 
 	def passes_run_level_qc(self):
 
@@ -275,7 +278,6 @@ class RunAnalysis(models.Model):
 
 		return '|'.join(list(set(worksheets)))
 
-
 	def passes_sensitivity(self):
 
 		if self.min_sensitivity == None:
@@ -304,7 +306,6 @@ class RunAnalysis(models.Model):
 
 				return False
 
-
 	def passes_relatedness(self):
 
 		relatedness_obj = RelatednessQuality.objects.filter(run_analysis = self)
@@ -314,7 +315,6 @@ class RunAnalysis(models.Model):
 			return relatedness_obj[0].results_valid, relatedness_obj[0].comment
 
 		return False, 'Oops'
-
 
 	def passes_auto_qc(self):
 		"""
@@ -359,15 +359,20 @@ class RunAnalysis(models.Model):
 
 			return False,['Run results not valid']
 
+
+		fail_samples = []
+
 		for sample in samples:
 
 			if sample.results_completed == False:
 
 				reasons_to_fail.append('Results not complete for some samples')
+				fail_samples.append(sample.sample.sample_id)
 
 			if sample.results_valid == False:
 
 				reasons_to_fail.append('Results not valid for some samples')
+				fail_samples.append(sample.sample.sample_id)
 
 
 			if sample.sample.is_ntc() == False:
@@ -380,13 +385,15 @@ class RunAnalysis(models.Model):
 
 				reasons_to_fail.append('Q30 Fail')
 
+				for sample in new_samples_list:
+
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'relatedness' in checks_to_do:
 			
 			if self.passes_relatedness()[0] == False:
 				
 				reasons_to_fail.append(self.passes_relatedness()[1])
-
 
 		if 'contamination' in checks_to_do:
 
@@ -395,6 +402,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_contamination() == False:
 
 					reasons_to_fail.append('Contamination Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'ntc_contamination' in checks_to_do:
 
@@ -403,6 +411,31 @@ class RunAnalysis(models.Model):
 				if sample.passes_ntc_contamination() != True:
 
 					reasons_to_fail.append('NTC Contamination Fail')
+					fail_samples.append(sample.sample.sample_id)
+
+		if 'max_cnv_calls' in checks_to_do:
+
+			for sample in new_samples_list:
+				
+				#Only hard failure for GE, just a warning in WGS
+				if 'DragenGE' in self.pipeline.pipeline_id:
+					try:
+						if sample.passes_cnv_calling() != True:
+
+							reasons_to_fail.append('CNV Calling Fail')
+				
+					except ObjectDoesNotExist:
+						# handles old runs where the check exists but CNV calling hasn't been run
+						pass
+						
+		#Coverage check for WGSCNV calls only
+		if 'min_average_coverage' in checks_to_do:
+		
+			for sample in new_samples_list:
+			
+				if sample.passes_average_coverage() == False:
+				
+					reasons_to_fail.append('Average Coverage Fail')
 
 		# DNA
 		if 'ntc_contamination_TSO500' in checks_to_do:
@@ -414,6 +447,7 @@ class RunAnalysis(models.Model):
 					if sample_object.passes_percent_ntc_tso500() != True:
 
 						reasons_to_fail.append('NTC Contamination Fail')
+						fail_samples.append(sample.sample.sample_id)
 
 		# RNA
 		if 'reads_tso500' in checks_to_do:
@@ -423,6 +457,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_reads_tso500() != True:
 
 					reasons_to_fail.append('TSO500 Read Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'sex_match' in checks_to_do:
 
@@ -431,6 +466,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_sex_check() == False:
 
 					reasons_to_fail.append('Sex Match Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'variant_check' in checks_to_do:
 
@@ -445,7 +481,7 @@ class RunAnalysis(models.Model):
 			if self.passes_sensitivity() == False:
 
 				reasons_to_fail.append('Low Sensitivity')
-
+				
 		if 'coverage' in checks_to_do:
 			
 			for sample in new_samples_list:
@@ -453,6 +489,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_region_coverage_over_20() == False:
 
 					reasons_to_fail.append('Low Coverage >20x')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'titv' in checks_to_do:
 
@@ -461,6 +498,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_titv() == False:
 
 					reasons_to_fail.append('Titv Ratio out of range for at least one sample')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'fastqc' in checks_to_do:
 
@@ -469,6 +507,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_fastqc() == False:
 
 					reasons_to_fail.append('FASTQC Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 
 		if 'fusion_contamination' in checks_to_do:
@@ -478,6 +517,7 @@ class RunAnalysis(models.Model):
 				if sample.passes_fusion_contamination() == False:
 
 					reasons_to_fail.append('Fusion Contamination Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 		if 'fusion_alignment' in checks_to_do:
 
@@ -485,7 +525,8 @@ class RunAnalysis(models.Model):
 
 				if sample.passes_fusion_aligned_reads_duplicates() == False:
 
-					reasons_to_fail.append('Fusion Aligned Reads Unique Fail')	
+					reasons_to_fail.append('Fusion Aligned Reads Unique Fail')
+					fail_samples.append(sample.sample.sample_id)
 
 		if len(reasons_to_fail) ==0:
 
@@ -493,8 +534,8 @@ class RunAnalysis(models.Model):
 
 		else:
 
-			return False, list(set(reasons_to_fail))
-			
+			return False, list(set(reasons_to_fail)), fail_samples
+
 
 class RelatednessQuality(models.Model):
 	"""
@@ -506,6 +547,7 @@ class RelatednessQuality(models.Model):
 
 	def __str__(self):
 		return str(self.run_analysis) + " - " + str(self.results_valid)
+
 
 class SampleAnalysis(models.Model):
 	"""
@@ -524,6 +566,10 @@ class SampleAnalysis(models.Model):
 	sex = models.CharField(max_length=10, null=True, blank=True)
 	contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=0.15, null=True, blank=True)
 	ntc_contamination_cutoff = models.DecimalField(max_digits=6, decimal_places=3, default=10.0, null=True, blank=True)
+	min_cnvs_called_cutoff = models.IntegerField(null=True, blank=True, default=0)
+	max_cnvs_called_cutoff = models.IntegerField(null=True, blank=True)
+	min_average_coverage_cutoff = models.IntegerField(null=True, blank=True)
+	sample_status = models.CharField(default = None, max_length=20, choices = (('Pass','Pass'),('Fail', 'Fail')), null=True, blank=True)
 
 	history = AuditlogHistoryField()
 
@@ -542,7 +588,21 @@ class SampleAnalysis(models.Model):
 
 		if len(fastqc_objs) == 0:
 
-			return None
+			fastqc_objs = SampleDragenFastqcData.objects.filter(sample_analysis=self)
+			
+			if len(fastqc_objs) == 0:
+
+				return None
+			
+			else:
+
+				for fastqc in fastqc_objs:
+
+					if fastqc.overall_pass_fail == 'FAIL':
+
+						return False
+					
+				return True
 
 		for fastqc in fastqc_objs:
 
@@ -591,7 +651,6 @@ class SampleAnalysis(models.Model):
 		
 		return Metrics
 	
-	
 	def get_total_reads(self):
 
 
@@ -616,7 +675,7 @@ class SampleAnalysis(models.Model):
 	def get_contamination(self):
 
 
-		if 'DragenWGS' in self.pipeline.pipeline_id:
+		if 'DragenWGS' in self.pipeline.pipeline_id or 'DragenGE' in self.pipeline.pipeline_id:
 
 			contamination_obj = DragenAlignmentMetrics.objects.get(sample_analysis=self)
 
@@ -645,6 +704,10 @@ class SampleAnalysis(models.Model):
 			
 			return None
 
+		if contamination is None:
+
+			return False
+
 		if contamination > self.contamination_cutoff:
 
 				return False
@@ -653,40 +716,63 @@ class SampleAnalysis(models.Model):
 
 	def passes_ntc_contamination(self):
 
-		run_analysis = RunAnalysis.objects.get(run = self.run,
+		if "ctdna" not in str(self.pipeline):
+		
+			run_analysis = RunAnalysis.objects.get(run = self.run,
 											pipeline = self.pipeline,
 											analysis_type = self.analysis_type
 												)
 
-		total_reads = self.get_total_reads()
+			total_reads = self.get_total_reads()
 
-		if total_reads == None:
-
-			return 'Cannot count reads for sample.'
-
-		ntc_objs = run_analysis.get_ntc_sample(self.worksheet)
-
-		if len(ntc_objs) == 0:
-
-			return False
-
-		for ntc in ntc_objs:
-
-			ntc_reads = ntc.get_total_reads()
-
-			if self == ntc:
-
-				return 'NA'
-
-			if ntc_reads == None:
+			if total_reads == None:
 
 				return 'Cannot count reads for sample.'
 
-			if (ntc_reads * self.ntc_contamination_cutoff) > total_reads:
+			ntc_objs = run_analysis.get_ntc_sample(self.worksheet)
+	
+			if len(ntc_objs) == 0:
 
 				return False
 
-		return True
+			for ntc in ntc_objs:
+
+				ntc_reads = ntc.get_total_reads()
+	
+				if self == ntc:
+
+					return 'NA'
+
+				if ntc_reads == None:
+
+					return 'Cannot count reads for sample.'
+
+				if (ntc_reads * self.ntc_contamination_cutoff) > total_reads:
+
+					return False
+
+			return True
+			
+		else:
+		
+			try:
+				ctDNA_aligned_reads = ctDNAReads.objects.filter(sample_analysis = self)
+			except:
+				return None
+
+			if len(ctDNA_aligned_reads) != 1:
+
+				return None
+
+			else:
+				
+				if ctDNA_aligned_reads[0].percent_ntc_contamination < self.ntc_contamination_cutoff:
+				
+					return True
+					
+				else:
+					
+					return False
 
 	def get_reads_tso500(self):
 
@@ -741,7 +827,6 @@ class SampleAnalysis(models.Model):
 		else:
 
 			return 'NA'
-
 
 	def get_calculated_sex(self):
 
@@ -816,7 +901,7 @@ class SampleAnalysis(models.Model):
 
 	def get_variant_count(self):
 
-		if 'DragenWGS' in self.pipeline.pipeline_id:
+		if 'DragenWGS' in self.pipeline.pipeline_id or 'DragenGE' in self.pipeline.pipeline_id:
 
 			variant_calling_metrics = DragenVariantCallingMetrics.objects.get(sample_analysis=self)
 
@@ -889,10 +974,6 @@ class SampleAnalysis(models.Model):
 			except:
 				return None
 
-
-
-
-
 		return coverage.pct_of_qc_coverage_region_with_coverage_20x_inf
 
 	def passes_region_coverage_over_20(self):
@@ -934,7 +1015,6 @@ class SampleAnalysis(models.Model):
 
 			return titv[0].titv_ratio
 
-
 	def passes_titv(self):
 
 		titv = self.get_titv()
@@ -958,7 +1038,6 @@ class SampleAnalysis(models.Model):
 
 		return True
 
-
 	def get_aligned_reads_fusion(self):
 
 		try:
@@ -973,10 +1052,6 @@ class SampleAnalysis(models.Model):
 		else:
 
 			return alignment_metrics[0]
-
-
-
-
 
 	def get_percent_ntc_tso500(self):
 
@@ -993,9 +1068,6 @@ class SampleAnalysis(models.Model):
 
 			return tso500_reads[0].percent_ntc_reads
 
-
-
-
 	def get_percent_ntc_aligned_tso500(self):
 
 		try:
@@ -1010,8 +1082,6 @@ class SampleAnalysis(models.Model):
 		else:
 
 			return tso500_aligned_reads[0].percent_ntc_contamination
-
-
 
 	def passes_percent_ntc_tso500(self):
 
@@ -1036,7 +1106,6 @@ class SampleAnalysis(models.Model):
 
 		return False
 
-
 	def passes_percent_ntc_aligned_tso500(self):
 
 		run_analysis = self.get_run_analysis()
@@ -1060,7 +1129,6 @@ class SampleAnalysis(models.Model):
 			return None
 
 		return False
-
 
 	def get_total_pf_reads_tso500(self):
 
@@ -1091,8 +1159,6 @@ class SampleAnalysis(models.Model):
 		else:
 
 			return tso500_aligned_reads_DNA[0].aligned_reads
-
-
 
 	def get_contamination_fusion(self):
 
@@ -1153,6 +1219,123 @@ class SampleAnalysis(models.Model):
 			return False
 
 		return True
+		
+	def get_exome_cnv_qc_metrics(self):
+		if 'DragenGE' in self.pipeline.pipeline_id:
+			cnv_calling_metrics = CNVMetrics.objects.get(sample_analysis=self)
+			return cnv_calling_metrics.max_over_threshold, \
+				cnv_calling_metrics.cnv_fail, \
+				cnv_calling_metrics.exome_depth_count + cnv_calling_metrics.exome_depth_xcount, \
+				cnv_calling_metrics.exome_depth_autosomal_reference_count, \
+				cnv_calling_metrics.exome_depth_x_reference_count
+		
+	def passes_cnv_calling(self):
+		if 'DragenGE' in self.pipeline.pipeline_id:
+			run_analysis = self.get_run_analysis()
+			max_over_threshold, cnv_fail, total_cnv_count, autosomal_reference_count, x_reference_count = self.get_exome_cnv_qc_metrics()
+			if max_over_threshold and not \
+			   	cnv_fail and \
+			   	total_cnv_count <= run_analysis.max_cnv_calls and \
+				autosomal_reference_count >= 2 and \
+				x_reference_count >= 2:
+				#TODO add a coverage cutoff
+				return True
+			else:
+				return False
+      
+	def get_ctDNA_aligned_reads(self):
+	
+		try:
+			ctDNA_aligned_reads = ctDNAReads.objects.filter(sample_analysis = self)
+		except:
+			return None
+
+		if len(ctDNA_aligned_reads) != 1:
+
+			return None
+
+		else:
+
+			return ctDNA_aligned_reads[0].aligned_reads
+
+	def get_average_coverage(self):
+		"""
+		Average coverage metric for CNV calling
+		"""
+		
+		#Only do this for WGS
+		if 'DragenWGS' in self.pipeline.pipeline_id:
+			
+			dragen_cnv_metrics = DragenWGSCoverageMetrics.objects.get(sample_analysis=self)
+			
+			return dragen_cnv_metrics.average_alignment_coverage_over_genome
+			
+		else:
+		
+			return 'NA'
+			
+	def passes_average_coverage(self):
+		"""
+		Checks if average coverage > cut off - WGS CNV metric
+		"""
+		try:
+			dragen_cnv_metrics = DragenWGSCoverageMetrics.objects.get(sample_analysis=self)
+		except:
+			return None
+
+		if self.min_average_coverage_cutoff is None:
+
+			return None
+		
+		if dragen_cnv_metrics.average_alignment_coverage_over_genome > self.min_average_coverage_cutoff:
+		
+			return True
+		
+		else:
+		
+			return False
+			
+	def get_cnv_count(self):
+		"""
+		Combination of passing amplifications and passing deletions
+		"""
+		
+		#Only do this for WGS:
+		if 'DragenWGS' in self.pipeline.pipeline_id:
+
+			try:
+		
+				dragen_cnv_metrics = DragenCNVMetrics.objects.get(sample_analysis=self)
+
+			except:
+
+				return 'NA'
+			
+			total = dragen_cnv_metrics.number_of_passing_amplifications + dragen_cnv_metrics.number_of_passing_deletions
+			
+			return total
+			
+		else:
+		
+			return 'NA'
+			
+	def passes_cnv_count(self):
+		"""
+		if total number of passing amplifcation and passing deletions is within range of min and max cnv calls
+		"""
+
+		if self.get_cnv_count() == 'NA':
+
+			return None
+
+		if (int(self.get_cnv_count()) < int(self.max_cnvs_called_cutoff)) and (int(self.get_cnv_count()) > int(self.min_cnvs_called_cutoff)):
+		
+			return True
+			
+		else:
+		
+			return False
+
 
 class SampleFastqcData(models.Model):
 	"""
@@ -1177,6 +1360,21 @@ class SampleFastqcData(models.Model):
 
 	def __str__(self):
 		return f'{self.sample_analysis}_{self.read_number}_{self.lane}'
+
+
+class SampleDragenFastqcData(models.Model):
+	"""
+	Model to store data from the Dragen FastQC output, there will be a single entry per sample analysis
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE, null=True)
+	overall_pass_fail = models.CharField(max_length=10, null=True)
+	coverage_pass_fail = models.CharField(max_length=10, null=True)
+	per_base_sequence_quality = models.CharField(max_length=10, null=True)
+	per_sequence_quality_score = models.CharField(max_length=10, null=True)
+	per_base_n_content = models.CharField(max_length=10, null=True)
+
+	def __str__(self):
+		return f'{self.sample_analysis} is a FastQC {self.overall_pass_fail}'
 
 
 class SampleHsMetrics(models.Model):
@@ -1445,6 +1643,7 @@ class InteropIndexMetrics(models.Model):
 	def __str__(self):
 		return str(self.run) + '_' + str(self.sample)
 
+
 class DragenAlignmentMetrics(models.Model):
 	"""
 	Store the dragen alignments metrics file
@@ -1517,6 +1716,7 @@ class DragenAlignmentMetrics(models.Model):
 	average_sequenced_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	estimated_sample_contamination = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	estimated_sample_contamination_standard_error = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+
 
 class DragenVariantCallingMetrics(models.Model):
 	"""
@@ -1645,7 +1845,6 @@ class FusionContamination(models.Model):
 	contamination_referral = models.BooleanField()
 
 
-
 class FusionAlignmentMetrics(models.Model):
 	"""
 	Data on SomaticFusion alignment metrics
@@ -1656,7 +1855,6 @@ class FusionAlignmentMetrics(models.Model):
 	pct_reads_aligned = models.DecimalField(max_digits=6, decimal_places=2)
 	unique_reads_aligned = models.IntegerField()
 	pct_unique_reads_aligned = models.DecimalField(max_digits=6, decimal_places=2)
-
 
 
 class Tso500Reads(models.Model):
@@ -1670,6 +1868,14 @@ class Tso500Reads(models.Model):
 	percent_ntc_reads = models.IntegerField(null=True)
 	aligned_reads=models.IntegerField(null=True)
 	percent_ntc_contamination=models.IntegerField(null=True)
+	
+class ctDNAReads(models.Model):
+	"""
+	Parsed read numbers from ctDNA samples
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	aligned_reads = models.IntegerField(null=True)
+	percent_ntc_contamination = models.IntegerField(null=True)
 
 
 class DragenPloidyMetrics(models.Model):
@@ -1695,6 +1901,43 @@ class CustomCoverageMetrics(models.Model):
 	pct_greater_30x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
 	pct_greater_250x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
 	pct_greater_160x = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+
+
+class CNVMetrics(models.Model):
+	"""
+	Model for sample-level CNV calling metrics for Dragen GE postprocessing workflows
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	max_corr = models.DecimalField(max_digits=8, decimal_places=3, null=True)
+	max_over_threshold = models.BooleanField()
+	n_over_threshold = models.IntegerField(null=True)
+	cnv_fail = models.BooleanField()
+	exome_depth_xcount = models.IntegerField(null=True)
+	manta_xcount = models.IntegerField(null=True)
+	manta_count = models.IntegerField(null=True)
+	exome_depth_count = models.IntegerField(null=True)
+	exome_depth_autosomal_reference_count = models.IntegerField(null=True)
+	exome_depth_x_reference_count = models.IntegerField(null=True)
+	
+class DragenCNVMetrics(models.Model):
+	"""
+	Model for sample level CNV calling metrics from DragenWGS
+	"""
+	sample_analysis = models.ForeignKey(SampleAnalysis, on_delete=models.CASCADE)
+	bases_in_reference_genome = models.BigIntegerField(null=True, blank=True)
+	average_alignment_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	number_of_alignment_records = models.BigIntegerField(null=True, blank=True)
+	number_of_filtered_records_total = models.BigIntegerField(null=True, blank=True)
+	number_of_filtered_records_duplicates = models.BigIntegerField(null=True, blank=True)
+	number_of_filtered_records_mapq = models.BigIntegerField(null=True, blank=True)
+	number_of_filtered_records_unmapped = models.BigIntegerField(null=True, blank=True)
+	number_of_target_intervals = models.BigIntegerField(null=True, blank=True)
+	number_of_segments = models.BigIntegerField(null=True, blank=True)
+	number_of_amplifications = models.IntegerField(null=True, blank=True)
+	number_of_deletions = models.IntegerField(null=True, blank=True)
+	number_of_passing_amplifications = models.IntegerField(null=True, blank=True)
+	number_of_passing_deletions = models.IntegerField(null=True, blank=True)
+
 
 auditlog.register(RunAnalysis)
 auditlog.register(SampleAnalysis)

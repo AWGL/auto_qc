@@ -1,5 +1,5 @@
 import unittest
-from pipelines import nextflow_pipelines, somatic_pipelines, dragen_pipelines, TSO500_pipeline
+from pipelines import nextflow_pipelines, somatic_pipelines, dragen_pipelines, TSO500_pipeline, ctDNA_pipeline
 
 
 class TestPipelineMonitoring(unittest.TestCase):
@@ -298,5 +298,62 @@ class TestPipelineMonitoring(unittest.TestCase):
 			#run valid
 			run_valid= tso500.run_is_valid()
 			self.assertEqual(run_valid, False)
+			
+	def test_ctDNA(self):
 
 
+			results_dir = 'test_data/ctDNA_test'
+			ctDNA = ctDNA_pipeline.TSO500_ctDNA(results_dir = 'test_data/ctDNA_test/',
+																sample_completed_files= ['*_fusion_check.csv', '*_variants.tsv', '*_coverage.json'],
+																run_completed_files =['postprocessing_complete.txt'],
+																metrics_file=['QC_combined.txt'],
+																run_id = 'run1',
+																sample_names = ['Sample1', 'Sample2', 'Sample3', 'NTC-TEST'])
+
+
+			#run complete
+			run_complete= ctDNA.run_is_complete()
+			self.assertEqual(run_complete, True)
+		
+		
+			#samples complete
+			sample_complete=ctDNA.sample_is_complete(sample='Sample1')
+			self.assertEqual(sample_complete, True)
+
+			sample_complete=ctDNA.sample_is_complete(sample='Sample2')
+			self.assertEqual(sample_complete, True)
+
+			sample_complete=ctDNA.sample_is_complete(sample='Sample3')
+			self.assertEqual(sample_complete, False)
+
+			sample_complete=ctDNA.sample_is_complete(sample='NTC-TEST')
+			self.assertEqual(sample_complete, True)
+
+			#samples valid
+			sample_valid=ctDNA.sample_is_valid(sample='Sample1')
+			self.assertEqual(sample_valid, True)
+
+			sample_valid=ctDNA.sample_is_valid(sample='Sample2')
+			self.assertEqual(sample_valid, True)
+
+			sample_valid=ctDNA.sample_is_valid(sample='Sample3')
+			self.assertEqual(sample_valid, False)
+
+			sample_valid=ctDNA.sample_is_valid(sample='NTC-TEST')
+			self.assertEqual(sample_valid, True)
+
+
+			#ntc contamination
+			ntc_contamination=ctDNA.ntc_contamination()
+			self.assertEqual(ntc_contamination[0].get('Sample1'), 98449907)
+			self.assertEqual(ntc_contamination[1].get('Sample1'), 0)
+
+			self.assertEqual(ntc_contamination[0].get('Sample2'), 500)
+			self.assertEqual(ntc_contamination[1].get('Sample2'), 14)
+
+			self.assertEqual(ntc_contamination[0].get('Sample3'), 66140537)
+			self.assertEqual(ntc_contamination[1].get('Sample3'), 0)
+
+			self.assertEqual(ntc_contamination[0].get('NTC-TEST'), 71)
+			self.assertEqual(ntc_contamination[1].get('NTC-TEST'), 100)
+			

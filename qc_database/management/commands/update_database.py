@@ -1,4 +1,5 @@
 import csv
+import os
 from pathlib import Path
 import datetime
 import logging
@@ -8,7 +9,7 @@ from django.conf import settings
 from django.db import transaction
 
 from qc_database.models import *
-from pipelines import dragen_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines, TSO500_pipeline
+from pipelines import dragen_pipelines, parsers, quality_pipelines, somatic_pipelines, nextflow_pipelines, TSO500_pipeline, ctDNA_pipeline
 from qc_database import management_utils
 
 class Command(BaseCommand):
@@ -125,6 +126,10 @@ class Command(BaseCommand):
 
 						panel = sample_sheet_data[sample]['Sample_Type']
 						panel = 'TSO500_' + panel
+						
+					elif pipeline == 'tso500_ctdna':
+					
+						panel = 'ctDNA'
 
 					else:
 
@@ -193,6 +198,50 @@ class Command(BaseCommand):
 								except:
 
 									raise Exception ("ERROR: NTC contamination cutoff not in config file")
+								
+							if 'max_cnv_calls' == key:
+
+								try:
+
+									max_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['max_cnvs_called_cutoff']
+
+									if created:
+
+										new_sample_analysis_obj.max_cnvs_called_cutoff = max_cnvs_called_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Max CNVs called cutoff not in config file")
+									
+							if 'cnv_call_range' == key:
+
+								try:
+
+									max_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['max_cnvs_called_cutoff']
+									min_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['min_cnvs_called_cutoff']
+
+									if created:
+
+										new_sample_analysis_obj.max_cnvs_called_cutoff = max_cnvs_called_cutoff
+										new_sample_analysis_obj.min_cnvs_called_cutoff = min_cnvs_called_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Min or Max CNVs called cutoff not in config file")
+									
+							if 'min_average_coverage' == key:
+							
+								try:
+									min_average_coverage_cutoff = config_dict['pipelines'][run_config_key]['min_average_coverage']
+
+									if created:
+
+										new_sample_analysis_obj.min_average_coverage_cutoff = min_average_coverage_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Min Average Coverage cutoff not in config file")
+								
 
 					new_sample_analysis_obj.sex = sex
 					new_sample_analysis_obj.save()
@@ -360,6 +409,49 @@ class Command(BaseCommand):
 								except:
 
 									raise Exception ("ERROR: max_ntc_contamination not in config file")
+								
+							if 'max_cnv_calls' in checks_to_try_dict:
+
+								try:
+
+									max_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['max_cnvs_called_cutoff']
+
+									if created:
+
+										new_run_analysis_obj.max_cnv_calls = max_cnvs_called_cutoff
+								
+								except:
+
+									raise Exception("ERROR: max_cnv_calls_cutoff not in config file")
+									
+							if 'cnv_call_range' in checks_to_try_dict:
+
+								try:
+
+									max_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['max_cnvs_called_cutoff']
+									min_cnvs_called_cutoff = config_dict['pipelines'][run_config_key]['min_cnvs_called_cutoff']
+
+									if created:
+
+										new_run_analysis_obj.max_cnv_calls = max_cnvs_called_cutoff
+										new_run_analysis_obj.min_cnv_calls = min_cnvs_called_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Min or Max CNVs called cutoff not in config file")
+									
+							if 'min_average_coverage' == key:
+							
+								try:
+									min_average_coverage_cutoff = config_dict['pipelines'][run_config_key]['min_average_coverage']
+
+									if created:
+
+										new_run_analysis_obj.min_average_coverage_cutoff = min_average_coverage_cutoff
+
+								except:
+
+									raise Exception ("ERROR: Min Average Coverage cutoff not in config file")
 
 					new_run_analysis_obj.save()
 
@@ -411,6 +503,10 @@ class Command(BaseCommand):
 
 					run_data_dir = Path(results_dir)
 
+				elif 'ctdna' in run_config_key:
+				
+					run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id+"/tso500_ctdna/")
+				
 				else:
 
 					run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id, run_analysis.analysis_type.analysis_type_id)
@@ -642,6 +738,7 @@ class Command(BaseCommand):
 
 					run_complete = dragen_ge.run_is_complete()
 					run_valid = dragen_ge.run_is_valid()
+					display_cnv_qc = dragen_ge.display_cnv_qc_metrics()
 
 					if run_analysis.results_completed == False and run_complete == True:
 
@@ -652,10 +749,6 @@ class Command(BaseCommand):
 							logger.info (f'Putting coverage metrics into db for run {run_analysis.run.run_id}')
 							coverage_metrics_dict = dragen_ge.get_coverage_metrics()
 							management_utils.add_custom_coverage_metrics(coverage_metrics_dict, run_analysis)
-
-							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
-							contamination_metrics_dict = dragen_ge.get_contamination()
-							management_utils.add_contamination_metrics(contamination_metrics_dict, run_analysis)
 
 							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
 							sex_dict = dragen_ge.get_sex_metrics()
@@ -672,10 +765,15 @@ class Command(BaseCommand):
 							logger.info (f'Putting sensitivity metrics into db for run {run_analysis.run.run_id}')
 							sensitivity_metrics = dragen_ge.get_sensitivity()
 							management_utils.add_sensitivity_metrics(sensitivity_metrics, run_analysis)
-
-							logger.info (f'Adding variant count metrics into db for run {run_analysis.run.run_id}')
-							variant_count = dragen_ge.get_variant_count_metrics()
-							management_utils.add_variant_count_metrics(variant_count, run_analysis)
+							
+							if display_cnv_qc:
+								logger.info (f'Putting CNV QC metrics into db for run {run_analysis.run.run_id}')
+								run_analysis.display_cnv_qc_metrics = True
+								run_analysis.save()
+								cnv_qc_metrics = dragen_ge.get_postprocessing_cnv_qc_metrics()
+								management_utils.add_exome_postprocessing_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
+							else:
+								logger.info (f'No CNV metrics for this run {run_analysis.run.run_id}')
 
 							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
 							parsed_relatedness, parsed_relatedness_comment = dragen_ge.get_relatedness_metrics(run_analysis.min_relatedness_parents,
@@ -697,10 +795,6 @@ class Command(BaseCommand):
 							coverage_metrics_dict = dragen_ge.get_coverage_metrics()
 							management_utils.add_custom_coverage_metrics(coverage_metrics_dict, run_analysis)
 
-							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
-							contamination_metrics_dict = dragen_ge.get_contamination()
-							management_utils.add_contamination_metrics(contamination_metrics_dict, run_analysis)
-
 							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
 							sex_dict = dragen_ge.get_sex_metrics()
 							management_utils.add_sex_metrics(sex_dict, run_analysis, 'sex')
@@ -717,9 +811,14 @@ class Command(BaseCommand):
 							sensitivity_metrics = dragen_ge.get_sensitivity()
 							management_utils.add_sensitivity_metrics(sensitivity_metrics, run_analysis)
 
-							logger.info (f'Adding variant count metrics into db for run {run_analysis.run.run_id}')
-							variant_count = dragen_ge.get_variant_count_metrics()
-							management_utils.add_variant_count_metrics(variant_count, run_analysis)
+							if display_cnv_qc:
+								logger.info (f'Putting CNV QC metrics into db for run {run_analysis.run.run_id}')
+								run_analysis.display_cnv_qc_metrics = True
+								run_analysis.save()
+								cnv_qc_metrics = dragen_ge.get_postprocessing_cnv_qc_metrics()
+								management_utils.add_exome_postprocessing_cnv_qc_metrics(cnv_qc_metrics, run_analysis)
+							else:
+								logger.info (f'No CNV metrics for this run {run_analysis.run.run_id}')
 
 							logger.info (f'Putting relatedness metrics into db for run {run_analysis.run.run_id}')
 							parsed_relatedness, parsed_relatedness_comment = dragen_ge.get_relatedness_metrics(run_analysis.min_relatedness_parents,
@@ -830,6 +929,10 @@ class Command(BaseCommand):
 							logger.info (f'Putting ploidy metrics into db for run {run_analysis.run.run_id}')
 							dragen_ploidy_metrics_dict = dragen_wgs.get_ploidy_metrics()
 							management_utils.add_dragen_ploidy_metrics(dragen_ploidy_metrics_dict, run_analysis)
+							
+							logger.info(f'Putting CNV metrics into db for run {run_analysis.run.run_id}')
+							dragen_cnv_metrics_dict = dragen_wgs.get_cnv_metrics()
+							management_utils.add_dragen_cnv_metrics(dragen_cnv_metrics_dict, run_analysis)
 
 						else:
 
@@ -866,6 +969,11 @@ class Command(BaseCommand):
 							logger.info (f'Putting ploidy metrics into db for run {run_analysis.run.run_id}')
 							dragen_ploidy_metrics_dict = dragen_wgs.get_ploidy_metrics()
 							management_utils.add_dragen_ploidy_metrics(dragen_ploidy_metrics_dict, run_analysis)
+							
+							logger.info(f'Putting CNV metrics into db for run {run_analysis.run.run_id}')
+							dragen_cnv_metrics_dict = dragen_wgs.get_cnv_metrics()
+							management_utils.add_dragen_cnv_metrics(dragen_cnv_metrics_dict, run_analysis)
+
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
@@ -1209,6 +1317,121 @@ class Command(BaseCommand):
 							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
 							ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict= tso500.ntc_contamination()
 							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
+
+					run_analysis.results_completed = run_complete
+					run_analysis.results_valid = run_valid
+
+					run_analysis.save()
+
+				# ctDNA
+				elif 'tso500_ctdna' in run_analysis.pipeline.pipeline_id:
+
+					run_id = run_analysis.run.run_id
+					run_config_key = run_analysis.pipeline.pipeline_id + '-' + run_analysis.analysis_type.analysis_type_id
+
+					if run_config_key not in config_dict['pipelines']:
+
+						ctDNA = ctDNA_pipeline.TSO500_ctDNA(results_dir = run_data_dir,
+															sample_names = sample_ids,
+															run_id = run_analysis.run.run_id,
+															sample_completed_files=['*_fusion_check.csv', '*_variants.tsv', '*_coverage.json'],
+															run_completed_files = ['postprocessing_complete.txt'],
+															metrics_file =['QC_combined.txt']
+															)
+					else:
+
+						sample_completed_files = config_dict['pipelines'][run_config_key]['sample_completed_files']
+						run_completed_files = config_dict['pipelines'][run_config_key]['run_completed_files']
+						metrics_file = config_dict['pipelines'][run_config_key]['metrics_file']
+
+						ctDNA = ctDNA_pipeline.TSO500_ctDNA(results_dir = run_data_dir,
+    															sample_completed_files=sample_completed_files,
+    															run_completed_files=run_completed_files,
+    															metrics_file= metrics_file,
+															run_id = run_analysis.run.run_id,
+															sample_names=sample_ids,
+															)
+
+					for sample in sample_ids:
+
+						sample_complete = ctDNA.sample_is_complete(sample)
+
+						sample_valid = ctDNA.sample_is_valid(sample)
+						
+						sample_obj = Sample.objects.get(sample_id = sample)
+
+						sample_analysis_obj = SampleAnalysis.objects.get(sample=sample,
+																		run = run_analysis.run,
+																		pipeline = run_analysis.pipeline,
+																		analysis_type_id=run_analysis.analysis_type)
+
+						if sample_analysis_obj.results_completed == False and sample_complete == True:
+
+							if sample_valid == True:
+
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level successfully.')
+
+							else:
+								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level.')
+
+						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
+
+							logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now completed successfully.')
+
+			
+						sample_analysis_obj.results_completed = sample_complete
+						sample_analysis_obj.results_valid = sample_valid
+						sample_analysis_obj.save()
+
+					run_complete = ctDNA.run_is_complete()
+					
+					if run_complete == True:
+					
+						run_valid = True
+						
+					else:
+					
+						run_valid = False
+
+					if run_analysis.results_completed == False and run_complete == True:
+
+						if run_valid == True:
+
+							logger.info (f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_metrics = ctDNA.determine_fastqc_metrics()
+							if fastqc_metrics == "FastQC":
+								fastqc_dict = ctDNA.get_fastqc_data()
+								management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							elif fastqc_metrics == "DragenFastQC":
+								fastqc_dict = ctDNA.get_dragen_fastqc_data()
+								management_utils.add_dragen_fastqc_data(fastqc_dict, run_analysis)
+							
+							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
+							aligned_reads_dict, ntc_contamination_aligned_reads_dict= ctDNA.ntc_contamination()
+							management_utils.add_ctdna_ntc_contamination(aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
+
+						else:
+
+							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+
+					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
+
+							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							
+							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							fastqc_metrics = ctDNA.determine_fastqc_metrics()
+							if fastqc_metrics == "FastQC":
+								fastqc_dict = ctDNA.get_fastqc_data()
+								management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+							elif fastqc_metrics == "DragenFastQC":
+								fastqc_dict = ctDNA.get_dragen_fastqc_data()
+								management_utils.add_dragen_fastqc_data(fastqc_dict, run_analysis)
+							
+							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
+							aligned_reads_dict, ntc_contamination_aligned_reads_dict= ctDNA.ntc_contamination()
+							management_utils.add_ctdna_ntc_contamination(aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
 
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid

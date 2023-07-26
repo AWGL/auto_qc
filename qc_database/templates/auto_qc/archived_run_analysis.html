@@ -6,7 +6,7 @@
 <br>
 
 
-<table id="run_analysis" class="table table-hover table-bordered">
+<table id="run_analysis" class="table table-hover table-bordered" onmounseout = "hideTable(">
 
   <thead>
 	<tr>
@@ -14,7 +14,6 @@
 	  <th>Run</th>
 	  <th>Analysis</th>
 	  <th>Pipeline</th>
-	  <th>Start Date</th>
 	  <th>Manual QC</th> 
 	</tr>
   </thead>
@@ -26,7 +25,6 @@
 		<td> {{run_analysis.run.run_id}} </td>
 		<td> {{run_analysis.analysis_type.analysis_type_id}} </td>
 		<td> {{run_analysis.pipeline.pipeline_id}} </td>
-		<td> {{run_analysis.start_date|date:'Y-m-d'}} </td>
 
 
 		{% if run_analysis.manual_approval == True %}
