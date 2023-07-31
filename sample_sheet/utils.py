@@ -37,7 +37,7 @@ def import_worksheet_data(filepath):
                         'TruSight One CES panel' : 'TruSightOne',
                         'FH NGS Panel v1' : 'FH',
                         'Nonacus WES' : 'WES',
-			'TSO500 ctDNA panel' : 'ctDNA',
+			            'TSO500 ctDNA panel' : 'ctDNA',
     }
 
 
@@ -50,8 +50,8 @@ def import_worksheet_data(filepath):
         print(shire_query)
 
     ## LOGIC CHECK for formatting to prevent partial failures/uploads
-    ## check all columns are present and correctly named
-    if list(dict.keys(shire_query[0])) != ['LABNO', 'POSITION', 'WORKSHEET', 'TEST', 'COMMENTS', 'UPDATEDDATE', 'REASON_FOR_REFERRAL', 'FIRSTNAME', 'LASTNAME', 'SEX']:
+    ## check the first 10 columns are present and correctly named - additional columns may be present in extracts from new lims
+    if list(dict.keys(shire_query[0]))[0:10] != ['LABNO', 'POSITION', 'WORKSHEET', 'TEST', 'COMMENTS', 'UPDATEDDATE', 'REASON_FOR_REFERRAL', 'FIRSTNAME', 'LASTNAME', 'SEX']:
         message = 'Worksheet not uploaded. Column formatting is not as expected, please check the input file'
         if debug_notes:
             print(message)
