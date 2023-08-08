@@ -32,11 +32,10 @@ class TSO500_DNA():
 		"""
 
 		results_dir_path = Path(self.results_dir)
-		results_path = results_dir_path.joinpath(self.run_id)
-		full_results_path = results_path.joinpath("DNA_Analysis/results")
+		full_results_path = results_dir_path.joinpath("DNA_Analysis/results")
 
 		found_file_list = []
-
+		
 		for file in self.run_completed_files:
 
 			found_file = full_results_path.glob(file)
@@ -63,8 +62,7 @@ class TSO500_DNA():
 		if self.run_is_complete():
 
 			results_dir_path = Path(self.results_dir)
-			results_path = results_dir_path.joinpath(self.run_id)
-			full_results_path = results_path.joinpath("DNA_Analysis/results")
+			full_results_path = results_dir_path.joinpath("DNA_Analysis/results")
 			
 			marker_name=self.run_completed_files[0]
 		
@@ -84,7 +82,7 @@ class TSO500_DNA():
 
 				return True
 
-			
+		#Will return false if 'success' not found in the last line of the post_processing finished file	
 		return False
 
 	def sample_is_valid(self, sample):
@@ -96,8 +94,7 @@ class TSO500_DNA():
 		if self.run_is_complete():
 
 			results_dir_path = Path(self.results_dir)
-			results_path = results_dir_path.joinpath(self.run_id)
-			full_results_path = results_path.joinpath("DNA_Analysis/results")
+			full_results_path = results_dir_path.joinpath("DNA_Analysis/results")
 			
 			marker_name=self.run_completed_files[0]
 		
@@ -127,13 +124,12 @@ class TSO500_DNA():
 
 		"""
 		results_dir_path = Path(self.results_dir)
-		results_path = results_dir_path.joinpath(self.run_id)
 
 		sample_files = 0
 
 		for sample_completed_file in self.sample_completed_files:
 
-			found_file = results_path.joinpath('DNA_Analysis/results/Database').glob(sample_completed_file)
+			found_file = results_dir_path.joinpath('DNA_Analysis/results/Database').glob(sample_completed_file)
 
 			for file in found_file:
 
@@ -164,8 +160,7 @@ class TSO500_DNA():
 		ntc_contamination_aligned_reads_dict={}
 
 		results_dir_path = Path(self.results_dir)
-		results_path = results_dir_path.joinpath(self.run_id)
-		full_results_path = results_path.joinpath("DNA_Analysis/results/QC_Checks")
+		full_results_path = results_dir_path.joinpath("DNA_Analysis/results/QC_Checks")
 
 		#Go through samples
 		for sample in self.sample_names:
@@ -271,9 +266,7 @@ class TSO500_DNA():
 		for sample in self.sample_names:
 
 			results_dir_path = Path(self.results_dir)
-			results_path = results_dir_path.joinpath(self.run_id)
-			results_dir_path = Path(self.results_dir)
-			full_results_path = results_path.joinpath("DNA_Analysis/results/QC_Checks")
+			full_results_path = results_dir_path.joinpath("DNA_Analysis/results/QC_Checks")
 
 			fastqc_data_files = full_results_path.glob(f'*{sample}*_fastqc_status.txt')
 
@@ -339,13 +332,11 @@ class TSO500_RNA():
 		print(self.run_completed_files)
 
 		results_dir_path = Path(self.results_dir)
-		results_path = results_dir_path.joinpath(self.run_id)
-
 
 		found_file_list=[]
 
 		for file in self.run_completed_files:
-			found_file = results_path.glob(file)
+			found_file = results_dir_path.glob(file)
 			for output_file in found_file:
 
 				found_file_list.append(output_file)
@@ -370,7 +361,7 @@ class TSO500_RNA():
 
 		for file in self.run_expected_files:
 
-			found_file = results_path.joinpath(self.run_id).glob(file)
+			found_file = results_path.glob(file)
 
 			for output_file in found_file:
 
@@ -391,13 +382,12 @@ class TSO500_RNA():
 		"""
 
 		results_dir_path = Path(self.results_dir)
-		results_path = results_dir_path.joinpath(self.run_id)
 
 		sample_files = 0
 
 		for sample_completed_file in self.sample_completed_files:
 
-			found_file = results_path.joinpath('Gathered_Results/Database').glob(sample_completed_file)
+			found_file = results_dir_path.joinpath('Gathered_Results/Database').glob(sample_completed_file)
 
 			for file in found_file:
 
@@ -424,11 +414,10 @@ class TSO500_RNA():
 		"""
 
 		results_dir_path = Path(self.results_dir)
-		results_path = results_dir_path.joinpath(self.run_id)
 
 		for file in self.metrics_file:
 
-			found_file = results_path.glob(file)
+			found_file = results_dir_path.glob(file)
 
 			for file in found_file:
 
@@ -448,14 +437,13 @@ class TSO500_RNA():
 		"""
 
 		results_dir_path = Path(self.results_dir)
-		results_path = results_dir_path.joinpath(self.run_id)
 		reads_dict={}
 
 		for sample in self.sample_names:
 
 			for file in self.metrics_file:
 
-				found_file = results_path.glob(file)
+				found_file = results_dir_path.glob(file)
 
 				for file in found_file:
 
@@ -482,9 +470,8 @@ class TSO500_RNA():
 		for sample in self.sample_names:
 
 			results_dir_path = Path(self.results_dir)
-			results_path = results_dir_path.joinpath(self.run_id)
 
-			fastqc_data_files = results_path.glob(f'analysis/{sample}/FastQC/*{sample}*_fastqc.txt')
+			fastqc_data_files = results_dir_path.glob(f'analysis/{sample}/FastQC/*{sample}*_fastqc.txt')
 
 			sample_fastqc_list = []
 

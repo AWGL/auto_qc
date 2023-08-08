@@ -501,7 +501,7 @@ class Command(BaseCommand):
 
 				if 'TSO500' in run_config_key:
 
-					run_data_dir = Path(results_dir)
+					run_data_dir = Path(results_dir).joinpath(run_analysis.run.run_id+"/TSO500/")
 
 				elif 'ctdna' in run_config_key:
 				
