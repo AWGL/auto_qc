@@ -273,11 +273,11 @@ class Command(BaseCommand):
 						assay_type = assays[1]
 
 					## create description field from assay_type
-					description_field = f'{description_dict[assay_type]}ref${values["Referral"].replace("sec:familialcancer","")}'
+					description_field = f'{description_dict[assay_type]}ref${values["Referral"].replace("sec:familialcancer","null")}'
 						
 				## one worksheet submitted so use main assay
 				else:
-					description_field = f'{description_dict[assay_type]}ref${values["Referral"].replace("sec:familialcancer","")}'
+					description_field = f'{description_dict[assay_type]}ref${values["Referral"].replace("sec:familialcancer","null")}'
 
 
 			elif assay == 'WES':
