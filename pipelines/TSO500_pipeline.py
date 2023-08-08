@@ -329,8 +329,6 @@ class TSO500_RNA():
 		Looks for all files in self.run_completed_files
 
 		"""
-		print(self.run_completed_files)
-
 		results_dir_path = Path(self.results_dir)
 
 		found_file_list=[]

@@ -117,8 +117,8 @@ class TestPipelineMonitoring(unittest.TestCase):
 	def test_tso500(self):
 
 
-			results_dir = 'test_data/tso500_test'
-			tso500 = TSO500_pipeline.TSO500_DNA(results_dir = 'test_data/tso500_test/',
+			results_dir = 'test_data/tso500_test/run1'
+			tso500 = TSO500_pipeline.TSO500_DNA(results_dir = 'test_data/tso500_test/run1',
 																sample_completed_files= ['*variants.tsv', '*_coverage.json'],
 																sample_valid_files = [],
 																run_completed_files =['post_processing_finished.txt'],
@@ -126,8 +126,7 @@ class TestPipelineMonitoring(unittest.TestCase):
 																metrics_file=['*_ntc_cont.txt','*_fastqc_status.txt','_read_number.txt'],
 																run_id = 'run1',
 																sample_names = ['Sample1', 'Sample2', 'Sample3', 'NTC-worksheet2'])
-
-
+															
 			#run complete
 			run_complete= tso500.run_is_complete()
 			self.assertEqual(run_complete, True)
@@ -190,8 +189,8 @@ class TestPipelineMonitoring(unittest.TestCase):
 			self.assertEqual(ntc_contamination[3].get('NTC-worksheet2'), 100)
 
 
-			results_dir = 'test_data/tso500_test'
-			tso500 = TSO500_pipeline.TSO500_RNA(results_dir = 'test_data/tso500_test/',
+			results_dir = 'test_data/tso500_test/run1'
+			tso500 = TSO500_pipeline.TSO500_RNA(results_dir = 'test_data/tso500_test/run1',
 																sample_completed_files = ['*_fusion_check.csv'],
 																sample_valid_files = ['RNA_QC_combined.txt'],
 																run_completed_files =['run_complete.txt'],
@@ -200,9 +199,6 @@ class TestPipelineMonitoring(unittest.TestCase):
 																sample_names = ['Sample4', 'Sample5', 'Sample6', 'NTC-worksheet1'],
 																run_id = 'run1'
 																)
-
-
-
 
 			#run complete
 			run_complete= tso500.run_is_complete()
@@ -256,8 +252,8 @@ class TestPipelineMonitoring(unittest.TestCase):
 
 			#check DNA run level checks fail
 
-			results_dir = 'test_data/tso500_test'
-			tso500 = TSO500_pipeline.TSO500_DNA(results_dir = 'test_data/tso500_test/',
+			results_dir = 'test_data/tso500_test/run2'
+			tso500 = TSO500_pipeline.TSO500_DNA(results_dir = 'test_data/tso500_test/run2',
 																sample_completed_files= ['*variants.tsv', '*_coverage.json'],
 																sample_valid_files = [],
 																run_completed_files =['post_processing_finished.txt'],
@@ -280,8 +276,8 @@ class TestPipelineMonitoring(unittest.TestCase):
 
 			#check RNA run level checks fail
 
-			results_dir = 'test_data/tso500_test'
-			tso500 = TSO500_pipeline.TSO500_RNA(results_dir = 'test_data/tso500_test/',
+			results_dir = 'test_data/tso500_test/run2'
+			tso500 = TSO500_pipeline.TSO500_RNA(results_dir = 'test_data/tso500_test/run2',
 																sample_completed_files = ['*_fusion_check.csv'],
 																sample_valid_files = ['RNA_QC_combined.txt'],
 																run_completed_files =['run_complete.txt'],
