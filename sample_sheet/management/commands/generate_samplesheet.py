@@ -273,11 +273,17 @@ class Command(BaseCommand):
 						assay_type = assays[1]
 
 					## create description field from assay_type
-					description_field = f'{description_dict[assay_type]}ref${values["Referral"]}'
+					if assay == 'CRM':
+						description_field = f'{description_dict[assay_type]}ref${values["Referral"]}'
+					elif assay == 'BRCA':
+						description_field = f'{description_dict[assay_type]}'
 
 				## one worksheet submitted so use main assay
 				else:
-					description_field = f'{description_dict[assay]}ref${values["Referral"]}'
+					if assay == 'CRM':
+						description_field = f'{description_dict[assay_type]}ref${values["Referral"]}'
+					elif assay == 'BRCA':
+						description_field = f'{description_dict[assay_type]}'
 
 
 			elif assay == 'WES':
