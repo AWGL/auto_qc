@@ -11,5 +11,7 @@ urlpatterns = [
     path('run_analysis/<int:pk>/', views.view_run_analysis, name='view_run_analysis'),
     path('archived/', views.view_archived_run_analysis, name='view_archived_run_analysis'),
     path('ngs_kpis/', views.ngs_kpis, name='ngs_kpis'),
-    path('search/', views.search, name='search')
+    path('search/', views.search, name='search'),
+    path('api/get_sample_analyses/', views.get_sample_analyses, name="get_sample_analyses"),
+    path('api/get_run_analyses/', views.get_run_analyses, name="get_run_analyses")
 ]

@@ -6,9 +6,14 @@ from django.db import transaction
 from django.conf import settings
 from django.http import HttpResponse
 
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+
 from qc_database.models import *
 from qc_database.forms import *
 from qc_database.utils.kpi import make_kpi_excel
+
+from qc_database.serializers import *
 
 from datetime import datetime as dt
 
@@ -307,8 +312,16 @@ def ngs_kpis(request):
 	return render(request, 'auto_qc/ngs_kpis.html', {'form': form})
 
 
+@api_view(['GET'])
+def get_sample_analyses(request):
+	sample_analyses = SampleAnalysis.objects.all()
+	serializer = SampleAnalysisSerializer(sample_analyses, many=True)
+	return Response(serializer.data)
 
-
-
+@api_view(['GET'])
+def get_run_analyses(request):
+	run_analyses = RunAnalysis.objects.all()
+	serialzer = RunAnalysisSerializer(run_analyses, many=True)
+	return Response(serialzer.data)
 
 

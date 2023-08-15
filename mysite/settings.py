@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 	'crispy_forms',
 	'auditlog',
 	'sample_sheet.apps.SampleSheetConfig',
+	'rest_framework'
 ]
 MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',
