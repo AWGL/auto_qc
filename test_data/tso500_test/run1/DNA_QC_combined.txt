@@ -1,5 +1,0 @@
-Sample	FastQC	completed_all_steps	contamination_pass_fail	contamination_score	contamination_p_value	total_pf_reads	median_insert_size	median_exon_coverage	pct_exon_50x	Aligned_reads
-Sample1	PASS	TRUE	PASS	1822	0.414	11	99	719	99.7	574
-Sample2	PASS	TRUE	PASS	1811	0.414	130596554	102	761	99.6	5736
-Sample3	FAIL	FALSE	FAIL	3922	0.608	5000	99	456	99.3	4763
-NTC-worksheet2	PASS	TRUE	FAIL	3922	0.608	9	100	456	99.3	6
