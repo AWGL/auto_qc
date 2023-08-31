@@ -583,6 +583,7 @@ class DragenWGS:
 				
 			else:
 			
-				return dragen_cnv_metrics_dict
+				#if not CNV metrics file (i.e. NTC) add empty dictionary for sample
+				dragen_cnv_metrics_dict[sample] = {}
 		
 		return dragen_cnv_metrics_dict
