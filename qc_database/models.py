@@ -1374,7 +1374,7 @@ class SampleDragenFastqcData(models.Model):
 	per_base_n_content = models.CharField(max_length=10, null=True)
 
 	def __str__(self):
-		return f'{self.sample_analysis} is a FastQC {self.overall_pass_fail}'
+		return f'{self.sample_analysis}'
 
 
 class SampleHsMetrics(models.Model):
