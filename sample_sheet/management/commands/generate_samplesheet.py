@@ -263,8 +263,8 @@ class Command(BaseCommand):
 				## check if multiple worksheets submitted
 				if len(worksheets) >1:
 
-					## check which is first worksheet
-					## if worksheet in sample data is same as worksheet one, assay type is first assay
+					## link assay to worksheet - worksheets and assays lists are in same order so if worksheet matches then use same index for assays list
+					## will save output as assay_type variable which will be used in place of the assay varable for combined worksheets
 					if values['Sample_Plate'] == worksheets[0]:
 						assay_type = assays[0]
 
@@ -272,10 +272,10 @@ class Command(BaseCommand):
 					else:
 						assay_type = assays[1]
 
-					## create description field from assay_type
-					description_field = f'{description_dict[assay]}ref${values["Referral"].replace("sec:familialcancer","null")}'
+					## create description field from assay_type variable for combined worksheets
+					description_field = f'{description_dict[assay_type]}ref${values["Referral"].replace("sec:familialcancer","null")}'
 						
-				## one worksheet submitted so use main assay
+				## use main assay variable for single worksheets
 				else:
 					description_field = f'{description_dict[assay]}ref${values["Referral"].replace("sec:familialcancer","null")}'
 
