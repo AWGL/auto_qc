@@ -80,13 +80,20 @@ class KpiDateForm(forms.Form):
 	"""
 	current_year = datetime.datetime.now().year
 	current_month = datetime.datetime.now().month
+	last_year = current_year - 1
+	last_month = current_month - 1
 
 	# choices for year dropdown box
 	YEAR_CHOICES = range(2019, (current_year + 1))
 
 	# default to first and last day of previous month
-	INITIAL_START_DATE = datetime.date(current_year, current_month, 1)
-	INITIAL_END_DATE = datetime.date(current_year, current_month, 1) - datetime.timedelta(days=1)
+	if current_month == 1:
+		# It's January so we want December last year
+		INITIAL_START_DATE = datetime.date(last_year, 12, 1)
+		INITIAL_END_DATE = datetime.date(last_year, 12, 31)
+	else:
+		INITIAL_START_DATE = datetime.date(current_year, last_month, 1)
+		INITIAL_END_DATE = datetime.date(current_year, current_month, 1) - datetime.timedelta(days=1)
 
 	start_date = forms.DateField(
 		initial=INITIAL_START_DATE,

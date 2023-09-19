@@ -331,7 +331,7 @@ def parse_dragen_fastqc_file(dragen_fastqc_file):
 			"per_base_n_content": None
 		}
 
-		overall_pass_fail = fastqcfile[0]
+		overall_pass_fail = fastqcfile[0].strip()
 		fastqcdict["overall_pass_fail"] = overall_pass_fail
 
 		## if it's an overall pass, everything has passed
@@ -339,7 +339,7 @@ def parse_dragen_fastqc_file(dragen_fastqc_file):
 			for key, value in fastqcdict.items():
 				if not value:
 					fastqcdict[key] = "PASS"
-		
+				
 		## if it's an overall fail, parse the errors
 		if overall_pass_fail == "FAIL":
 

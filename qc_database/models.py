@@ -628,7 +628,44 @@ class SampleAnalysis(models.Model):
 
 		return True
 
+	def display_fastqc_checks(self):
+		"""
+		Give Exact Metrics for FastQC
+		"""
+		#Empty list for metrics
+		Metrics=[]
+		
+		fastqc_objs = SampleFastqcData.objects.filter(sample_analysis=self)
+		
+		if len(fastqc_objs) == 0:
+			
+			fastqc_objs = SampleDragenFastqcData.objects.filter(sample_analysis=self)
+			
+			if len(fastqc_objs) == 0:
 
+				return None
+
+		for fastqc in fastqc_objs:
+			try:
+				Metrics.append(fastqc.basic_statistics)
+			except AttributeError: # dragen fastqc doesn't check this
+				Metrics.append("N/A")
+			try:
+				Metrics.append(fastqc.per_base_sequencing_quality)
+			except AttributeError: # difference in attribute name between the two models
+				Metrics.append(fastqc.per_base_sequence_quality)
+			try:
+				Metrics.append(fastqc.per_tile_sequence_quality)
+			except AttributeError: # dragen fastqc doesn't check this
+				Metrics.append("N/A")
+			try:
+				Metrics.append(fastqc.per_sequence_quality_scores)
+			except AttributeError: # difference in attribute name between the two models
+				Metrics.append(fastqc.per_sequence_quality_score)
+			Metrics.append(fastqc.per_base_n_content)
+		
+		return Metrics
+	
 	def get_total_reads(self):
 
 
@@ -1352,7 +1389,7 @@ class SampleDragenFastqcData(models.Model):
 	per_base_n_content = models.CharField(max_length=10, null=True)
 
 	def __str__(self):
-		return f'{self.sample_analysis} is a FastQC {self.overall_pass_fail}'
+		return f'{self.sample_analysis}'
 
 
 class SampleHsMetrics(models.Model):
