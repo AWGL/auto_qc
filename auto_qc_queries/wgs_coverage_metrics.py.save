@@ -1,0 +1,26 @@
+ex#Description
+# Get coverage metrics from DragenWGSCoverageMetrics from WGS Samples and export to CSV
+
+# Extract uniformity_of_coverage_pct_02mean_over_genome, uniformity_of_coverage_pct_04mean_over_genome and
+# insert_length_mean 
+
+# Date = 06/03/23
+
+#Use python manage.py shell < /export/home/webapps/auto_qc/auto_qc_queries/wgs_coverage_metrics.py (with env activated)
+
+from qc_database.models import DragenWGSCoverageMetrics, DragenAlignmentMetrics, SampleAnalysis, RunAnalysis, Run, Sample
+from datetime import date
+import datetime
+from django.db.models import Q
+import csv
+
+# Getting coverage metrics for WGS runs
+cov_metric = DragenWGSCoverageMetrics.objects.filter(Q(sample_analysis__analysis_type__analysis_type_id__icontains='WGS'))
+align_metric = DragenAlignmentMetrics.objects.filter(Q(sample_analysis__analysis_type__analysis_type_id__contains='WGS'))
+
+cov_pct_02 = ['Cov_pct_02']
+cov_pct_04 = ['Cov_pct_04']
+insert_mean = ['Mean_Insert_Length']
+
+for metric in cov_metric:
+	print(metric.sample_analysis.sample, ',', metric.uniformity_of_coverage_pct_02mean_over_genome, ',', metric.uniformity_of_coverage_pct_04mean_over_genome)

@@ -30,5 +30,9 @@ admin.site.register(CalculatedSexMetrics)
 admin.site.register(RelatednessQuality)
 admin.site.register(Tso500Reads)
 admin.site.register(CNVMetrics)
-admin.site.register(DragenCNVMetrics)
 admin.site.register(SampleDragenFastqcData)
+
+class DragenCNVMetricsAdmin(admin.ModelAdmin):
+	raw_id_fields = ('sample_analysis',) 
+	
+admin.site.register(DragenCNVMetrics, DragenCNVMetricsAdmin)
