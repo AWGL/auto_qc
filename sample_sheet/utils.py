@@ -243,6 +243,11 @@ def import_worksheet_data(filepath):
             elif referral_formatted == 'panelwesskeletaldysplasias':
                 referral_name = 'wes~skeletal_dysplasia'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
+            
+            elif referral_formatted == 'panelwesfetal':
+                # anamolies not anomalies because it's misspelled in VariantBank
+                referral_name = 'wes~fetal_anamolies_green' 
+                shire_referral_name = sample['REASON_FOR_REFERRAL']
 
             elif referral_formatted == 'rapidwgs':
                 referral_name = 'wgs~wings'
