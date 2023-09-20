@@ -87,29 +87,23 @@ class TSO500_ctDNA():
 		"""
 		results_path = Path(self.results_dir)
 
-		sample_files = 0
-
-		for sample_completed_file in self.sample_completed_files:
-			
-			found_file = results_path.joinpath('post_processing/database').glob(sample_completed_file)
-
-			for file in found_file:
-			
-				file2 = str(file)
-
-				if sample in file2:
-
-					sample_files = sample_files + 1
-					
-		if sample_files == len(self.sample_completed_files):
-
-			return True
-
+		# the NTC doesn't make variants, fusions or coverage files
 		if 'NTC' in sample:
 
 			return True
 
-		return False
+		# now loop through the expected files
+		for sample_completed_file in self.sample_completed_files:
+			
+			#found_files = results_path.joinpath(f'post_processing/database/{sample}').glob(sample_completed_file)
+			found_files = glob.glob(f"{results_path}/post_processing/database/{sample}{sample_completed_file}")
+
+			if len(found_files) == 0:
+				# we would expect at least one file each for variants, fusions and coverage
+				return False
+			
+		# if the loop is unbroken there's at least one file per expected file - the sample pipeline is complete
+		return True
 
 	def ntc_contamination(self):
 		"""

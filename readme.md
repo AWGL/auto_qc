@@ -101,6 +101,11 @@ python manage.py dumpdata sample_sheet.referraltype > sample_sheet/fixtures/refe
 
 ```
 
+## Schema
+Database schema are available for:
+- the [AutoQC](schema/qc_database_schema.png) database
+- the [Samplesheet Generator](schema/sample_sheet_schema.png) database
+
 #
 ##
 ## FAQ
