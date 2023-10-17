@@ -642,13 +642,20 @@ class SampleAnalysis(models.Model):
 			if len(fastqc_objs) == 0:
 
 				return None
-				
-		#If check for either R1 or R2 is a fail, set metric as fail
+
+		#Empty variables for metric checks
+		basic = ""
+		per_base = ""
+		per_tile = ""
+		per_seq = ""
+		n_content = ""
+		
+		#If metric is already a fail or new metric is a fail, make it a fail, otherwise change metric to last fastqc check
 		for fastqc in fastqc_objs:
 			try:
 				new_basic = fastqc.basic_statistics
 				
-				if new_basic == "FAIL":
+				if new_basic == "FAIL" or basic == "FAIL":
 				
 					basic = "FAIL"
 					
@@ -662,7 +669,7 @@ class SampleAnalysis(models.Model):
 			try:
 				new_per_base = fastqc.per_base_sequencing_quality
 				
-				if new_per_base == "FAIL":
+				if new_per_base == "FAIL" or per_base == "FAIL":
 				
 					per_base = "FAIL"
 					
@@ -676,7 +683,7 @@ class SampleAnalysis(models.Model):
 			try:
 				new_per_tile = fastqc.per_tile_sequence_quality
 				
-				if new_per_tile == "FAIL":
+				if new_per_tile == "FAIL" or per_tile == "FAIL":
 				
 					per_tile = "FAIL"
 					
@@ -690,7 +697,7 @@ class SampleAnalysis(models.Model):
 			try:
 				new_per_seq = fastqc.per_sequence_quality_scores
 				
-				if new_per_seq == "FAIL":
+				if new_per_seq == "FAIL" or per_seq == "FAIL":
 				
 					per_seq = "FAIL"
 					
@@ -704,7 +711,7 @@ class SampleAnalysis(models.Model):
 				
 			new_n_content = fastqc.per_base_n_content
 			
-			if new_n_content == "FAIL":
+			if new_n_content == "FAIL" or n_content == "FAIL":
 			
 				n_content = "FAIL"
 				
