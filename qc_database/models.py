@@ -632,8 +632,6 @@ class SampleAnalysis(models.Model):
 		"""
 		Give Exact Metrics for FastQC
 		"""
-		#Empty list for metrics
-		Metrics=[]
 		
 		fastqc_objs = SampleFastqcData.objects.filter(sample_analysis=self)
 		
@@ -644,25 +642,77 @@ class SampleAnalysis(models.Model):
 			if len(fastqc_objs) == 0:
 
 				return None
-
+				
+		#If check for either R1 or R2 is a fail, set metric as fail
 		for fastqc in fastqc_objs:
 			try:
-				Metrics.append(fastqc.basic_statistics)
+				new_basic = fastqc.basic_statistics
+				
+				if new_basic == "FAIL":
+				
+					basic = "FAIL"
+					
+				else:
+				
+					basic = new_basic
+				
 			except AttributeError: # dragen fastqc doesn't check this
-				Metrics.append("N/A")
+				basic = "N/A"
+			
 			try:
-				Metrics.append(fastqc.per_base_sequencing_quality)
+				new_per_base = fastqc.per_base_sequencing_quality
+				
+				if new_per_base == "FAIL":
+				
+					per_base = "FAIL"
+					
+				else:
+				
+					per_base = new_per_base				
+				
 			except AttributeError: # difference in attribute name between the two models
-				Metrics.append(fastqc.per_base_sequence_quality)
+				per_base = fastqc.per_base_sequence_quality
+
 			try:
-				Metrics.append(fastqc.per_tile_sequence_quality)
+				new_per_tile = fastqc.per_tile_sequence_quality
+				
+				if new_per_tile == "FAIL":
+				
+					per_tile = "FAIL"
+					
+				else:
+				
+					per_tile = new_per_tile
+					
 			except AttributeError: # dragen fastqc doesn't check this
-				Metrics.append("N/A")
+				per_tile = "N/A"
+
 			try:
-				Metrics.append(fastqc.per_sequence_quality_scores)
+				new_per_seq = fastqc.per_sequence_quality_scores
+				
+				if new_per_seq == "FAIL":
+				
+					per_seq = "FAIL"
+					
+				else:
+				
+					per_seq = new_per_seq
+					
 			except AttributeError: # difference in attribute name between the two models
-				Metrics.append(fastqc.per_sequence_quality_score)
-			Metrics.append(fastqc.per_base_n_content)
+				per_seq = fastqc.per_sequence_quality_score
+				
+				
+			new_n_content = fastqc.per_base_n_content
+			
+			if new_n_content == "FAIL":
+			
+				n_content = "FAIL"
+				
+			else:
+			
+				n_content = new_n_content
+			
+			Metrics = (basic,per_base,per_tile,per_seq,n_content)
 		
 		return Metrics
 	
