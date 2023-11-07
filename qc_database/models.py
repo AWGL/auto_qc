@@ -627,102 +627,72 @@ class SampleAnalysis(models.Model):
 				return False
 
 		return True
+		
+	@staticmethod
+	def determine_worst_consequence(list_of_consequences: list):
+		"""
+		From a list of consequences ("PASS", "FAIL" or "WARN"), determine the worst consequence
+		"""
+
+		# remove whitespace
+		list_of_consequences = [item.strip() for item in list_of_consequences]
+
+		key_strengths = {
+				"PASS": 0,
+				"WARN": 1,
+				"FAIL": 2
+			}
+		
+		try:
+			worst_consequence = max(list_of_consequences, key=lambda x: key_strengths[x])
+
+		except ValueError:
+			# received an empty list, return N/A
+			worst_consequence = "N/A"
+		
+		return worst_consequence
 
 	def display_fastqc_checks(self):
 		"""
 		Give Exact Metrics for FastQC
 		"""
-		
+
 		fastqc_objs = SampleFastqcData.objects.filter(sample_analysis=self)
+
+		if len(fastqc_objs) >= 1:
+			# applies to pipelines which run FastQC. This can mean FastQC data for multiple lanes per sample
+
+			basic_statistics_all = [fastqc.basic_statistics for fastqc in fastqc_objs]
+			per_base_sequencing_quality_all = [fastqc.per_base_sequencing_quality for fastqc in fastqc_objs]
+			per_tile_sequencing_quality_all = [fastqc.per_tile_sequence_quality for fastqc in fastqc_objs]
+			per_sequence_quality_all = [fastqc.per_sequence_quality_scores for fastqc in fastqc_objs]
+			per_base_n_content_all = [fastqc.per_base_n_content for fastqc in fastqc_objs]
+
+			Metrics = (
+				self.determine_worst_consequence(basic_statistics_all),
+				self.determine_worst_consequence(per_base_sequencing_quality_all),
+				self.determine_worst_consequence(per_tile_sequencing_quality_all),
+				self.determine_worst_consequence(per_sequence_quality_all),
+				self.determine_worst_consequence(per_base_n_content_all)
+			)
+
+			return Metrics
 		
-		if len(fastqc_objs) == 0:
-			
+		else:
+
 			fastqc_objs = SampleDragenFastqcData.objects.filter(sample_analysis=self)
-			
-			if len(fastqc_objs) == 0:
 
-				return None
+			if len(fastqc_objs) >= 1:
+				# applies to pipelines which run DragenFastQC. This is only a single metric
 
-		#Empty variables for metric checks
-		basic = ""
-		per_base = ""
-		per_tile = ""
-		per_seq = ""
-		n_content = ""
-		
-		#If metric is already a fail or new metric is a fail, make it a fail, otherwise change metric to last fastqc check
-		for fastqc in fastqc_objs:
-			try:
-				new_basic = fastqc.basic_statistics
-				
-				if new_basic == "FAIL" or basic == "FAIL":
-				
-					basic = "FAIL"
-					
-				else:
-				
-					basic = new_basic
-				
-			except AttributeError: # dragen fastqc doesn't check this
-				basic = "N/A"
-			
-			try:
-				new_per_base = fastqc.per_base_sequencing_quality
-				
-				if new_per_base == "FAIL" or per_base == "FAIL":
-				
-					per_base = "FAIL"
-					
-				else:
-				
-					per_base = new_per_base				
-				
-			except AttributeError: # difference in attribute name between the two models
-				per_base = fastqc.per_base_sequence_quality
+				Metrics = ("N/A", fastqc_objs[0].per_base_sequence_quality, "N/A", fastqc_objs[0].per_sequence_quality_score, fastqc_objs[0].per_base_n_content)
 
-			try:
-				new_per_tile = fastqc.per_tile_sequence_quality
-				
-				if new_per_tile == "FAIL" or per_tile == "FAIL":
-				
-					per_tile = "FAIL"
-					
-				else:
-				
-					per_tile = new_per_tile
-					
-			except AttributeError: # dragen fastqc doesn't check this
-				per_tile = "N/A"
-
-			try:
-				new_per_seq = fastqc.per_sequence_quality_scores
-				
-				if new_per_seq == "FAIL" or per_seq == "FAIL":
-				
-					per_seq = "FAIL"
-					
-				else:
-				
-					per_seq = new_per_seq
-					
-			except AttributeError: # difference in attribute name between the two models
-				per_seq = fastqc.per_sequence_quality_score
-				
-				
-			new_n_content = fastqc.per_base_n_content
+				return Metrics
 			
-			if new_n_content == "FAIL" or n_content == "FAIL":
-			
-				n_content = "FAIL"
-				
 			else:
-			
-				n_content = new_n_content
-			
-			Metrics = (basic,per_base,per_tile,per_seq,n_content)
-		
-		return Metrics
-	
+
+				return None			
+
 	def get_total_reads(self):
 
 
