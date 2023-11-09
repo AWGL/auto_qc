@@ -38,7 +38,7 @@ def import_worksheet_data(filepath):
                         'FH NGS Panel v1' : 'FH-OGT',
                         'Nonacus WES' : 'WES',
                         'TSO500 ctDNA panel' : 'ctDNA',
-                        'FH NGS Panel v2': 'FH-Nonacus',
+                        'Nonacus FH NGS': 'FH-Nonacus',
     }
 
 
