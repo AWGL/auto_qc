@@ -30,7 +30,7 @@ class Command(BaseCommand):
 						'TSO500RNA' : 'pipelineName=TSO500;pipelineVersion=master;',
 						'TSO500DNA' : 'pipelineName=TSO500;pipelineVersion=master;',
 						'Myeloid' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=TruSightMyeloid;',
-						'FH-OGT' : 'Name$ge%panel$AgilentOGTFH%',
+						'FH-OGT' : 'Name$dn%panel$AgilentOGTFH%',
 						'FH-Nonacus': 'pipelineName=deepvariant_nextflow;pipelineVersion=master;panel=NonacusFH;',
 						'TruSightCancer' : 'pipelineName=germline_enrichment_nextflow;pipelineVersion=master;panel=IlluminaTruSightCancer;',
 						'TruSightOne' : 'pipelineName=DragenGE;pipelineVersion=master;panel=IlluminaTruSightOne;',
