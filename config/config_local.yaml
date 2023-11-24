@@ -51,7 +51,6 @@ pipelines:
     run_not_expected_files: []
     post_sample_files: []
 
-
   germline_enrichment_nextflow-master-AgilentOGTFH:
     results_dir:  '/media/joseph/Storage/data/results/'
     qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, coverage]
@@ -96,7 +95,7 @@ pipelines:
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
-                  '*_qc.txt',
+                  '*_QC.txt',
                   '*_filtered_meta_annotated.vcf'
                   ]
     sample_not_expected_files: ['*_fastqc.zip']
@@ -115,7 +114,7 @@ pipelines:
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
-                  '*_qc.txt',
+                  '*_QC.txt',
                   '*_filtered_meta_annotated.vcf',
                   'hotspot_variants'
                   ]
@@ -135,7 +134,6 @@ pipelines:
     run_expected_files: []
     metrics_file: ['*_ntc_cont.txt','*_fastqc_status.txt','_read_number.txt']
 
-
   TSO500-master-TSO500_RNA:
     results_dir:  '/home/sophieshaw/AutoQC_somatic_enrichment_nextflow/'
     min_q30_score: 0.8
@@ -146,7 +144,6 @@ pipelines:
     run_completed_files: ['run_complete.txt']
     run_expected_files: ['RNA_QC_combined.txt', 'contamination-*.csv' ,'completed_samples.txt']
     metrics_file: ['RNA_QC_combined.txt']
-
 
   DragenGE-master-IlluminaTruSightOne:
     results_dir:  '/media/joseph/Storage/data/dragen_results/'

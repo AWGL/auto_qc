@@ -53,7 +53,6 @@ class TestAutoQC(TestCase):
 		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['FASTQC Fail'],['19M07162']))
 	
 
-	
 	def test_contamination_fail(self):
 
 		run_analysis= RunAnalysis.objects.get(pk=16)
@@ -113,6 +112,7 @@ class TestAutoQC(TestCase):
 
 		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Sex Match Fail'],['19M07162']))
 
+
 	def test_variant_count_fail(self):
 
 		run_analysis= RunAnalysis.objects.get(pk=16)
@@ -131,3 +131,27 @@ class TestAutoQC(TestCase):
 		sex.save()
 
 		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['Sex Match Fail'],['19M07162']))
+
+
+	def test_determine_worst_consequence(self):
+		
+		list1 = ["PASS", "WARN", "FAIL"]
+		list2 = ["PASS", "WARN", "PASS"]
+		list3 = ["PASS", "PASS", "PASS"]
+		list4 = []
+		list5 = ["PASS", "PASS", "PASS "]
+		list6 = ["PASS", "FAIL", "FIAL"]
+
+		list1_worst_consequence = SampleAnalysis.determine_worst_consequence(list1)
+		list2_worst_consequence = SampleAnalysis.determine_worst_consequence(list2)
+		list3_worst_consequence = SampleAnalysis.determine_worst_consequence(list3)
+		list4_worst_consequence = SampleAnalysis.determine_worst_consequence(list4)
+		list5_worst_consequence = SampleAnalysis.determine_worst_consequence(list5)
+
+		self.assertEqual(list1_worst_consequence, "FAIL")
+		self.assertEqual(list2_worst_consequence, "WARN")
+		self.assertEqual(list3_worst_consequence, "PASS")
+		self.assertEqual(list4_worst_consequence, "N/A")
+		self.assertEqual(list5_worst_consequence, "PASS")
+		with self.assertRaises(KeyError):
+			SampleAnalysis.determine_worst_consequence(list6)
