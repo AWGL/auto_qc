@@ -627,45 +627,72 @@ class SampleAnalysis(models.Model):
 				return False
 
 		return True
+		
+	@staticmethod
+	def determine_worst_consequence(list_of_consequences: list):
+		"""
+		From a list of consequences ("PASS", "FAIL" or "WARN"), determine the worst consequence
+		"""
+
+		# remove whitespace
+		list_of_consequences = [item.strip() for item in list_of_consequences]
+
+		key_strengths = {
+				"PASS": 0,
+				"WARN": 1,
+				"FAIL": 2
+			}
+		
+		try:
+			worst_consequence = max(list_of_consequences, key=lambda x: key_strengths[x])
+
+		except ValueError:
+			# received an empty list, return N/A
+			worst_consequence = "N/A"
+		
+		return worst_consequence
 
 	def display_fastqc_checks(self):
 		"""
 		Give Exact Metrics for FastQC
 		"""
-		#Empty list for metrics
-		Metrics=[]
-		
+
 		fastqc_objs = SampleFastqcData.objects.filter(sample_analysis=self)
+
+		if len(fastqc_objs) >= 1:
+			# applies to pipelines which run FastQC. This can mean FastQC data for multiple lanes per sample
+
+			basic_statistics_all = [fastqc.basic_statistics for fastqc in fastqc_objs]
+			per_base_sequencing_quality_all = [fastqc.per_base_sequencing_quality for fastqc in fastqc_objs]
+			per_tile_sequencing_quality_all = [fastqc.per_tile_sequence_quality for fastqc in fastqc_objs]
+			per_sequence_quality_all = [fastqc.per_sequence_quality_scores for fastqc in fastqc_objs]
+			per_base_n_content_all = [fastqc.per_base_n_content for fastqc in fastqc_objs]
+
+			Metrics = (
+				self.determine_worst_consequence(basic_statistics_all),
+				self.determine_worst_consequence(per_base_sequencing_quality_all),
+				self.determine_worst_consequence(per_tile_sequencing_quality_all),
+				self.determine_worst_consequence(per_sequence_quality_all),
+				self.determine_worst_consequence(per_base_n_content_all)
+			)
+
+			return Metrics
 		
-		if len(fastqc_objs) == 0:
-			
+		else:
+
 			fastqc_objs = SampleDragenFastqcData.objects.filter(sample_analysis=self)
+
+			if len(fastqc_objs) >= 1:
+				# applies to pipelines which run DragenFastQC. This is only a single metric
+
+				Metrics = ("N/A", fastqc_objs[0].per_base_sequence_quality, "N/A", fastqc_objs[0].per_sequence_quality_score, fastqc_objs[0].per_base_n_content)
+
+				return Metrics
 			
-			if len(fastqc_objs) == 0:
+			else:
 
-				return None
+				return None			
 
-		for fastqc in fastqc_objs:
-			try:
-				Metrics.append(fastqc.basic_statistics)
-			except AttributeError: # dragen fastqc doesn't check this
-				Metrics.append("N/A")
-			try:
-				Metrics.append(fastqc.per_base_sequencing_quality)
-			except AttributeError: # difference in attribute name between the two models
-				Metrics.append(fastqc.per_base_sequence_quality)
-			try:
-				Metrics.append(fastqc.per_tile_sequence_quality)
-			except AttributeError: # dragen fastqc doesn't check this
-				Metrics.append("N/A")
-			try:
-				Metrics.append(fastqc.per_sequence_quality_scores)
-			except AttributeError: # difference in attribute name between the two models
-				Metrics.append(fastqc.per_sequence_quality_score)
-			Metrics.append(fastqc.per_base_n_content)
-		
-		return Metrics
-	
 	def get_total_reads(self):
 
 
