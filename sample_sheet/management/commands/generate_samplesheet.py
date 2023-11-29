@@ -36,7 +36,8 @@ class Command(BaseCommand):
 						'BRCA' : 'Name$SA%panel$NGHS102X%',
 						'CRM' : 'Name$SA%panel$NGHS101X%',
 						'WES' : 'pipelineName=DragenGE;pipelineVersion=master;panel=NonocusWES38;',
-			'ctDNA' : 'pipelineName=tso500_ctdna;pipelineVersion=master;'
+						'ctDNA' : 'pipelineName=tso500_ctdna;pipelineVersion=master;',
+						'SWGS' : 'pipelineName=DragenSWGS;pipelineVersion=main;panel=SWGS',
 		}
 
 

@@ -38,6 +38,7 @@ def import_worksheet_data(filepath):
                         'FH NGS Panel v1' : 'FH',
                         'Nonacus WES' : 'WES',
 			'TSO500 ctDNA panel' : 'ctDNA',
+			'Somatic WGS panel' : 'SWGS',
     }
 
 
@@ -243,7 +244,7 @@ def import_worksheet_data(filepath):
             elif referral_formatted == 'panelwesskeletaldysplasias':
                 referral_name = 'wes~skeletal_dysplasia'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
-            
+
             elif referral_formatted == 'panelwesfetal':
                 # anamolies not anomalies because it's misspelled in VariantBank
                 referral_name = 'wes~fetal_anamolies_green' 
@@ -267,7 +268,7 @@ def import_worksheet_data(filepath):
                 ## overwrite all Trusightcancer referrals on DB
                 if assay_name == 'TruSightCancer':
                     referral_name = 'TSC'
-                    shire_referral_name = 'TSC' # N/A
+                    shire_referral_name = 'TSC' # N/ANoReverseMatch
 
                 ## overwrite all TruSightOne referrals on DB
                 elif assay_name == 'TruSightOne':
@@ -379,7 +380,7 @@ def generate_ss_data_dict(worksheet, position_offset=0):
         }
         ## if second index exists add values to dictionary, else make ''
         if values['index2']:
-            export_dict[adjusted_position]['I5_Index_ID'] = values['sample_obj'].index2.index_name
+            export_dict[adjusted_position]['I5_Index_ID'] = alues['sample_obj'].index2.index_name
             export_dict[adjusted_position]['index2'] = values['sample_obj'].index2.sequence
 
         else:
