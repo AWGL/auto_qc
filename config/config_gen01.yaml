@@ -43,8 +43,8 @@ pipelines:
                   '1_SomaticAmplicon.sh.e*'
                   ]
     sample_not_expected_files: ['*_fastqc.zip']
-    run_expected_files: ['*_merged_variant_report.txt',
-                         '*_merged_coverage_report.txt'
+    run_expected_files: ['*merged_variant_report.txt',
+                         '*merged_coverage_report.txt'
                         ]
     run_not_expected_files: []
 
