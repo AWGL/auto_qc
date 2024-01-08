@@ -351,7 +351,7 @@ def parse_dragen_fastqc_file(dragen_fastqc_file):
 			if "Failed on per base sequence quality" in errors:
 				fastqcdict["per_base_sequence_quality"] = "FAIL"
 			if "Failed on per sequence quality" in errors:
-				fastqcdict["per_sequence_quality"] = "FAIL"
+				fastqcdict["per_sequence_quality_score"] = "FAIL"
 			
 			# anything else that's not failed has passed
 			for key, value in fastqcdict.items():
