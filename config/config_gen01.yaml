@@ -164,7 +164,7 @@ pipelines:
   deepvariant_nextflow-main-NonacusFH:
     results_dir:  '/mnt/wren_results/results/'
     qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, coverage, sex_match]
-    min_q30_score: 0.8
+    min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 0
