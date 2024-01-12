@@ -62,6 +62,39 @@ pipelines:
     max_variants: 80
     min_coverage: 0.98
 
+  deepvariant_nextflow-main-NonacusFH:
+    results_dir:  '/media/na282549/diskAshur2/Naomi/Deepvariant_Nextflow_AutoQC/231206_NB551415_0488_AHLFCFAFX5/results'
+    qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, coverage, sex_match]
+    min_q30_score: 0.75
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 0
+    min_variants: 20
+    max_variants: 80
+    min_coverage: 0.95
+
+  deepvariant_nextflow-development-NonacusFH:
+    results_dir:  '/media/na282549/diskAshur2/Naomi/Deepvariant_Nextflow_AutoQC/231206_NB551415_0488_AHLFCFAFX5/results'
+    qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, coverage, sex_match]
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 0
+    min_variants: 20
+    max_variants: 80
+    min_coverage: 0.95
+
+  deepvariant_nextflow-main-AgilentOGTFH:
+    results_dir:  '/mnt/wren_results/results/'
+    qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, coverage, sex_match]
+    min_q30_score: 0.8
+    contamination_cutoff: 0.025
+    ntc_contamination_cutoff: 10
+    min_fastq_size: 0
+    min_variants: 20
+    max_variants: 80
+    min_coverage: 0.95
+
   SomaticAmplicon-master-NGHS-101X:
     results_dir: '/media/joseph/Storage/data/results/'
     min_q30_score: 0.8
