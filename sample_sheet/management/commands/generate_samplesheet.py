@@ -30,13 +30,14 @@ class Command(BaseCommand):
 						'TSO500RNA' : 'pipelineName=TSO500;pipelineVersion=master;',
 						'TSO500DNA' : 'pipelineName=TSO500;pipelineVersion=master;',
 						'Myeloid' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=TruSightMyeloid;',
-						'FH' : 'Name$ge%panel$AgilentOGTFH%',
+						'FH-OGT' : 'Name$ge%panel$AgilentOGTFH%',
+						'FH-Nonacus': 'pipelineName=deepvariant_nextflow;pipelineVersion=master;panel=NonacusFH;',
 						'TruSightCancer' : 'pipelineName=germline_enrichment_nextflow;pipelineVersion=master;panel=IlluminaTruSightCancer;',
 						'TruSightOne' : 'pipelineName=DragenGE;pipelineVersion=master;panel=IlluminaTruSightOne;',
 						'BRCA' : 'Name$SA%panel$NGHS102X%',
 						'CRM' : 'Name$SA%panel$NGHS101X%',
 						'WES' : 'pipelineName=DragenGE;pipelineVersion=master;panel=NonocusWES38;',
-			'ctDNA' : 'pipelineName=tso500_ctdna;pipelineVersion=master;'
+						'ctDNA' : 'pipelineName=tso500_ctdna;pipelineVersion=master;',
 		}
 
 
@@ -218,8 +219,8 @@ class Command(BaseCommand):
 				description_field = f'{description_dict[assay]}referral={values["Referral"]}'
 
 
-			## if FH then create description field using gender.
-			elif assay == 'FH':
+			## if FH-OGT then create description field using gender.
+			elif assay == 'FH-OGT':
 
 				## format sex part. no semicolon in case its on a singleton/NTC
 				if values['Sex'] == 'Male':
@@ -228,6 +229,19 @@ class Command(BaseCommand):
 					sex_desc = 'sex$2'
 				else:
 					sex_desc = 'sex$0'
+
+				description_field = f'{description_dict[assay]}{sex_desc}'
+
+			## if FH-Nonacus then create description field using gender.
+			elif assay == 'FH-Nonacus':
+
+				## format sex part. no semicolon in case its on a singleton/NTC
+				if values['Sex'] == 'Male':
+					sex_desc = 'sex=1'
+				elif values['Sex'] == 'Female':
+					sex_desc = 'sex=2'
+				else:
+					sex_desc = 'sex=0'
 
 				description_field = f'{description_dict[assay]}{sex_desc}'
 

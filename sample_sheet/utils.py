@@ -35,9 +35,10 @@ def import_worksheet_data(filepath):
                         'haem NGS' : 'Myeloid',
                         'TruSight Cancer' : 'TruSightCancer',
                         'TruSight One CES panel' : 'TruSightOne',
-                        'FH NGS Panel v1' : 'FH',
+                        'FH NGS Panel v1' : 'FH-OGT',
                         'Nonacus WES' : 'WES',
-			'TSO500 ctDNA panel' : 'ctDNA',
+                        'TSO500 ctDNA panel' : 'ctDNA',
+                        'Nonacus FH NGS': 'FH-Nonacus',
     }
 
 
@@ -113,7 +114,7 @@ def import_worksheet_data(filepath):
         print(f'translated assay type is: {assay_translate_dict[assay_type]}')
 
     ## check is dependent on assay type. Don't check for overwritten values below
-    if assay_translate_dict[assay_type] not in ['Myeloid','TruSightOne','TruSightCancer', 'FH', 'WES']:
+    if assay_translate_dict[assay_type] not in ['Myeloid','TruSightOne','TruSightCancer', 'FH-OGT', 'FH-Nonacus', 'WES']:
         print('checking referral')
 
         # get list of referral types from models
@@ -274,10 +275,16 @@ def import_worksheet_data(filepath):
                     referral_name = 'TS1'
                     shire_referral_name = 'TS1' # N/A
 
-                ## overwrite all FH referral types on DB
-                elif assay_name == 'FH':
-                    referral_name = 'fh'
+                ## overwrite all FH-OGT referral types on DB
+                elif assay_name == 'FH-OGT':
+                    referral_name = 'fh' # does this need to be changed if there are two
                     shire_referral_name = 'FH' # N/A
+
+		## overwrite all FH-Nonacus referral types on DB
+                elif assay_name == 'FH-Nonacus':
+                    referral_name = 'fh' # does this need to be changed if there are two
+                    shire_referral_name = 'FH' # N/A
+
 
                 ## overwrite all WES referral types on DB
                 elif assay_name == 'WES':
@@ -296,7 +303,7 @@ def import_worksheet_data(filepath):
 
             ## get or create referral object
             referral_obj, created = ReferralType.objects.get_or_create(
-                name = referral_name, 
+                name = referral_name,
                 shire_name = shire_referral_name
             )
             if debug_notes:
