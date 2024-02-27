@@ -283,16 +283,18 @@ def add_contamination_metrics(contamination_metrics_dict, run_analysis_obj):
 			
 			sample_data = contamination_metrics_dict[key]
 
-			sample_data['sample_analysis'] = sample_analysis_obj
+			if sample_data:
+			
+				sample_data['sample_analysis'] = sample_analysis_obj
+	
+				for key in sample_data:
 
-			for key in sample_data:
+					if sample_data[key] == '?' or sample_data[key] == '':
 
-				if sample_data[key] == '?' or sample_data[key] == '':
+						sample_data[key] = None
 
-					sample_data[key] = None
-
-			new_contamination_obj = ContaminationMetrics(**sample_data)
-			new_contamination_obj.save()
+				new_contamination_obj = ContaminationMetrics(**sample_data)
+				new_contamination_obj.save()
 
 
 def add_sex_metrics(qc_metrics_dict, run_analysis_obj, sex_key):

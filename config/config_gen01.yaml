@@ -52,7 +52,7 @@ pipelines:
     min_variants: 4700000
     max_variants: 7000000
     min_titv: 1.87
-    max_titv: 1.98
+    max_titv: 2.00
     min_coverage: 93
     min_relatedness_parents: 0.2
     max_relatedness_unrelated: 0.02
@@ -79,7 +79,7 @@ pipelines:
     min_variants: 4700000
     max_variants: 7000000
     min_titv: 1.87
-    max_titv: 1.98
+    max_titv: 2.00
     min_coverage: 93
     min_relatedness_parents: 0.2
     max_relatedness_unrelated: 0.02
@@ -106,7 +106,7 @@ pipelines:
     min_variants: 4700000
     max_variants: 7000000
     min_titv: 1.87
-    max_titv: 1.98
+    max_titv: 2.00
     min_coverage: 93
     min_relatedness_parents: 0.2
     max_relatedness_unrelated: 0.02
@@ -133,7 +133,7 @@ pipelines:
     min_variants: 4700000
     max_variants: 7000000
     min_titv: 1.87
-    max_titv: 1.98
+    max_titv: 2.00
     min_coverage: 93
     min_relatedness_parents: 0.2
     max_relatedness_unrelated: 0.02

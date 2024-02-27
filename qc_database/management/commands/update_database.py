@@ -750,6 +750,10 @@ class Command(BaseCommand):
 							coverage_metrics_dict = dragen_ge.get_coverage_metrics()
 							management_utils.add_custom_coverage_metrics(coverage_metrics_dict, run_analysis)
 
+							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
+							contamination_metrics_dict = dragen_ge.get_contamination()
+							management_utils.add_contamination_metrics(contamination_metrics_dict, run_analysis)
+														
 							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
 							sex_dict = dragen_ge.get_sex_metrics()
 							management_utils.add_sex_metrics(sex_dict, run_analysis, 'sex')
@@ -794,6 +798,10 @@ class Command(BaseCommand):
 							logger.info (f'Putting coverage metrics into db for run {run_analysis.run.run_id}')
 							coverage_metrics_dict = dragen_ge.get_coverage_metrics()
 							management_utils.add_custom_coverage_metrics(coverage_metrics_dict, run_analysis)
+							
+							logger.info (f'Putting contamination metrics into db for run {run_analysis.run.run_id}')
+							contamination_metrics_dict = dragen_ge.get_contamination()
+							management_utils.add_contamination_metrics(contamination_metrics_dict, run_analysis)
 
 							logger.info (f'Putting sex metrics into db for run {run_analysis.run.run_id}')
 							sex_dict = dragen_ge.get_sex_metrics()
