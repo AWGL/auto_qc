@@ -653,11 +653,24 @@ class SampleAnalysis(models.Model):
 	def get_contamination(self):
 
 
-		if 'DragenWGS' in self.pipeline.pipeline_id or 'DragenGE' in self.pipeline.pipeline_id:
+		if 'DragenWGS' in self.pipeline.pipeline_id:
 
 			contamination_obj = DragenAlignmentMetrics.objects.get(sample_analysis=self)
 
 			return contamination_obj.estimated_sample_contamination
+			
+		elif 'DragenGE' in self.pipeline.pipeline_id:
+		
+			try:
+				contamination_obj = ContaminationMetrics.objects.get(sample_analysis=self)
+							
+				return contamination_obj.freemix
+				
+			except:
+			
+				contamination_obj = DragenAlignmentMetrics.objects.get(sample_analysis=self)
+
+				return contamination_obj.estimated_sample_contamination
 
 		else:
 
