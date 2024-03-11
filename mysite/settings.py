@@ -12,12 +12,12 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
-deploy_location = 'gen01'
+deploy_location = 'local'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-CONFIG_PATH = 'config/config.yaml'
+CONFIG_PATH = '/home/niamh/auto_qc/config/config_local.yaml'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
@@ -156,32 +156,26 @@ if MESSAGE_SLACK:
 		SLACK_URL = f.read()
 
 
+# UPDATE HPO FILE
 # parse hpo ids into a dict for querying
-HPO_FILEPATH = 'sample_sheet/exomiser_hpo/hp.obo'
+HPO_FILEPATH = 'sample_sheet/exomiser_hpo/phenotype_to_genes.txt'
 
 # empty hpo dict
 HPO_TERMS_DICT = {}
 
 with open(HPO_FILEPATH) as file:
-		
+
+	# skip header line
+	next(file)
+
+	# skip lines starting with #
 	for line in file:
-		
-		if line.startswith('id:'):
-						
-			hpo_id = line.split('id:')[1].strip()
-						
-			name = None
-			
-			HPO_TERMS_DICT[hpo_id] = None
-		
-		if line.startswith('name:'):
-			
-			name = line.split('name:')[1].strip()
-			
-			HPO_TERMS_DICT[hpo_id] = name
-			
-		if line.startswith('alt_id:'):
-			
-			alt_id = line.split('alt_id:')[1].strip()
-			
-			HPO_TERMS_DICT[alt_id] = name
+
+		# split the line into columns using tab as the delimiter
+		columns = line.strip().split('\t')
+
+		# extract the relevant columns
+		hpo_id, hpo_name, _, _, _ = columns
+
+		# store the disease name and the relating HPO ID in the dictionary
+		HPO_TERMS_DICT[hpo_id] = hpo_name
