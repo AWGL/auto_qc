@@ -12,12 +12,12 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
-deploy_location = 'gen01'
+deploy_location = 'local'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-CONFIG_PATH = 'config/config.yaml'
+CONFIG_PATH = '/home/niamh/auto_qc/config/config_local.yaml'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
@@ -158,26 +158,24 @@ if MESSAGE_SLACK:
 
 # UPDATE HPO FILE
 # parse hpo ids into a dict for querying
-HPO_FILEPATH = 'sample_sheet/exomiser_hpo/phenotype.hpoa'
+HPO_FILEPATH = 'sample_sheet/exomiser_hpo/phenotype_to_genes.txt'
 
 # empty hpo dict
 HPO_TERMS_DICT = {}
 
 with open(HPO_FILEPATH) as file:
 
+	# skip header line
+	next(file)
+
 	# skip lines starting with #
 	for line in file:
-
-		if line.startswith('#'):
-
-			# skip comments
-			continue
 
 		# split the line into columns using tab as the delimiter
 		columns = line.strip().split('\t')
 
 		# extract the relevant columns
-		_, disease_name, _, hpo_id, _, _, _, _, _, _, _, _ = columns
+		hpo_id, hpo_name, _, _, _ = columns
 
 		# store the disease name and the relating HPO ID in the dictionary
-		HPO_TERMS_DICT[hpo_id] = disease_name
+		HPO_TERMS_DICT[hpo_id] = hpo_name
