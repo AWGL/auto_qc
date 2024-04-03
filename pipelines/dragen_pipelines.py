@@ -104,12 +104,22 @@ class DragenGE:
 		for sample in self.sample_names:
 
 			sample_contamination_metrics_file = results_path.glob(f'post_processing/results/contamination/*{sample}_contamination.selfSM')
+			
+			#Weird quirk where I need to convert the generator as a list otherwise it breaks further on
+			sample_contamination_metrics_file = list(sample_contamination_metrics_file)
 
-			sample_contamination_metrics_file = list(sample_contamination_metrics_file)[0]	
+			#Ability to skip this and create empty contamination dict if run is from period of time where contamination was from alignment statistics
+			if len(sample_contamination_metrics_file) is not 0:
 
-			parsed_contamination_metrics = parsers.parse_contamination_metrics(sample_contamination_metrics_file)
+				sample_contamination_metrics_file = sample_contamination_metrics_file[0]
+				
+				parsed_contamination_metrics = parsers.parse_contamination_metrics(sample_contamination_metrics_file)
 
-			run_contamination_metrics_dict[sample] = parsed_contamination_metrics
+				run_contamination_metrics_dict[sample] = parsed_contamination_metrics
+				
+			else:
+			
+				run_contamination_metrics_dict[sample] = {}
 
 		return run_contamination_metrics_dict
 	
