@@ -717,11 +717,24 @@ class SampleAnalysis(models.Model):
 	def get_contamination(self):
 
 
-		if 'DragenWGS' in self.pipeline.pipeline_id or 'DragenGE' in self.pipeline.pipeline_id:
+		if 'DragenWGS' in self.pipeline.pipeline_id:
 
 			contamination_obj = DragenAlignmentMetrics.objects.get(sample_analysis=self)
 
 			return contamination_obj.estimated_sample_contamination
+			
+		elif 'DragenGE' in self.pipeline.pipeline_id:
+		
+			try:
+				contamination_obj = ContaminationMetrics.objects.get(sample_analysis=self)
+							
+				return contamination_obj.freemix
+				
+			except:
+			
+				contamination_obj = DragenAlignmentMetrics.objects.get(sample_analysis=self)
+
+				return contamination_obj.estimated_sample_contamination
 
 		else:
 
@@ -1700,20 +1713,28 @@ class DragenAlignmentMetrics(models.Model):
 	reads_without_mate_sequenced = models.BigIntegerField(null=True, blank=True)
 	qcfailed_reads = models.BigIntegerField(null=True, blank=True)
 	mapped_reads = models.BigIntegerField(null=True, blank=True)
+	mapped_reads_adjusted_for_excluded_mapping = models.BigIntegerField(null=True, blank=True)
 	mapped_reads_adjusted_for_filtered_mapping = models.BigIntegerField(null=True, blank=True)
+	mapped_reads_adjusted_for_filtered_and_excluded_mapping = models.BigIntegerField(null=True, blank=True)
 	mapped_reads_r1 = models.BigIntegerField(null=True, blank=True)
 	mapped_reads_r2 = models.BigIntegerField(null=True, blank=True)
 	number_of_unique_mapped_reads_excl_duplicate_marked_reads = models.BigIntegerField(null=True, blank=True)
 	unmapped_reads = models.BigIntegerField(null=True, blank=True)
 	unmapped_reads_adjusted_for_filtered_mapping = models.BigIntegerField(null=True, blank=True)
+	unmapped_reads_adjusted_for_excluded_mapping = models.BigIntegerField(null=True, blank=True)
+	unmapped_reads_adjusted_for_filtered_and_excluded_mapping = models.BigIntegerField(null=True, blank=True)
 	adjustment_of_reads_matching_nonreference_decoys = models.BigIntegerField(null=True, blank=True)
 	adjustment_of_reads_matching_filter_contigs = models.BigIntegerField(null=True, blank=True)
+	filtered_rrna_reads = models.BigIntegerField(null=True, blank=True)
+	adjustment_of_reads_matching_exclude_contigs = models.BigIntegerField(null=True, blank=True)
+	mitochondrial_reads_excluded = models.BigIntegerField(null=True, blank=True)
 	singleton_reads_itself_mapped_mate_unmapped = models.BigIntegerField(null=True, blank=True)
 	paired_reads_itself_mate_mapped = models.BigIntegerField(null=True, blank=True)
 	properly_paired_reads = models.BigIntegerField(null=True, blank=True)
 	not_properly_paired_reads_discordant = models.BigIntegerField(null=True, blank=True)
 	paired_reads_mapped_to_different_chromosomes = models.BigIntegerField(null=True, blank=True)
 	paired_reads_mapped_to_different_chromosomes_mapq10 = models.BigIntegerField(null=True, blank=True)
+	reads_mapping_to_multiple_locations = models.BigIntegerField(null=True, blank=True)
 	reads_with_mapq_40inf = models.BigIntegerField(null=True, blank=True)
 	reads_with_mapq_3040 = models.BigIntegerField(null=True, blank=True)
 	reads_with_mapq_2030 = models.BigIntegerField(null=True, blank=True)
@@ -1747,12 +1768,14 @@ class DragenAlignmentMetrics(models.Model):
 	secondary_alignments = models.IntegerField(null=True, blank=True)
 	supplementary_chimeric_alignments = models.BigIntegerField(null=True, blank=True)
 	estimated_read_length = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	total_reads_removed_by_downsampling = models.BigIntegerField(null=True, blank=True)
+	total_bases_removed_by_downsampling = models.BigIntegerField(null=True, blank=True)
 	average_sequenced_coverage_over_target_region = models.DecimalField(max_digits=6, decimal_places=1, null=True, blank=True)
 	bases_in_reference_genome = models.BigIntegerField(null=True, blank=True)
 	bases_in_target_bed_of_genome = models.BigIntegerField(null=True, blank=True)
 	insert_length_mean = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	insert_length_median = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
-	insert_length_standard_deviation = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	insert_length_standard_deviation = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 	provided_sex_chromosome_ploidy = models.IntegerField(null=True, blank=True)
 	dragen_mapping_rate_mil_readssecond = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 	average_sequenced_coverage_over_genome = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
@@ -1973,6 +1996,7 @@ class DragenCNVMetrics(models.Model):
 	number_of_filtered_records_duplicates = models.BigIntegerField(null=True, blank=True)
 	number_of_filtered_records_mapq = models.BigIntegerField(null=True, blank=True)
 	number_of_filtered_records_unmapped = models.BigIntegerField(null=True, blank=True)
+	coverage_uniformity = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
 	number_of_target_intervals = models.BigIntegerField(null=True, blank=True)
 	number_of_segments = models.BigIntegerField(null=True, blank=True)
 	number_of_amplifications = models.IntegerField(null=True, blank=True)
