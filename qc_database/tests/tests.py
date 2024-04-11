@@ -79,10 +79,6 @@ class TestAutoQC(TestCase):
 		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['FASTQC Fail'],['19M07162']))
 
 
-
-		
-	
-
 	def test_contamination_fail(self):
 
 		run_analysis= RunAnalysis.objects.get(pk=16)
