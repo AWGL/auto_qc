@@ -614,10 +614,6 @@ class SampleAnalysis(models.Model):
 
 				return False
 
-			elif fastqc.per_tile_sequence_quality == 'FAIL': 
-
-				return False
-
 			elif fastqc.per_sequence_quality_scores == 'FAIL': 
 
 				return False
