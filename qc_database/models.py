@@ -660,14 +660,12 @@ class SampleAnalysis(models.Model):
 
 			basic_statistics_all = [fastqc.basic_statistics for fastqc in fastqc_objs]
 			per_base_sequencing_quality_all = [fastqc.per_base_sequencing_quality for fastqc in fastqc_objs]
-			per_tile_sequencing_quality_all = [fastqc.per_tile_sequence_quality for fastqc in fastqc_objs]
 			per_sequence_quality_all = [fastqc.per_sequence_quality_scores for fastqc in fastqc_objs]
 			per_base_n_content_all = [fastqc.per_base_n_content for fastqc in fastqc_objs]
 
 			Metrics = (
 				self.determine_worst_consequence(basic_statistics_all),
 				self.determine_worst_consequence(per_base_sequencing_quality_all),
-				self.determine_worst_consequence(per_tile_sequencing_quality_all),
 				self.determine_worst_consequence(per_sequence_quality_all),
 				self.determine_worst_consequence(per_base_n_content_all)
 			)
@@ -681,7 +679,7 @@ class SampleAnalysis(models.Model):
 			if len(fastqc_objs) >= 1:
 				# applies to pipelines which run DragenFastQC. This is only a single metric
 
-				Metrics = ("N/A", fastqc_objs[0].per_base_sequence_quality, "N/A", fastqc_objs[0].per_sequence_quality_score, fastqc_objs[0].per_base_n_content)
+				Metrics = ("N/A", fastqc_objs[0].per_base_sequence_quality, fastqc_objs[0].per_sequence_quality_score, fastqc_objs[0].per_base_n_content)
 
 				return Metrics
 			
