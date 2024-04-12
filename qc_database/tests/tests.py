@@ -47,11 +47,35 @@ class TestAutoQC(TestCase):
 
 		self.assertEqual(run_analysis.passes_auto_qc(), (True, ['All Pass']))
 
+		# check passes if only per tile fails
+		first_fastqc.per_tile_sequence_quality = 'FAIL'
+		first_fastqc.save()
+		self.assertEqual(run_analysis.passes_auto_qc(), (True, ['All Pass']))
+
+		# check fails if basic stats, per base sequence quality, per sequence quality scores or per base n content fail
+		# basic stats
 		first_fastqc.basic_statistics = 'FAIL'
 		first_fastqc.save()
-
 		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['FASTQC Fail'],['19M07162']))
-	
+
+		# per base sequence quality
+		first_fastqc.basic_statistics = 'PASS'
+		first_fastqc.per_base_sequencing_quality = 'FAIL'
+		first_fastqc.save()
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['FASTQC Fail'],['19M07162']))
+
+		# per sequence quality scores
+		first_fastqc.per_base_sequencing_quality = 'PASS'
+		first_fastqc.per_sequence_quality_scores = 'FAIL'
+		first_fastqc.save()
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['FASTQC Fail'],['19M07162']))
+
+		# per base n content
+		first_fastqc.per_sequence_quality_scores = 'PASS'
+		first_fastqc.per_base_n_content = 'FAIL'
+		first_fastqc.save()
+		self.assertEqual(run_analysis.passes_auto_qc(), (False, ['FASTQC Fail'],['19M07162']))
+
 
 	def test_contamination_fail(self):
 
