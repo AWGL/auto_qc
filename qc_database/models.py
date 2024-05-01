@@ -875,9 +875,9 @@ class SampleAnalysis(models.Model):
 		if 'DragenWGS' in self.pipeline.pipeline_id:
 
 			wgs_obj = DragenWGSCoverageMetrics.objects.get(sample_analysis=self)
-			print(wgs_obj)
+
 			if wgs_obj.predicted_sex_chromosome_ploidy is None:
-				print(wgs_obj.predicted_sex_chromosome_ploidy)
+
 				wgs_obj = DragenPloidyMetrics.objects.get(sample_analysis=self)
 				
 				if wgs_obj.ploidy_estimation == 'XX':
