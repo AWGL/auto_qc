@@ -156,7 +156,6 @@ if MESSAGE_SLACK:
 		SLACK_URL = f.read()
 
 
-# UPDATE HPO FILE
 # parse hpo ids into a dict for querying
 HPO_FILEPATH = 'sample_sheet/exomiser_hpo/hp.obo'
 
@@ -164,18 +163,25 @@ HPO_FILEPATH = 'sample_sheet/exomiser_hpo/hp.obo'
 HPO_TERMS_DICT = {}
 
 with open(HPO_FILEPATH) as file:
-
-	# skip header line
-	next(file)
-
-	# skip lines starting with #
+		
 	for line in file:
-
-		# split the line into columns using tab as the delimiter
-		columns = line.strip().split('\t')
-
-		# extract the relevant columns
-		hpo_id, hpo_name, _, _, _ = columns
-
-		# store the disease name and the relating HPO ID in the dictionary
-		HPO_TERMS_DICT[hpo_id] = hpo_name
+		
+		if line.startswith('id:'):
+						
+			hpo_id = line.split('id:')[1].strip()
+						
+			name = None
+			
+			HPO_TERMS_DICT[hpo_id] = None
+		
+		if line.startswith('name:'):
+			
+			name = line.split('name:')[1].strip()
+			
+			HPO_TERMS_DICT[hpo_id] = name
+			
+		if line.startswith('alt_id:'):
+			
+			alt_id = line.split('alt_id:')[1].strip()
+			
+			HPO_TERMS_DICT[alt_id] = name
