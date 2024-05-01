@@ -905,7 +905,7 @@ class SampleAnalysis(models.Model):
 
 				# Return the ploidy estimation as in the file
 				return wgs_obj.predicted_sex_chromosome_ploidy
-
+				
 		else:
 
 			try:
