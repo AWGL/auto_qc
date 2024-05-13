@@ -209,9 +209,11 @@ pipelines:
     max_relatedness_unrelated: 0.04
     max_relatedness_between_parents: 0.04
     max_child_parent_relatedness: 0.4
-    sample_expected_files: []
+    sample_expected_files: ['*.cram',
+                  '*.mapping_metrics.csv',
+                  '*.insert-stats.tab']
     sample_not_expected_files: []
-    run_expected_files: []
+    run_expected_files: ['post_processing/results/post_processing_finished.txt']
     run_not_expected_files: []
     post_sample_files: []
 
@@ -231,9 +233,11 @@ pipelines:
     max_relatedness_unrelated: 0.04
     max_relatedness_between_parents: 0.04
     max_child_parent_relatedness: 0.4
-    sample_expected_files: []
+    sample_expected_files: ['*.cram',
+                  '*.mapping_metrics.csv',
+                  '*.insert-stats.tab']
     sample_not_expected_files: []
-    run_expected_files: []
+    run_expected_files: ['post_processing/results/post_processing_finished.txt']
     run_not_expected_files: []
     post_sample_files: []
 
