@@ -77,6 +77,10 @@ class InteropRunQuality(models.Model):
 	def display_cluster_density(self):
 
 		return round(self.density / 1000)
+	
+	def display_clusters_passing_filter(self):
+
+		return f"{self.percent_pf:.2f}"
 
 
 class WorkSheet(models.Model):
