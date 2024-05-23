@@ -276,31 +276,33 @@
 	  <th>Lane</th>
 	  <th>Percent > q30</th>
 	  <th>Cluster Density (K/mm2)</th>
+	  <th>Clusters Passing Filter (%)</th>
 	</tr>
   </thead>
 
  <tbody>
 	{% for run_level_quality in run_level_qualities %}
 
-	{% if run_level_quality.percent_q30 > min_q30_score %}
-	<tr>
-		<td > {{run_level_quality.read_number}} </td>
-		<td > {{run_level_quality.lane_number}} </td>
-		<td class="table-success"> {{run_level_quality.percent_q30}} </td>
-		<td> {{run_level_quality.display_cluster_density}} </td>
-	</tr>
-	{% else %}
-	<tr>
-		<td > {{run_level_quality.read_number}} </td>
-		<td> {{run_level_quality.lane_number}} </td>
-		<td class="table-danger"> {{run_level_quality.percent_q30}} </td>
-		<td> {{run_level_quality.display_cluster_density}} </td>
-	</tr>
-
-	{% endif %}
-
-
-
+		{% if run_level_quality.percent_q30 > min_q30_score %}
+		<tr>
+			<td > {{run_level_quality.read_number}} </td>
+			<td > {{run_level_quality.lane_number}} </td>
+			<td class="table-success"> {{run_level_quality.percent_q30}} </td>
+			<td> {{run_level_quality.display_cluster_density}} </td>
+			{% if run_level_quality.percent_pf < cpf_warning %}
+				<td class="table-warning"> {{run_level_quality.display_clusters_passing_filter}} </td>
+			{% else %}
+				<td> {{run_level_quality.display_clusters_passing_filter}}</td>
+			{% endif %}
+		</tr>
+		{% else %}
+		<tr>
+			<td > {{run_level_quality.read_number}} </td>
+			<td> {{run_level_quality.lane_number}} </td>
+			<td class="table-danger"> {{run_level_quality.percent_q30}} </td>
+			<td> {{run_level_quality.display_cluster_density}} </td>
+		</tr>
+		{% endif %}
 
 	{% endfor %}
   </tbody>
