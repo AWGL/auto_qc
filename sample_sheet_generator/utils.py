@@ -1,12 +1,12 @@
 import csv
+import datetime
+import itertools
+
 from collections import OrderedDict
 
 from sample_sheet_generator.models import Assay
 
-## sample well in current sample sheet is actually the index well
-
 class GlimsSample:
-    #TODO update init to just run all the functions
     def __init__(self, sample_info: OrderedDict):
         self.lab_no = sample_info["LABNO"]
         self.position = sample_info["POSITION"]
@@ -25,6 +25,8 @@ class GlimsSample:
         self.hpo_terms = sample_info["HPO_TERMS"]
         self.urgency = sample_info["ROUTINE"]
         self.assay = self.get_assay(self.test, self.urgency)
+        self.header_line = self.create_samplesheet_header()
+        self.samplesheet_line = self.create_samplesheet_line()
 
     @staticmethod
     def parse_lab_no(lab_no: str, test: str):
@@ -86,7 +88,7 @@ class GlimsSample:
             hpo_terms_parsed = "None"
         else:
             hpo_terms_parsed = "|".join(hpo_terms.split(";"))
-        return hpo_terms_parsed
+        return hpo_terms_parsed.rstrip()
     
     @staticmethod
     def parse_affected(affected):
@@ -106,7 +108,9 @@ class GlimsSample:
 
     @staticmethod
     def parse_family_structure(family_id: str, family_pos: str):
-        #TODO check what's being put in LIMS
+        """
+        Update the family position and make a placeholder family description field
+        """
         
         # if it's a singleton we don't need a family structure
         if family_id.lower() in ["", "none", "na", "n/a"]:
@@ -131,6 +135,8 @@ class GlimsSample:
             family_pos = "father"
             family_description = f"familyId={family_id}"
         
+        #TODO if anything weird in these fields return nothing and an error message
+
         return family_pos, family_description
         
     @staticmethod
@@ -265,49 +271,305 @@ class GlimsSample:
             description_field += f";referral={self.parse_referral(self.reason_for_referral)}"
         
         if self.assay.hpo_in_desc:
-            description_field += f";hpoId={self.parse_hpo_terms(self.hpo_terms)}"
+            if self.parse_hpo_terms(self.hpo_terms) != "None":
+                description_field += f"{self.parse_hpo_terms(self.hpo_terms)}"
 
-        if self.assay.family_in_desc:
-            # for WES/WGS only. duos and trios have family/affected fields, singletons do not
-            family_info = self.parse_family_structure(self.family_id, self.family_pos)
-            if family_info:
-                # get family position and info
-                family_pos, family_description = family_info
-                # update the family position for parsing later
-                self.family_pos = family_pos
-                # get affected status
-                affected = self.parse_affected(self.affected)
-                # update description
-                description_field += f";{family_description};phenotype={affected}"
+        # for WES/WGS only. duos and trios have family/affected fields, singletons do not
+        print("FAMILY ID")
+        print(self.family_id)
+        if len(self.family_id) > 0:
+            # get family position and info
+            family_pos, family_description = self.parse_family_structure(self.family_id, self.family_pos)
+            # update the family position for parsing later
+            self.family_pos = family_pos
+            # get affected status
+            affected = self.parse_affected(self.affected)
+            # update description
+            description_field += f";{family_description};phenotype={affected}"
         
         # combine to one samplesheet line
         samplesheet_line = f"{common_fields}{sample_well_field}{index_fields}{additional_fields}{description_field}"
+        
         return samplesheet_line
+    
+
+class WorksheetSamples:
+    def __init__(self, glims_samples: list, sequencer: str):
+        self.samples = glims_samples
+        self.sequencer = sequencer
+        self.tests = self.get_test()
+
+    def get_test(self):
+        """
+        Get the test(s) in the samplesheet so the right header is used
+        """
+        tests = list(set([sample.test for sample in self.samples]))
+        tests = "|".join(tests)
+        print("TESTS")
+        print(tests)
+        return tests
+
+    def get_header_line(self):
+        """
+        Gets the header line from the first sample. For split worksheets e.g. TSO500 DNA/RNA the header line is the same
+        """
+        header_line = self.samples[0].create_samplesheet_header()
+        return header_line
+    
+    def get_samplesheet_lines(self):
+        """
+        Create all the samplesheet lines, updating the family structure where required
+        """
+
+        samplesheet_lines = []
+
+        for sample in self.samples:
+
+            samplesheet_line = sample.samplesheet_line
+            # for probands, we need to update the description
+            if sample.family_pos == "proband":
+
+                # find the mother
+                mother = [s for s in self.samples if s.family_id == sample.family_id and s.family_pos == "mother"]
+
+                # find the father
+                father = [s for s in self.samples if s.family_id == sample.family_id and s.family_pos == "father"]
+
+                # for each parent, either replace or remove the text
+                if len(mother) == 0:
+                    samplesheet_line = samplesheet_line.replace(f"maternalId={sample.family_id}-mother","")
+                else:
+                    samplesheet_line = samplesheet_line.replace(f"maternalId={sample.family_id}-mother", f"maternalId={mother[0].lab_no}")
+                if len(father) == 0:
+                    samplesheet_line = samplesheet_line.replace(f"paternalId={sample.family_id}-father","")
+                else:
+                    samplesheet_line = samplesheet_line.replace(f"paternalId={sample.family_id}-father", f"paternalId={father[0].lab_no}")
+
+                samplesheet_lines.append(samplesheet_line)
+            
+            # other family members can be left, and non-family samples don't need updating
+            else:
+                samplesheet_lines.append(samplesheet_line)
+        
+        return samplesheet_lines
 
 
+class MainHeader:
+    """
+    Class containing functions common to standard and TSO500 samplesheets
+    """
+    def __init__(self, worksheet_samples: WorksheetSamples):
+        self.assay = worksheet_samples.samples[0].test
+        self.experiment_id = worksheet_samples.samples[0].worksheet
+        self.sequencer = worksheet_samples.sequencer
+        
+        self.common_lines = []
+        self.settings_lines = []
+        self.data_line = []
+
+    def merge_lines(self):
+        all_lines = self.common_lines + self.settings_lines + [self.data_line]
+        print(all_lines)
+        return all_lines
 
 
+class StandardHeader(MainHeader):
+    """
+    Standard samplesheet header is used for everything except for TSO500
+    """
+
+    def __init__(self, worksheet_samples):
+        super().__init__(worksheet_samples)
+        self.common_lines =  [
+            ["[Header]"],
+            ["IEMFileVersion", "4"],
+            ["InvestigatorName", "USERID"],
+            ["ExperimentName", "EXP_ID"],
+            ["Workflow", "GenerateFASTQ"],
+            ["Application", "APP_ID"],
+            ["Chemistry"],
+            [],
+            ["[Reads]"],
+            ["151"],
+            ["151"],
+            []
+        ]
+        if self.assay == "WES":
+            self.settings_lines = [
+                ["[Settings]"],
+                ["OverrideCycles", "OVERRIDE_ID"],
+                []
+            ]
+        else:
+            self.settings_lines = []
+        self.data_line = ["[Data]"]
+
+        if self.sequencer == "MiSeq":
+            self.max_length = 7
+        else:
+            self.max_length = 9
+
+    def replace_standard_text(self):
+        all_lines_merged = self.merge_lines()
+        all_lines_formatted = []
+
+        for list in all_lines_merged:
+            formatted_list = []
+
+            for item in list:
+                # experiment ID is the worklist
+                item.replace("EXP_ID", self.experiment_id)
+
+                # app id is NovaSeqFASTQOnly for WGS/NovaSeq WES, NextSeqFASTQOnly for NextSeq WES and FASTQOnly for everything else
+                if self.assay == "WES" and self.sequencer == "NextSeq":
+                    app_id = "NextSeqFASTQOnly"
+                elif self.assay in ["WES", "WGS"] and self.sequencer == "NovaSeq":
+                    app_id = "NovaSeqFASTQOnly"
+                else:
+                    app_id = "FASTQOnly"
+                item.replace("APP_ID", app_id)
+
+                # override id only applies to WES
+                if self.sequencer == "NextSeq":
+                    override_id = "Y145;I8U9;I8;Y145"
+                elif self.sequencer == "NovaSeq":
+                    override_id = "Y151;I8U9;I8;Y151"
+                item.replace("OVERRIDE_ID", override_id)
+
+                #append line
+                formatted_list.append(item)
+            
+            # pad out with commas
+            formatted_list += [""] * (self.max_length - len(formatted_list))
+            formatted_line = ",".join(formatted_list)
+
+            all_lines_formatted.append(formatted_line)
+        
+        return all_lines_formatted
+
+
+class TSOHeader(MainHeader):
+    """
+    TSO500 samplesheets are different to all the other samplesheets
+    """
+
+    def __init__(self, worksheet_samples):
+        super().__init__(worksheet_samples)
+        self.common_lines =  [
+            ["[Header]"],
+            ["IEMFileVersion", "4"],
+            ["InvestigatorName", "USERID"],
+            ["ExperimentName", "EXP_ID"],
+            ["Date", "DDMMYYYY"],
+            ["Workflow", "WORKFLOW"],
+            ["Application", "APP_ID"],
+            ["Assay", "ASSAY"],
+            ["Description", "DESCRIPTION"],
+            ["Chemistry"],
+            [],
+            ["[Reads]"],
+            ["READS"],
+            ["READS"],
+            []
+        ]
+        self.settings_lines = [
+            ["[Settings]"],
+            ["AdapterRead1", "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA"],
+            ["AdapterRead2", "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"],
+            ["AdapterBehaviour", "trim"],
+            ["MinimumTrimmedReadLength", "35"],
+            ["OverrideCycles", "OVERRIDE_ID"],
+            []
+        ]
+        self.data_line = ["[Data]"]
+
+        self.max_length = 10
+
+    def replace_standard_text(self):
+        all_lines_merged = self.merge_lines()
+        all_lines_formatted = []
+
+        for list in all_lines_merged:
+            formatted_list = []
+
+            for item in list:
+                # experiment ID is the worklist
+                item.replace("EXP_ID", self.experiment_id)
+
+                # replace date placeholder with today's date
+                today = datetime.date.today().strftime('%d/%m/%Y')
+                item.replace("DDMMYYYY", today)
+
+                # workflow is absent for ctDNA
+                # app ID is NextSeq for TSO500 DNA/RNA, even though it's run on the NovaSeq
+                # description is absent for ctDNA
+                # DNA/RNA reads are 101, ctDNA is 151
+                # override ID is different depending on read length. For both it says index reads are 8. They're not, but the app will break if you don't put 8.
+                if self.assay == "TSO500CTDNA":
+                    workflow = ""
+                    application = "NovaSeq"
+                    description = ""
+                    reads = "151"
+                    override = "U7N1Y143;I8;I8;U7N1Y143"
+                else:
+                    workflow = "GenerateFASTQ"
+                    application = "NextSeqFASTQOnly"
+                    description = self.experiment_id
+                    reads = "101"
+                    override = "U7N1Y93;I8;I8;U7N1Y93"
+                item.replace("WORKFLOW", workflow)
+                item.replace("APP_ID", application)
+                item.replace("DESCRIPTION", description)
+                item.replace("READS", reads)
+                item.replace("OVERRIDE_ID", override)
+
+                #append line
+                formatted_list.append(item)
+
+            # pad out with commas
+            formatted_list += [""] * (self.max_length - len(formatted_list))
+            formatted_line = ",".join(formatted_list)
+
+            all_lines_formatted.append(formatted_line)
+        
+        return all_lines_formatted
+
+
+  
 def open_glims_export(file):
     """
     Takes a csv file exported from GLIMS and reads in to memory
     """
-    with open(file) as f:
-        csv_dict_reader = csv.DictReader(f, delimiter="\t")
-        glims_samples = []
-        for line in csv_dict_reader:
-            l = GlimsSample(line)
-            glims_samples.append(l)
-        return glims_samples
+    #with open(file) as f:
+    csv_dict_reader = csv.DictReader(file, delimiter="\t")
+    glims_samples = []
+    for line in csv_dict_reader:
+        l = GlimsSample(line)
+        glims_samples.append(l)
+    return glims_samples
 
-test_tso = "/home/na282549/code/auto_qc/glims/24-TSOSEQ-29.tsv"
-test_wes = "/home/na282549/code/auto_qc/glims/24-WESSEQ-30.tsv"
+def create_samplesheet(worksheet_samples: WorksheetSamples, response):
+    """
+    Create the SampleSheet.csv for download
+    """
+    #main header lines
+    if "TSO500" in worksheet_samples.tests:
+        main_header_lines = TSOHeader(worksheet_samples).replace_standard_text()
+    else:
+        main_header_lines = StandardHeader(worksheet_samples).replace_standard_text()
+    header_line = worksheet_samples.get_header_line()
+    samplesheet_lines = worksheet_samples.get_samplesheet_lines()
+    print("MAIN HEADER LINES")
+    print(main_header_lines)
+    print("HEADER_LINE")
+    print(header_line)
+    print("SAMPLESHEET_LINES")
+    print(samplesheet_lines)
+    all_lines = main_header_lines + [header_line] + samplesheet_lines
+    csv_writer = csv.writer(response)
+    for line in all_lines:
+        csv_writer.writerow(line.split(","))
 
-tso_samples = open_glims_export(test_tso)
-for s in tso_samples:
-    s.create_samplesheet_line()
-#for s in tso_samples:
-    #print(s.__dict__)
+test_tso = "/home/na282549/code/auto_qc/sample_sheet_generator/test_data/24-TSOSEQ-29.tsv"
+test_wes = "/home/na282549/code/auto_qc/sample_sheet_generator/test_data/24-WESSEQ-30.tsv"
 
-wes_samples = open_glims_export(test_wes)
-#for s in wes_samples:
-    #print(s.__dict__)    

@@ -2,7 +2,23 @@
 {% load static %}
 
 {% block content %}
+{% load crispy_forms_tags %}
 
-<h1 style="color:#FFA500">Samplesheet Generator #2</h1>
+<div class="container">
+<div class="row">
+    <h1 style="color:#FFA500">Create a samplesheet from a GLIMS TSV export</h1>
+    <h2 style="color:#FFA500">Your samplesheet will download when you click "Create Samplesheet"</h2>
+    </br>
+    <h2 style="color:#FFA500">If any errors appear once you have downloaded, please send them in an email to bioinformatics.team@wales.nhs.uk alongside the worksheet TSV</h2>
+</div>
+<div class="row">
+    {% crispy form %}
+</div>
+<div class="row">
+    {% for error in errors %}
+        <p>{{ error }}</p>
+    {% endfor %}
+</div>
+</div>
 
 {% endblock %}
