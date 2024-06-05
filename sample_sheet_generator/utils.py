@@ -268,14 +268,13 @@ class GlimsSample:
         if self.assay.referral_in_desc:
             description_field.append(f"referral={self.parse_referral(self.reason_for_referral)}")
         
-        # for WES/WGS only. duos and trios have family/affected fields, singletons do not
-        if self.assay.hpo_in_desc:
-            if self.parse_hpo_terms(self.hpo_terms) != "None":
-                description_field.append(f"hpoId={self.parse_hpo_terms(self.hpo_terms)}")
-        
-        description_field = ";".join(description_field)
-
+        # HPO terms and family structure for WES/WGS only. duos and trios have family/affected fields, singletons do not
         if self.test in ["WGS", "WES"]:
+
+            if self.assay.hpo_in_desc:
+                if self.parse_hpo_terms(self.hpo_terms) != "None":
+                    description_field.append(f"hpoId={self.parse_hpo_terms(self.hpo_terms)}")
+
             if len(self.family_id) > 0:
                 # get family position and info
                 family_pos, family_description = self.parse_family_structure(self.family_id, self.family_pos)
@@ -284,7 +283,10 @@ class GlimsSample:
                 # get affected status
                 affected = self.parse_affected(self.affected)
                 # update description
-                description_field += f";{family_description};phenotype={affected}"
+                description_field.append(f"{family_description};phenotype={affected}")
+
+        # make the description field
+        description_field = ";".join(description_field)
         
         # combine to one samplesheet line
         samplesheet_line = f"{common_fields}{sample_well_field}{index_fields}{additional_fields}{description_field}"
