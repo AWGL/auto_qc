@@ -304,8 +304,6 @@ class WorksheetSamples:
         """
         tests = list(set([sample.test for sample in self.samples]))
         tests = "|".join(tests)
-        print("TESTS")
-        print(tests)
         return tests
 
     def get_header_line(self):
@@ -368,7 +366,6 @@ class MainHeader:
 
     def merge_lines(self):
         all_lines = self.common_lines + self.settings_lines + [self.data_line]
-        print(all_lines)
         return all_lines
 
 
@@ -403,13 +400,16 @@ class StandardHeader(MainHeader):
             self.settings_lines = []
         self.data_line = ["[Data]"]
 
+        # All MiSeq runs are single index and have 7 columns, everything else has 9
         if self.sequencer == "MiSeq":
             self.max_length = 7
         else:
             self.max_length = 9
 
     def replace_standard_text(self):
-        #TODO this isn't working (plus TSO) fix it
+        """
+        Replace the placeholder text in the main header with the correct information for each test
+        """
         all_lines_merged = self.merge_lines()
         all_lines_formatted = []
 
@@ -439,7 +439,7 @@ class StandardHeader(MainHeader):
                 #append line
                 formatted_list.append(item)
             
-            # pad out with commas
+            # pad out with the right number of commas
             formatted_list += [""] * (self.max_length - len(formatted_list))
             formatted_line = ",".join(formatted_list)
 
@@ -483,6 +483,7 @@ class TSOHeader(MainHeader):
         ]
         self.data_line = ["[Data]"]
 
+        # all the TSO samplesheets have 10 columns
         self.max_length = 10
 
     def replace_tso_text(self):
@@ -552,20 +553,12 @@ def create_samplesheet(worksheet_samples: WorksheetSamples, response):
     Create the SampleSheet.csv for download
     """
     #main header lines
-    print("TESTS")
-    print(worksheet_samples.tests)
     if "TSO500" in worksheet_samples.tests:
         main_header_lines = TSOHeader(worksheet_samples).replace_tso_text()
     else:
         main_header_lines = StandardHeader(worksheet_samples).replace_standard_text()
     header_line = worksheet_samples.get_header_line()
     samplesheet_lines = worksheet_samples.get_samplesheet_lines()
-    print("MAIN HEADER LINES")
-    print(main_header_lines)
-    print("HEADER_LINE")
-    print(header_line)
-    print("SAMPLESHEET_LINES")
-    print(samplesheet_lines)
     all_lines = main_header_lines + [header_line] + samplesheet_lines
     csv_writer = csv.writer(response)
     for line in all_lines:
