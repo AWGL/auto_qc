@@ -563,7 +563,3 @@ def create_samplesheet(worksheet_samples: WorksheetSamples, response):
     csv_writer = csv.writer(response)
     for line in all_lines:
         csv_writer.writerow(line.split(","))
-
-test_tso = "/home/na282549/code/auto_qc/sample_sheet_generator/test_data/24-TSOSEQ-29.tsv"
-test_wes = "/home/na282549/code/auto_qc/sample_sheet_generator/test_data/24-WESSEQ-30.tsv"
-
