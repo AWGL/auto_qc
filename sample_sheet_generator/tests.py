@@ -15,14 +15,19 @@ class TestGlimsSample(TestCase):
                                    ("I7_SEQ", "GAACTGAGCG"), ("AFFECTED", "affected"), ("FAMILY_ID", "FAM001"), ("FAMILY_POS", "Proband"), ("HPO_TERMS", "HPO1;HPO2"), ("ROUTINE", "R")])
 
     def test_create_glims_sample(self):
+        self.maxDiff = None
         assay = Assay.objects.get(pk="TSO500RNA")
         expected_dict = {"lab_no": "24-1331-A-02-01", "position": "12", "worksheet": "24-TSOSEQ-29", "test": "TSO500RNA", "reason_for_referral": "M1", 
                          "sex": "F", "index_well": "A-B4", "i5_index": "UDP0012", "i5_seq": "CGCTCCACGA", "i7_index": "UDP0012", "i7_seq": "GAACTGAGCG", 
-                         "affected": "affected", "family_id": "FAM001", "family_pos": "Proband", "hpo_terms": "HPO1;HPO2", "urgency": "R", "assay": assay}
+                         "affected": "affected", "family_id": "FAM001", "family_pos": "Proband", "hpo_terms": "HPO1;HPO2", "urgency": "R", "assay": assay,
+                         "header_line": "Sample_ID,Sample_Plate,Sample_Well,Index_ID,index,index2,Sample_Name,Pair_ID,Sample_Type,Description",
+                         "samplesheet_line": "24-1331-A-02-01,24-TSOSEQ-29-TSO500RNA,A-B4,UDP0012,GAACTGAGCG,CGCTCCACGA,24-1331-A-02-01,24-1331-A-02-01,RNA,pipelineName=TSO500;pipelineVersion=master;referral=M1"}
         glims_sample = GlimsSample(self.sample)
         self.assertEqual(expected_dict, glims_sample.__dict__)
 
     def test_parse_lab_no(self):
+        self.maxDiff = None
+
         # test sample in WGS is unchanged
         parsed_lab_no = GlimsSample.parse_lab_no("24-1331-A-02-01", "WGS")
         self.assertEqual(parsed_lab_no, "24-1331-A-02-01")
@@ -40,6 +45,8 @@ class TestGlimsSample(TestCase):
         self.assertEqual(parsed_lab_no, "NTC-24-TSOSEQ-30-TSO500DNA")
 
     def test_parse_worksheet(self):
+        self.maxDiff = None
+        
         # check TSO500 DNA is renamed
         parsed_worksheet = GlimsSample.parse_worksheet("TSO500DNA", "24-TSOSEQ-30")
         self.assertEqual(parsed_worksheet, "24-TSOSEQ-30-TSO500DNA")
@@ -66,9 +73,12 @@ class TestGlimsSample(TestCase):
 
     def test_parse_referral(self):
         #TODO unit tests for this
+        self.maxDiff = None
         pass
 
     def test_parse_sex(self):
+        self.maxDiff = None
+
         # Check M is set to 1
         parsed_sex = GlimsSample.parse_sex("M")
         self.assertEqual(parsed_sex, "1")
@@ -86,6 +96,8 @@ class TestGlimsSample(TestCase):
         self.assertEqual(parsed_sex, "0")
 
     def test_parse_hpo_terms(self):
+        self.maxDiff = None
+
         # if no HPO terms, HPO terms should be set as None
         parsed_hpo_terms = GlimsSample.parse_hpo_terms("")
         self.assertEqual(parsed_hpo_terms, "None")
@@ -99,6 +111,8 @@ class TestGlimsSample(TestCase):
         self.assertEqual(parsed_hpo_terms, "HPO:123")
 
     def test_parse_affected(self):
+        self.maxDiff = None
+
         # if 2 or affected, return 2
         affected1 = GlimsSample.parse_affected("2")
         affected2 = GlimsSample.parse_affected("Affected")
@@ -124,7 +138,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(other2, "-9")
 
     def test_parse_family_structure(self):
-        
+        self.maxDiff = None    
         # check different permutaitons of no family structure
         self.assertIsNone(GlimsSample.parse_family_structure("",""))
         self.assertIsNone(GlimsSample.parse_family_structure("none","none"))
@@ -147,6 +161,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(family_description, "familyId=FAM003")
 
     def test_get_assay(self):
+        self.maxDiff = None
 
         # get TSO500 DNA
         tso500dna = GlimsSample.get_assay("TSO500DNA", "U")
@@ -194,7 +209,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(context.exception.args, ("This test is not configured - contact bioinformatics.",))
         
     def test_create_samplesheet_header_tso500dna(self):
-
+        self.maxDiff = None
         expected_header = "Sample_ID,Sample_Plate,Sample_Well,Index_ID,index,index2,Sample_Name,Pair_ID,Sample_Type,Description"
         sample = self.sample
         sample["TEST"] = "TSO500DNA"
@@ -202,14 +217,14 @@ class TestGlimsSample(TestCase):
         self.assertEqual(sample_obj.create_samplesheet_header(),expected_header)
 
     def test_create_samplesheet_header_tso500rna(self):
-
+        self.maxDiff = None
         expected_header = "Sample_ID,Sample_Plate,Sample_Well,Index_ID,index,index2,Sample_Name,Pair_ID,Sample_Type,Description"
         sample = self.sample
         sample_obj = GlimsSample(sample)
         self.assertEqual(sample_obj.create_samplesheet_header(),expected_header)
 
     def test_create_samplesheet_header_tso500ctdna(self):
-
+        self.maxDiff = None
         expected_header = "Sample_ID,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Name,Pair_ID,Sample_Type,Description"
         sample = self.sample
         sample["TEST"] = "TSO500CTDNA"
@@ -217,7 +232,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(sample_obj.create_samplesheet_header(),expected_header)
 
     def test_create_samplesheet_header_brca(self):
-
+        self.maxDiff = None
         expected_header = "Sample_ID,Sample_Plate,Sample_Well,I7_Index_ID,index,Sample_Project,Description"
         sample = self.sample
         sample["TEST"] = "NGS GR BC"
@@ -225,7 +240,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(sample_obj.create_samplesheet_header(),expected_header)
     
     def test_create_samplesheet_header_crm(self):
-
+        self.maxDiff = None
         expected_header = "Sample_ID,Sample_Plate,Sample_Well,I7_Index_ID,index,Sample_Project,Description"
         sample = self.sample
         sample["TEST"] = "NGS GR CRM"
@@ -233,7 +248,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(sample_obj.create_samplesheet_header(),expected_header)
 
     def test_create_samplesheet_header_tsc(self):
-
+        self.maxDiff = None
         expected_header = "Sample_ID,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description"
         sample = self.sample
         sample["TEST"] = "NGSTRUAUTO"
@@ -241,7 +256,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(sample_obj.create_samplesheet_header(),expected_header)
 
     def test_create_samplesheet_header_fh(self):
-
+        self.maxDiff = None
         expected_header = "Sample_ID,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description"
         sample = self.sample
         sample["TEST"] = "FHNGS"
@@ -249,7 +264,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(sample_obj.create_samplesheet_header(),expected_header)
 
     def test_create_samplesheet_header_wes(self):
-
+        self.maxDiff = None
         expected_header = "Sample_ID,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description"
         sample = self.sample
         sample["TEST"] = "WES"
@@ -257,7 +272,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(sample_obj.create_samplesheet_header(),expected_header)
 
     def test_create_samplesheet_header_wgs(self):
-
+        self.maxDiff = None
         expected_header = "Sample_ID,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description"
         sample = self.sample
         sample["TEST"] = "WGS"
@@ -265,7 +280,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(sample_obj.create_samplesheet_header(),expected_header)
 
     def test_create_samplesheet_header_fastwgs(self):
-
+        self.maxDiff = None
         expected_header = "Sample_ID,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description"
         sample = self.sample
         sample["TEST"] = "WGS"
@@ -274,6 +289,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(sample_obj.create_samplesheet_header(),expected_header)
 
     def test_create_samplesheet_line_tso500dna(self):
+        self.maxDiff = None
         sample = self.sample
         sample["TEST"] = "TSO500DNA"
         sample_obj = GlimsSample(sample)
@@ -282,6 +298,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(expected_line, samplesheet_line)
 
     def test_create_samplesheet_line_tso500rna(self):
+        self.maxDiff = None
         sample = self.sample
         sample_obj = GlimsSample(sample)
         samplesheet_line = sample_obj.create_samplesheet_line()
@@ -289,6 +306,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(expected_line, samplesheet_line)
 
     def test_create_samplesheet_line_ctdna(self):
+        self.maxDiff = None
         sample = self.sample
         sample["TEST"] = "TSO500CTDNA"
         sample_obj = GlimsSample(sample)
@@ -297,6 +315,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(expected_line, samplesheet_line)
 
     def test_create_samplesheet_line_brca(self):
+        self.maxDiff = None
         sample = self.sample
         sample["TEST"] = "NGS GR BC"
         sample_obj = GlimsSample(sample)
@@ -305,6 +324,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(expected_line, samplesheet_line)
 
     def test_create_samplesheet_line_crm(self):
+        self.maxDiff = None
         sample = self.sample
         sample["TEST"] = "NGS GR CRM"
         sample_obj = GlimsSample(sample)
@@ -313,6 +333,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(expected_line, samplesheet_line)
 
     def test_create_samplesheet_line_tsc(self):
+        self.maxDiff = None
         sample = self.sample
         sample["TEST"] = "NGSTRUAUTO"
         sample_obj = GlimsSample(sample)
@@ -321,6 +342,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(expected_line, samplesheet_line)
 
     def test_create_samplesheet_line_fh(self):
+        self.maxDiff = None
         sample = self.sample
         sample["TEST"] = "FHNGS"
         sample_obj = GlimsSample(sample)
@@ -329,6 +351,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(expected_line, samplesheet_line)
 
     def test_create_samplesheet_line_wes(self):
+        self.maxDiff = None
         sample = self.sample
         sample["TEST"] = "WES"
         sample_obj = GlimsSample(sample)
@@ -337,6 +360,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(expected_line, samplesheet_line)
 
     def test_create_samplesheet_line_wgs(self):
+        self.maxDiff = None
         sample = self.sample
         sample["TEST"] = "WGS"
         sample_obj = GlimsSample(sample)
@@ -345,6 +369,7 @@ class TestGlimsSample(TestCase):
         self.assertEqual(expected_line, samplesheet_line)
     
     def test_create_samplesheet_line_fastwgs(self):
+        self.maxDiff = None
         sample = self.sample
         sample["TEST"] = "WGS"
         sample["ROUTINE"] = "U"

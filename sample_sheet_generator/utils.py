@@ -1,6 +1,5 @@
 import csv
 import datetime
-import itertools
 
 from collections import OrderedDict
 
@@ -45,7 +44,6 @@ class GlimsSample:
         """
         For any paired assay going in to SVD, we need to rename the worksheets to be unique
         Also going to do this for ctDNA or it'll look different to everything else going in to SVD
-        #TODO later SWGS
         """
         # Get assay name from lims name
         assay_obj = Assay.objects.get(lims_test=test)
@@ -83,11 +81,11 @@ class GlimsSample:
         """
         Change HPO terms to pipe separated list for pipeline
         """
-        # can be new lines mock this
         if len(hpo_terms) == 0:
             hpo_terms_parsed = "None"
         else:
             hpo_terms_parsed = "|".join(hpo_terms.split(";"))
+        # add the rstrip as sometimes there's newlines involved
         return hpo_terms_parsed.rstrip()
     
     @staticmethod
@@ -259,33 +257,34 @@ class GlimsSample:
             additional_fields += ","
 
         # Description field varies by assay but all start with pipeline etc. from fixtures
-        description_field = f",{self.assay.pipeline_description}"
+        description_field = [f",{self.assay.pipeline_description}"]
 
         if self.assay.sex_in_desc:
-            description_field += f";sex={self.parse_sex(self.sex)}"
+            description_field.append(f"sex={self.parse_sex(self.sex)}")
         
         if self.assay.order_in_desc:
-            description_field += f";order={self.position}"
+            description_field.append(f"order={self.position}")
         
         if self.assay.referral_in_desc:
-            description_field += f";referral={self.parse_referral(self.reason_for_referral)}"
+            description_field.append(f"referral={self.parse_referral(self.reason_for_referral)}")
         
+        # for WES/WGS only. duos and trios have family/affected fields, singletons do not
         if self.assay.hpo_in_desc:
             if self.parse_hpo_terms(self.hpo_terms) != "None":
-                description_field += f"{self.parse_hpo_terms(self.hpo_terms)}"
+                description_field.append(f"hpoId={self.parse_hpo_terms(self.hpo_terms)}")
+        
+        description_field = ";".join(description_field)
 
-        # for WES/WGS only. duos and trios have family/affected fields, singletons do not
-        print("FAMILY ID")
-        print(self.family_id)
-        if len(self.family_id) > 0:
-            # get family position and info
-            family_pos, family_description = self.parse_family_structure(self.family_id, self.family_pos)
-            # update the family position for parsing later
-            self.family_pos = family_pos
-            # get affected status
-            affected = self.parse_affected(self.affected)
-            # update description
-            description_field += f";{family_description};phenotype={affected}"
+        if self.test in ["WGS", "WES"]:
+            if len(self.family_id) > 0:
+                # get family position and info
+                family_pos, family_description = self.parse_family_structure(self.family_id, self.family_pos)
+                # update the family position for parsing later
+                self.family_pos = family_pos
+                # get affected status
+                affected = self.parse_affected(self.affected)
+                # update description
+                description_field += f";{family_description};phenotype={affected}"
         
         # combine to one samplesheet line
         samplesheet_line = f"{common_fields}{sample_well_field}{index_fields}{additional_fields}{description_field}"
@@ -410,6 +409,7 @@ class StandardHeader(MainHeader):
             self.max_length = 9
 
     def replace_standard_text(self):
+        #TODO this isn't working (plus TSO) fix it
         all_lines_merged = self.merge_lines()
         all_lines_formatted = []
 
@@ -427,14 +427,14 @@ class StandardHeader(MainHeader):
                     app_id = "NovaSeqFASTQOnly"
                 else:
                     app_id = "FASTQOnly"
-                item.replace("APP_ID", app_id)
+                item = item.replace("APP_ID", app_id)
 
                 # override id only applies to WES
                 if self.sequencer == "NextSeq":
                     override_id = "Y145;I8U9;I8;Y145"
                 elif self.sequencer == "NovaSeq":
                     override_id = "Y151;I8U9;I8;Y151"
-                item.replace("OVERRIDE_ID", override_id)
+                item = item.replace("OVERRIDE_ID", override_id)
 
                 #append line
                 formatted_list.append(item)
@@ -485,7 +485,7 @@ class TSOHeader(MainHeader):
 
         self.max_length = 10
 
-    def replace_standard_text(self):
+    def replace_tso_text(self):
         all_lines_merged = self.merge_lines()
         all_lines_formatted = []
 
@@ -498,7 +498,7 @@ class TSOHeader(MainHeader):
 
                 # replace date placeholder with today's date
                 today = datetime.date.today().strftime('%d/%m/%Y')
-                item.replace("DDMMYYYY", today)
+                item = item.replace("DDMMYYYY", today)
 
                 # workflow is absent for ctDNA
                 # app ID is NextSeq for TSO500 DNA/RNA, even though it's run on the NovaSeq
@@ -517,11 +517,11 @@ class TSOHeader(MainHeader):
                     description = self.experiment_id
                     reads = "101"
                     override = "U7N1Y93;I8;I8;U7N1Y93"
-                item.replace("WORKFLOW", workflow)
-                item.replace("APP_ID", application)
-                item.replace("DESCRIPTION", description)
-                item.replace("READS", reads)
-                item.replace("OVERRIDE_ID", override)
+                item = item.replace("WORKFLOW", workflow)
+                item = item.replace("APP_ID", application)
+                item = item.replace("DESCRIPTION", description)
+                item = item.replace("READS", reads)
+                item = item.replace("OVERRIDE_ID", override)
 
                 #append line
                 formatted_list.append(item)
@@ -535,7 +535,6 @@ class TSOHeader(MainHeader):
         return all_lines_formatted
 
 
-  
 def open_glims_export(file):
     """
     Takes a csv file exported from GLIMS and reads in to memory
@@ -553,8 +552,10 @@ def create_samplesheet(worksheet_samples: WorksheetSamples, response):
     Create the SampleSheet.csv for download
     """
     #main header lines
+    print("TESTS")
+    print(worksheet_samples.tests)
     if "TSO500" in worksheet_samples.tests:
-        main_header_lines = TSOHeader(worksheet_samples).replace_standard_text()
+        main_header_lines = TSOHeader(worksheet_samples).replace_tso_text()
     else:
         main_header_lines = StandardHeader(worksheet_samples).replace_standard_text()
     header_line = worksheet_samples.get_header_line()

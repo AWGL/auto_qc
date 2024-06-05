@@ -22,7 +22,6 @@ def home(request):
 		"warnings": [],
 	}
 
-	
 	if request.POST:
 
 		samplesheet_upload_file = request.FILES["upload_file"]
