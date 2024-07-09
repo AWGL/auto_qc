@@ -901,7 +901,7 @@ class SampleAnalysis(models.Model):
 
 				else:
 
-					wgs_obj.ploidy_estimation
+					return wgs_obj.ploidy_estimation
 
 			elif wgs_obj.predicted_sex_chromosome_ploidy == 'XX':
 
@@ -913,7 +913,7 @@ class SampleAnalysis(models.Model):
 
 			else:
 
-				wgs_obj.predicted_sex_chromosome_ploidy
+				return wgs_obj.predicted_sex_chromosome_ploidy
 
 		else:
 
