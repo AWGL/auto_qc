@@ -57,6 +57,7 @@ class GlimsSample:
     
     @staticmethod
     def parse_referral(referral):
+        #TODO add in an "extra_referrals" field which we can pass to the pipelines downstream - probably will only affect cancer
         # This is gonna be a big one. for now, change commas to pipes so the csv doesn't mess up
         referral = referral.replace(",", "|")
         # If no referral field, set null for the pipelines that will otherwise crash

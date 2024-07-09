@@ -28,3 +28,7 @@ class Assay(models.Model):
     hpo_in_desc = models.BooleanField(default=False)
     family_in_desc = models.BooleanField(default=False)
     sample_well_field = models.CharField(max_length=1, choices=SAMPLE_WELL_CHOICES, null=False, blank=False)
+
+# class Referral(models.Model):
+#     referral = models.CharField(primary_key=True, max_length=10)
+#     assay = models.ForeignKey()
