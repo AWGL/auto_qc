@@ -4,8 +4,11 @@ It contains all changes from 2024-07-09 onwards
 
 ## [Unreleased]
 
+## [v2.0.0] - 11/07/2024
+
 ### Added
 - CPF is now displayed alongside Q30 in the run QC table, and a warning is raised if this is below 60
+- This changelog, only showing changes as of 2024-07-09 onwards
 
 ### Changed
 - WGS sex now returns the estimated ploidy for samples that are not XX or XY
