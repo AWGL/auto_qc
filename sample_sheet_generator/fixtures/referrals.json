@@ -1,0 +1,29 @@
+[
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 1,
+        "fields": {
+            "referral_code": "R27",
+            "referral_for_pipeline": "paediatric_disorders_green",
+            "assay": ["WGS", "FastWGS"]
+        }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 2,
+        "fields": {
+            "referral_code": "R27",
+            "referral_for_pipeline": "paediatric_disorders_green_wes",
+            "assay": ["WES"]
+        }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 3,
+        "fields": {
+            "referral_code": "R59",
+            "referral_for_pipeline": "genetic_epilepsy_syndromes_green",
+            "assay": ["FastWGS", "WGS", "WES"]
+        }
+    }
+]
