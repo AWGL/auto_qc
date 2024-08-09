@@ -29,6 +29,12 @@ class Assay(models.Model):
     family_in_desc = models.BooleanField(default=False)
     sample_well_field = models.CharField(max_length=1, choices=SAMPLE_WELL_CHOICES, null=False, blank=False)
 
-# class Referral(models.Model):
-#     referral = models.CharField(primary_key=True, max_length=10)
-#     assay = models.ForeignKey()
+class Referral(models.Model):
+    
+    id = models.AutoField(primary_key=True)
+    referral_code = models.CharField(max_length=10)
+    referral_for_pipeline = models.CharField(max_length=100)
+    assay = models.ManyToManyField(Assay)
+
+    class Meta:
+        unique_together = ["referral_code", "referral_for_pipeline"]
