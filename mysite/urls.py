@@ -20,4 +20,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('qc_database.urls')),
     path('samplesheet/', include('sample_sheet.urls')),
+    path('samplesheetgenerator/', include('sample_sheet_generator.urls'))
 ]

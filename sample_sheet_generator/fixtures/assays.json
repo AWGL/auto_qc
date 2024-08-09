@@ -1,0 +1,139 @@
+[
+    {
+        "model": "sample_sheet_generator.assay",
+        "pk": "TSO500DNA",
+        "fields": {
+            "lims_test": "TSO500DNA",
+            "pipeline_description": "pipelineName=TSO500;pipelineVersion=master",
+            "index_fields": "T",
+            "sample_well_field": "I",
+            "sample_name_field": true,
+            "pair_id_field": true,
+            "sample_type_field": true,
+            "sample_project_field": false,
+            "referral_in_desc": true
+        }
+    },
+    {
+        "model": "sample_sheet_generator.assay",
+        "pk": "TSO500RNA",
+        "fields": {
+            "lims_test": "TSO500RNA",
+            "pipeline_description": "pipelineName=TSO500;pipelineVersion=master",
+            "index_fields": "T",
+            "sample_well_field": "I",
+            "sample_name_field": true,
+            "pair_id_field": true,
+            "sample_type_field": true,
+            "sample_project_field": false,
+            "referral_in_desc": true
+        }
+    },
+    {
+        "model": "sample_sheet_generator.assay",
+        "pk": "ctDNA",
+        "fields": {
+            "lims_test": "TSO500CTDNA",
+            "pipeline_description": "pipelineName=tso500_ctdna;pipelineVersion=master",
+            "index_fields": "2",
+            "sample_well_field": "P",
+            "sample_name_field": true,
+            "pair_id_field": true,
+            "sample_type_field": true,
+            "sample_project_field": false,
+            "referral_in_desc": true
+        }
+    },
+    {
+        "model": "sample_sheet_generator.assay",
+        "pk": "BRCA",
+        "fields": {
+            "lims_test": "NGS GR BC",
+            "pipeline_description": "Name$SA%panel$NGHS102X%",
+            "multiple_sequencers": false,
+            "index_fields": "1",
+            "sample_well_field": "P"
+        }
+    },
+    {
+        "model": "sample_sheet_generator.assay",
+        "pk": "CRM",
+        "fields": {
+            "lims_test": "NGS GR CRM",
+            "pipeline_description": "Name$SA%panel$NGHS101X%",
+            "multiple_sequencers": false,
+            "index_fields": "1",
+            "sample_well_field": "P"
+        }
+    },
+    {
+        "model": "sample_sheet_generator.assay",
+        "pk": "TSC",
+        "fields": {
+            "lims_test": "NGSTRUAUTO",
+            "pipeline_description": "pipelineName=germline_enrichment_nextflow;pipelineVersion=master;panel=IlluminaTruSightCancer",
+            "index_fields": "2",
+            "sample_well_field": "P",
+            "sex_in_desc": true,
+            "order_in_desc": true
+        }
+    },
+    {
+        "model": "sample_sheet_generator.assay",
+        "pk": "FH",
+        "fields": {
+            "lims_test": "FHNGS",
+            "pipeline_description": "pipelineName=deepvariant_nextflow;pipelineVersion=main;panel=NonacusFH",
+            "index_fields": "2",
+            "sample_well_field": "P",
+            "sex_in_desc": true,
+            "order_in_desc": true
+        }
+    },
+    {
+        "model": "sample_sheet_generator.assay",
+        "pk": "WES",
+        "fields": {
+            "lims_test": "WES",
+            "pipeline_description": "pipelineName=DragenGE;pipelineVersion=master;panel=NonocusWES38",
+            "multiple_sequencers": true,
+            "index_fields": "2",
+            "sample_well_field": "I",
+            "sex_in_desc": true,
+            "order_in_desc": true,
+            "referral_in_desc": true,
+            "hpo_in_desc": true,
+            "family_in_desc": true
+        }
+    },
+    {
+        "model": "sample_sheet_generator.assay",
+        "pk": "WGS",
+        "fields": {
+            "lims_test": "WGS",
+            "pipeline_description": "pipelineName=DragenWGS;pipelineVersion=master;panel=WGS",
+            "index_fields": "2",
+            "sample_well_field": "P",
+            "sex_in_desc": true,
+            "order_in_desc": true,
+            "referral_in_desc": true,
+            "hpo_in_desc": true,
+            "family_in_desc": true
+        }
+    },
+    {
+        "model": "sample_sheet_generator.assay",
+        "pk": "FastWGS",
+        "fields": {
+            "lims_test": "FastWGS",
+            "pipeline_description": "pipelineName=DragenWGS;pipelineVersion=master;panel=FastWGS",
+            "index_fields": "2",
+            "sample_well_field": "P",
+            "sex_in_desc": true,
+            "order_in_desc": true,
+            "referral_in_desc": true,
+            "hpo_in_desc": true,
+            "family_in_desc": true
+        }
+    }
+]
