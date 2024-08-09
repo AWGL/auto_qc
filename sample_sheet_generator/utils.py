@@ -2,8 +2,9 @@ import csv
 import datetime
 
 from collections import OrderedDict
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 
-from sample_sheet_generator.models import Assay
+from sample_sheet_generator.models import Assay, Referral
 
 class GlimsSample:
     def __init__(self, sample_info: OrderedDict):
@@ -55,15 +56,53 @@ class GlimsSample:
         else:
             return worksheet
     
-    @staticmethod
-    def parse_referral(referral):
-        #TODO add in an "extra_referrals" field which we can pass to the pipelines downstream - probably will only affect cancer
-        # This is gonna be a big one. for now, change commas to pipes so the csv doesn't mess up
-        referral = referral.replace(",", "|")
+    def parse_referral(self):
+        """
+        Split the referrals list and return the pipeline referrals
+        """
+        print(self.reason_for_referral)
         # If no referral field, set null for the pipelines that will otherwise crash
-        if referral == "":
+        if self.reason_for_referral == "":
             referral = "null"
-        return referral
+            additional_referrals = ""
+            return referral, additional_referrals
+
+        # A sample may have multiple NGS referrals, these will be a comma separated list
+        #TODO can a constitutional case have multiple referrals? Will need to update variantbank
+        referrals = self.reason_for_referral.split(",")
+        # We'll have a primary (the first one in the list) referral and potentially additional referrals
+        # Main referral is going to have to be the first one in the list
+        try:
+            referral_query = Referral.objects.get(referral_code=referrals[0], assay__assay__contains=self.assay.assay)
+            referral = referral_query.referral_for_pipeline
+        except MultipleObjectsReturned:
+            # if this query returns more than one, the referrals have been set up wrong
+            raise MultipleObjectsReturned(f"More than one referral configured for {self.referrals[0]} on {self.assay}. Contact bioinformatics.")
+        except ObjectDoesNotExist:
+            # if nothing is returned, this referral has not been set up
+            raise ObjectDoesNotExist(f"No referral configured for {self.reason_for_referral} on {self.assay}. Contact bioinformatics.")
+        
+        # if we've only got one referral, return nothing for the additional fields
+        if len(referrals) == 1:
+            additional_referrals = ""
+            return referral, additional_referrals
+        
+        # otherwise we need to loop through the additional referrals and get the pipeline referral
+        additional_referrals_list = []
+        for r in referrals[1:]:
+            try:
+                referral_query = Referral.objects.get(referral_code=r, assay__assay__contains=self.assay.assay)
+                additional_referrals_list.append(referral_query.referral_for_pipeline)
+            # if this query returns more than one, the referrals have been set up wrong
+            except MultipleObjectsReturned:
+            # if this query returns more than one, the referrals have been set up wrong
+                raise MultipleObjectsReturned(f"More than one referral configured for {self.referrals[0]} on {self.assay}. Contact bioinformatics.")
+            except ObjectDoesNotExist:
+            # if nothing is returned, this referral has not been set up
+                raise ObjectDoesNotExist(f"No referral configured for {self.reason_for_referral} on {self.assay}. Contact bioinformatics.")               
+        additional_referrals = "|".join(additional_referrals_list)
+        
+        return referral, additional_referrals
     
     @staticmethod
     def parse_sex(sex):
@@ -268,7 +307,10 @@ class GlimsSample:
             description_field.append(f"order={self.position}")
         
         if self.assay.referral_in_desc:
-            description_field.append(f"referral={self.parse_referral(self.reason_for_referral)}")
+            referral, additional_referrals = self.parse_referral()
+            description_field.append(f"referral={referral}")
+            if additional_referrals != "":
+                description_field.append(f"additional_referrals={additional_referrals}")
         
         # HPO terms and family structure for WES/WGS only. duos and trios have family/affected fields, singletons do not
         if self.test in ["WGS", "WES"]:
