@@ -21,5 +21,5 @@ class UploadForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_method = "POST"
         self.helper.add_input(
-            Submit("submit", "Create Samplesheet", css_class="btn btn-warning w-100")
+            Submit("submit", "Create Samplesheet", css_class="btn btn-info w-100")
             )
