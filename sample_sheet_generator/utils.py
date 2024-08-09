@@ -134,7 +134,8 @@ class GlimsSample:
             family_pos = "father"
             family_description = f"familyId={family_id}"
         
-        #TODO if anything weird in these fields return nothing and an error message
+        else:
+            raise Exception(f"Family position {family_pos} not allowed - family positions must be proband, mum, mother, dad or father.")
 
         return family_pos, family_description
         
@@ -151,7 +152,7 @@ class GlimsSample:
                 assay = Assay.objects.get(lims_test=test)
             return assay
         except Assay.DoesNotExist:
-            raise Exception("This test is not configured - contact bioinformatics.")
+            raise Exception(f"This test {test} is not configured - contact bioinformatics.")
 
     def create_samplesheet_header(self):
         """
@@ -177,7 +178,7 @@ class GlimsSample:
         
         else:
             # error we need indexes set up properly
-            raise Exception("This test is not configured correctly - contact bioinformatics.")
+            raise Exception(f"This test {self.test} is not configured correctly - contact bioinformatics.")
 
         # add any additional fields required
         # nothing by default
@@ -232,7 +233,7 @@ class GlimsSample:
         
         else:
             # error we need indexes set up properly
-            raise Exception("This test is not configured correctly - contact bioinformatics.")
+            raise Exception(f"This test {self.assay} is not configured correctly - contact bioinformatics.")
         
         # add any additional fields required
         # nothing by default

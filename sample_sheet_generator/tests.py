@@ -160,6 +160,10 @@ class TestGlimsSample(TestCase):
         self.assertEqual(family_pos, "father")
         self.assertEqual(family_description, "familyId=FAM003")
 
+        with self.assertRaises(Exception) as exception:
+            family_pos, family_description = GlimsSample.parse_family_structure("3", "Brother")
+        self.assertEqual("Family position Brother not allowed - family positions must be proband, mum, mother, dad or father.", str(exception.exception))
+
     def test_get_assay(self):
         self.maxDiff = None
 
@@ -206,7 +210,7 @@ class TestGlimsSample(TestCase):
         # if not an assay, raise an error
         with self.assertRaises(Exception) as context:
             GlimsSample.get_assay("NotAnAssay", "U")
-        self.assertEqual(context.exception.args, ("This test is not configured - contact bioinformatics.",))
+        self.assertEqual(context.exception.args, ("This test NotAnAssay is not configured - contact bioinformatics.",))
         
     def test_create_samplesheet_header_tso500dna(self):
         self.maxDiff = None
