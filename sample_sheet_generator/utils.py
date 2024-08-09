@@ -60,7 +60,6 @@ class GlimsSample:
         """
         Split the referrals list and return the pipeline referrals
         """
-        print(self.reason_for_referral)
         # If no referral field, set null for the pipelines that will otherwise crash
         if self.reason_for_referral == "":
             referral = "null"
