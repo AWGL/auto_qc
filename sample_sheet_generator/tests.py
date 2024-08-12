@@ -1,27 +1,31 @@
-#import unittest
 from collections import OrderedDict
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.test import TestCase
-from sample_sheet_generator.utils import Assay, GlimsSample
+from sample_sheet_generator.utils import Assay, GlimsSample, Referral
 
 class TestGlimsSample(TestCase):
 
-    fixtures = ["sample_sheet_generator/fixtures/assays.json"]
+    fixtures = ["sample_sheet_generator/test_data/test_fixtures/assays.json", "sample_sheet_generator/test_data/test_fixtures/referrals.json"]
     
     def setUp(self):
 
         self.sample = OrderedDict([("LABNO", "24-1331-A-02-01"), ("POSITION", "12"), ("WORKSHEET", "24-TSOSEQ-29"), ("TEST", "TSO500RNA"), 
-                                   ("COMMENTS", ""), ("UPDATEDDATE", ""), ("REASON_FOR_REFERRAL", "M1"), ("FIRSTNAME", ""), ("LASTNAME", ""), 
+                                   ("COMMENTS", ""), ("UPDATEDDATE", ""), ("REASON_FOR_REFERRAL", ""), ("FIRSTNAME", ""), ("LASTNAME", ""), 
+                                   ("SEX", "F"), ("INDEX_WELL", "A-B4"), ("I5_INDEX", "UDP0012"), ("I5_SEQ", "CGCTCCACGA"), ("I7_INDEX", "UDP0012"), 
+                                   ("I7_SEQ", "GAACTGAGCG"), ("AFFECTED", "affected"), ("FAMILY_ID", "FAM001"), ("FAMILY_POS", "Proband"), ("HPO_TERMS", "HPO1;HPO2"), ("ROUTINE", "R")])
+        self.sample_wes = OrderedDict([("LABNO", "24-1331-A-02-01"), ("POSITION", "12"), ("WORKSHEET", "24-WESSEQ-29"), ("TEST", "WES"), 
+                                   ("COMMENTS", ""), ("UPDATEDDATE", ""), ("REASON_FOR_REFERRAL", "R27,R59"), ("FIRSTNAME", ""), ("LASTNAME", ""), 
                                    ("SEX", "F"), ("INDEX_WELL", "A-B4"), ("I5_INDEX", "UDP0012"), ("I5_SEQ", "CGCTCCACGA"), ("I7_INDEX", "UDP0012"), 
                                    ("I7_SEQ", "GAACTGAGCG"), ("AFFECTED", "affected"), ("FAMILY_ID", "FAM001"), ("FAMILY_POS", "Proband"), ("HPO_TERMS", "HPO1;HPO2"), ("ROUTINE", "R")])
 
     def test_create_glims_sample(self):
         self.maxDiff = None
         assay = Assay.objects.get(pk="TSO500RNA")
-        expected_dict = {"lab_no": "24-1331-A-02-01", "position": "12", "worksheet": "24-TSOSEQ-29", "test": "TSO500RNA", "reason_for_referral": "M1", 
+        expected_dict = {"lab_no": "24-1331-A-02-01", "position": "12", "worksheet": "24-TSOSEQ-29", "test": "TSO500RNA", "reason_for_referral": "", 
                          "sex": "F", "index_well": "A-B4", "i5_index": "UDP0012", "i5_seq": "CGCTCCACGA", "i7_index": "UDP0012", "i7_seq": "GAACTGAGCG", 
                          "affected": "affected", "family_id": "FAM001", "family_pos": "Proband", "hpo_terms": "HPO1;HPO2", "urgency": "R", "assay": assay,
                          "header_line": "Sample_ID,Sample_Plate,Sample_Well,Index_ID,index,index2,Sample_Name,Pair_ID,Sample_Type,Description",
-                         "samplesheet_line": "24-1331-A-02-01,24-TSOSEQ-29-TSO500RNA,A-B4,UDP0012,GAACTGAGCG,CGCTCCACGA,24-1331-A-02-01,24-1331-A-02-01,RNA,pipelineName=TSO500;pipelineVersion=master;referral=M1"}
+                         "samplesheet_line": "24-1331-A-02-01,24-TSOSEQ-29-TSO500RNA,A-B4,UDP0012,GAACTGAGCG,CGCTCCACGA,24-1331-A-02-01,24-1331-A-02-01,RNA,pipelineName=TSO500;pipelineVersion=master;referral=null"}
         glims_sample = GlimsSample(self.sample)
         self.assertEqual(expected_dict, glims_sample.__dict__)
 
@@ -72,9 +76,60 @@ class TestGlimsSample(TestCase):
         self.assertEqual(parsed_worksheet, "24-WGSSEQ-30")
 
     def test_parse_referral(self):
-        #TODO unit tests for this
         self.maxDiff = None
-        pass
+
+        # check null referrals
+        # check nothing as referrral
+        null_referral_sample = GlimsSample(self.sample_wes)
+        null_referral_sample.reason_for_referral = ""
+        referral, additional_referrals = null_referral_sample.parse_referral()
+        self.assertEqual(referral, "null")
+        self.assertEqual(additional_referrals, "")
+
+        # check null as referral
+        null_referral_sample.reason_for_referral = "Null"
+        referral, additional_referrals = null_referral_sample.parse_referral()
+        self.assertEqual(referral, "null")
+        self.assertEqual(additional_referrals, "")
+
+        # check configured referrals
+        # check single configured referral is returned correctly
+        single_referral_sample = GlimsSample(self.sample_wes)
+        single_referral_sample.reason_for_referral = "R59"       
+        referral, additional_referrals = single_referral_sample.parse_referral()
+        self.assertEqual(referral, "genetic_epilepsy_syndromes_green")
+        self.assertEqual(additional_referrals, "")
+
+        # check multiple configured referrals are returned correctly
+        multiple_referral_sample = GlimsSample(self.sample_wes)
+        referral, additional_referrals = multiple_referral_sample.parse_referral()
+        self.assertEqual(referral, "paediatric_disorders_green_wes")
+        self.assertEqual(additional_referrals, "genetic_epilepsy_syndromes_green")
+
+        # check for MultipleObjectsReturned error if too many referrals configured
+        wes = Assay.objects.get(assay="WES")
+        new_referral = Referral.objects.create(referral_code="R59", referral_for_pipeline="genetic_epilepsy_syndromes_green_wes")
+        new_referral.assay.add(wes)
+        # check for single sample referral
+        with self.assertRaises(MultipleObjectsReturned) as context:
+            referral, additional_referrals = single_referral_sample.parse_referral()
+            self.assertEqual(context.exception, "More than one referral configured for R59 on WES. Contact bioinformatics.")
+        # check for multiple sample referrals
+        with self.assertRaises(MultipleObjectsReturned) as context:
+            referral, additional_referrals = multiple_referral_sample.parse_referral()
+            self.assertEqual(context.exception, "More than one referral configured for R59 on WES. Contact bioinformatics.")
+        
+        # check ObjectDoesNotExist error returned if referral not configured
+        # check for single sample referral
+        single_referral_sample.reason_for_referral = "R10"
+        with self.assertRaises(ObjectDoesNotExist) as context:
+            referral, additional_referrals = single_referral_sample.parse_referral()
+            self.assertEqual(context.exception, "No referral configured for R10 on WES. Contact bioinformatics.")
+        # check for multiple sample referral
+        multiple_referral_sample.reason_for_referral = "R27,R10"
+        with self.assertRaises(ObjectDoesNotExist) as context:
+            referral, additional_referrals = multiple_referral_sample.parse_referral()
+            self.assertEqual(context.exception, "No referral configured for R10 on WES. Contact bioinformatics.")
 
     def test_parse_sex(self):
         self.maxDiff = None
@@ -298,7 +353,7 @@ class TestGlimsSample(TestCase):
         sample["TEST"] = "TSO500DNA"
         sample_obj = GlimsSample(sample)
         samplesheet_line = sample_obj.create_samplesheet_line()
-        expected_line = "24-1331-A-02-01,24-TSOSEQ-29-TSO500DNA,A-B4,UDP0012,GAACTGAGCG,CGCTCCACGA,24-1331-A-02-01,24-1331-A-02-01,DNA,pipelineName=TSO500;pipelineVersion=master;referral=M1"
+        expected_line = "24-1331-A-02-01,24-TSOSEQ-29-TSO500DNA,A-B4,UDP0012,GAACTGAGCG,CGCTCCACGA,24-1331-A-02-01,24-1331-A-02-01,DNA,pipelineName=TSO500;pipelineVersion=master;referral=null"
         self.assertEqual(expected_line, samplesheet_line)
 
     def test_create_samplesheet_line_tso500rna(self):
@@ -306,7 +361,7 @@ class TestGlimsSample(TestCase):
         sample = self.sample
         sample_obj = GlimsSample(sample)
         samplesheet_line = sample_obj.create_samplesheet_line()
-        expected_line = "24-1331-A-02-01,24-TSOSEQ-29-TSO500RNA,A-B4,UDP0012,GAACTGAGCG,CGCTCCACGA,24-1331-A-02-01,24-1331-A-02-01,RNA,pipelineName=TSO500;pipelineVersion=master;referral=M1"
+        expected_line = "24-1331-A-02-01,24-TSOSEQ-29-TSO500RNA,A-B4,UDP0012,GAACTGAGCG,CGCTCCACGA,24-1331-A-02-01,24-1331-A-02-01,RNA,pipelineName=TSO500;pipelineVersion=master;referral=null"
         self.assertEqual(expected_line, samplesheet_line)
 
     def test_create_samplesheet_line_ctdna(self):
@@ -315,7 +370,7 @@ class TestGlimsSample(TestCase):
         sample["TEST"] = "TSO500CTDNA"
         sample_obj = GlimsSample(sample)
         samplesheet_line = sample_obj.create_samplesheet_line()
-        expected_line = "24-1331-A-02-01,24-TSOSEQ-29-ctDNA,12,UDP0012,GAACTGAGCG,UDP0012,CGCTCCACGA,24-1331-A-02-01,24-1331-A-02-01,DNA,pipelineName=tso500_ctdna;pipelineVersion=master;referral=M1"
+        expected_line = "24-1331-A-02-01,24-TSOSEQ-29-ctDNA,12,UDP0012,GAACTGAGCG,UDP0012,CGCTCCACGA,24-1331-A-02-01,24-1331-A-02-01,DNA,pipelineName=tso500_ctdna;pipelineVersion=master;referral=null"
         self.assertEqual(expected_line, samplesheet_line)
 
     def test_create_samplesheet_line_brca(self):
@@ -360,7 +415,7 @@ class TestGlimsSample(TestCase):
         sample["TEST"] = "WES"
         sample_obj = GlimsSample(sample)
         samplesheet_line = sample_obj.create_samplesheet_line()
-        expected_line = "24-1331-A-02-01,24-TSOSEQ-29,A-B4,UDP0012,GAACTGAGCG,UDP0012,CGCTCCACGA,,pipelineName=DragenGE;pipelineVersion=master;panel=NonocusWES38;sex=2;order=12;referral=M1;hpoId=HPO1|HPO2;familyId=FAM001;paternalId=FAM001-father;maternalId=FAM001-mother;phenotype=2"
+        expected_line = "24-1331-A-02-01,24-TSOSEQ-29,A-B4,UDP0012,GAACTGAGCG,UDP0012,CGCTCCACGA,,pipelineName=DragenGE;pipelineVersion=master;panel=NonocusWES38;sex=2;order=12;referral=null;hpoId=HPO1|HPO2;familyId=FAM001;paternalId=FAM001-father;maternalId=FAM001-mother;phenotype=2"
         self.assertEqual(expected_line, samplesheet_line)
 
     def test_create_samplesheet_line_wgs(self):
@@ -369,7 +424,7 @@ class TestGlimsSample(TestCase):
         sample["TEST"] = "WGS"
         sample_obj = GlimsSample(sample)
         samplesheet_line = sample_obj.create_samplesheet_line()
-        expected_line = "24-1331-A-02-01,24-TSOSEQ-29,12,UDP0012,GAACTGAGCG,UDP0012,CGCTCCACGA,,pipelineName=DragenWGS;pipelineVersion=master;panel=WGS;sex=2;order=12;referral=M1;hpoId=HPO1|HPO2;familyId=FAM001;paternalId=FAM001-father;maternalId=FAM001-mother;phenotype=2"
+        expected_line = "24-1331-A-02-01,24-TSOSEQ-29,12,UDP0012,GAACTGAGCG,UDP0012,CGCTCCACGA,,pipelineName=DragenWGS;pipelineVersion=master;panel=WGS;sex=2;order=12;referral=null;hpoId=HPO1|HPO2;familyId=FAM001;paternalId=FAM001-father;maternalId=FAM001-mother;phenotype=2"
         self.assertEqual(expected_line, samplesheet_line)
     
     def test_create_samplesheet_line_fastwgs(self):
@@ -379,7 +434,7 @@ class TestGlimsSample(TestCase):
         sample["ROUTINE"] = "U"
         sample_obj = GlimsSample(sample)
         samplesheet_line = sample_obj.create_samplesheet_line()
-        expected_line = "24-1331-A-02-01,24-TSOSEQ-29,12,UDP0012,GAACTGAGCG,UDP0012,CGCTCCACGA,,pipelineName=DragenWGS;pipelineVersion=master;panel=FastWGS;sex=2;order=12;referral=M1;hpoId=HPO1|HPO2;familyId=FAM001;paternalId=FAM001-father;maternalId=FAM001-mother;phenotype=2"
+        expected_line = "24-1331-A-02-01,24-TSOSEQ-29,12,UDP0012,GAACTGAGCG,UDP0012,CGCTCCACGA,,pipelineName=DragenWGS;pipelineVersion=master;panel=FastWGS;sex=2;order=12;referral=null;hpoId=HPO1|HPO2;familyId=FAM001;paternalId=FAM001-father;maternalId=FAM001-mother;phenotype=2"
         self.assertEqual(expected_line, samplesheet_line)
 
     def tearDown(self):
