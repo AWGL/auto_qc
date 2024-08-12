@@ -61,13 +61,12 @@ class GlimsSample:
         Split the referrals list and return the pipeline referrals
         """
         # If no referral field, set null for the pipelines that will otherwise crash
-        if self.reason_for_referral == "":
+        if self.reason_for_referral == "" or self.reason_for_referral.lower() == "null":
             referral = "null"
             additional_referrals = ""
             return referral, additional_referrals
 
         # A sample may have multiple NGS referrals, these will be a comma separated list
-        #TODO can a constitutional case have multiple referrals? Will need to update variantbank
         referrals = self.reason_for_referral.split(",")
         # We'll have a primary (the first one in the list) referral and potentially additional referrals
         # Main referral is going to have to be the first one in the list
@@ -76,10 +75,10 @@ class GlimsSample:
             referral = referral_query.referral_for_pipeline
         except MultipleObjectsReturned:
             # if this query returns more than one, the referrals have been set up wrong
-            raise MultipleObjectsReturned(f"More than one referral configured for {self.referrals[0]} on {self.assay}. Contact bioinformatics.")
+            raise MultipleObjectsReturned(f"More than one referral configured for {referrals[0]} on {self.assay}. Contact bioinformatics.")
         except ObjectDoesNotExist:
             # if nothing is returned, this referral has not been set up
-            raise ObjectDoesNotExist(f"No referral configured for {self.reason_for_referral} on {self.assay}. Contact bioinformatics.")
+            raise ObjectDoesNotExist(f"No referral configured for {referrals[0]} on {self.assay}. Contact bioinformatics.")
         
         # if we've only got one referral, return nothing for the additional fields
         if len(referrals) == 1:
@@ -95,10 +94,10 @@ class GlimsSample:
             # if this query returns more than one, the referrals have been set up wrong
             except MultipleObjectsReturned:
             # if this query returns more than one, the referrals have been set up wrong
-                raise MultipleObjectsReturned(f"More than one referral configured for {self.referrals[0]} on {self.assay}. Contact bioinformatics.")
+                raise MultipleObjectsReturned(f"More than one referral configured for {r} on {self.assay}. Contact bioinformatics.")
             except ObjectDoesNotExist:
             # if nothing is returned, this referral has not been set up
-                raise ObjectDoesNotExist(f"No referral configured for {self.reason_for_referral} on {self.assay}. Contact bioinformatics.")               
+                raise ObjectDoesNotExist(f"No referral configured for {r} on {self.assay}. Contact bioinformatics.")               
         additional_referrals = "|".join(additional_referrals_list)
         
         return referral, additional_referrals
