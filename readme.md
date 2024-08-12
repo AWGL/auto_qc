@@ -89,7 +89,7 @@ python manage.py runserver
 python manage.py createsuperuser
 ```
 
-## Adding fixtures to the SampleSheet Generator 
+## Adding fixtures to the Shire SampleSheet Generator 
 
 ```
 python manage.py loaddata sample_sheet/fixtures/referraltype.json 
@@ -100,6 +100,14 @@ python manage.py dumpdata sample_sheet.assay > sample_sheet/fixtures/assay.json
 python manage.py dumpdata sample_sheet.referraltype > sample_sheet/fixtures/referraltype.json
 
 ```
+
+## Adding fixtures to the GLIMS SampleSheet Generator
+The following fixtures need loading for the SampleSheet generator to work correctly. New referrals will need adding to the models.
+```
+python manage.py loaddata sample_sheet_generator/fixtures/assays.json
+python manage.py loaddata sample_sheet_generator/fixtures/assays.json
+```
+
 
 ## Schema
 Database schema are available for:
