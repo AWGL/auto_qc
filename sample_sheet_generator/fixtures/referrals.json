@@ -3,27 +3,38 @@
         "model": "sample_sheet_generator.referral",
         "pk": 1,
         "fields": {
-            "referral_code": "R27",
-            "referral_for_pipeline": "paediatric_disorders_green",
-            "assay": ["WGS", "FastWGS"]
+            "referral_code": "N218",
+            "referral_for_pipeline": "prostate",
+            "assay": ["ctDNA"]
         }
     },
     {
         "model": "sample_sheet_generator.referral",
         "pk": 2,
         "fields": {
-            "referral_code": "R27",
-            "referral_for_pipeline": "paediatric_disorders_green_wes",
-            "assay": ["WES"]
+            "referral_code": "N226",
+            "referral_for_pipeline": "tumour",
+            "assay": ["ctDNA"]
         }
     },
     {
         "model": "sample_sheet_generator.referral",
         "pk": 3,
         "fields": {
-            "referral_code": "R59",
-            "referral_for_pipeline": "genetic_epilepsy_syndromes_green",
-            "assay": ["FastWGS", "WGS", "WES"]
+            "referral_code": "N4",
+            "referral_for_pipeline": "lung",
+            "assay": ["ctDNA"]
+        }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 4,
+        "fields": {
+            "referral_code": "N970",
+            "referral_for_pipeline": "breast",
+            "assay": ["ctDNA"]
         }
     }
+
+
 ]
