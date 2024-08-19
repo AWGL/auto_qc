@@ -34,6 +34,105 @@
             "referral_for_pipeline": "breast",
             "assay": ["ctDNA"]
         }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 5,
+        "fields": {
+            "referral_code": "M7",
+            "referral_for_pipeline": "melanoma",
+            "assay": ["TSO500DNA", "TSO500RNA", "CRM"]
+        }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 6,
+        "fields": {
+            "referral_code": "M8",
+            "referral_for_pipeline": "gist",
+            "assay": ["TSO500DNA", "CRM"]
+        }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 7,
+        "fields": {
+            "referral_code": "M9",
+            "referral_for_pipeline": "thyroid",
+            "assay": ["TSO500DNA", "TSO500RNA", "CRM"]
+        }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 8,
+        "fields": {
+            "referral_code": "M10",
+            "referral_for_pipeline": "thyroid",
+            "assay": ["TSO500DNA", "CRM"]
+        }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 9,
+        "fields": {
+            "referral_code": "M11",
+            "referral_for_pipeline": "thyroid",
+            "assay": ["TSO500DNA", "TSO500RNA", "CRM"]
+        }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 10,
+        "fields": {
+            "referral_code": "M12",
+            "referral_for_pipeline": "thyroid",
+            "assay": ["TSO500DNA", "CRM"]
+        }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 11,
+        "fields": {
+            "referral_code": "M239",
+            "referral_for_pipeline": "thyroid",
+            "assay": ["TSO500DNA", "CRM"]
+        }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 12,
+        "fields": {
+            "referral_code": "M240",
+            "referral_for_pipeline": "thyroid",
+            "assay": ["TSO500DNA", "CRM"]
+        }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 13,
+        "fields": {
+            "referral_code": "M220",
+            "referral_for_pipeline": "cholangiocarcinoma",
+            "assay": ["TSO500RNA"]
+        }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 14,
+        "fields": {
+            "referral_code": "M94",
+            "referral_for_pipeline": "cll",
+            "assay": ["TSO500DNA"]
+        }
+    },
+    {
+        "model": "sample_sheet_generator.referral",
+        "pk": 15,
+        "fields": {
+            "referral_code": "M111",
+            "referral_for_pipeline": "aitcl",
+            "assay": ["TSO500DNA"]
+        }
     }
 
 
