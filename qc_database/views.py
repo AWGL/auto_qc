@@ -10,6 +10,10 @@ from qc_database.models import *
 from qc_database.forms import *
 from qc_database.utils.kpi import make_kpi_excel
 
+from rest_framework import generics
+from .models import SampleAnalysis, RunAnalysis
+from .serializers import SampleAnalysisSerializer, RunAnalysisSerializer
+
 from datetime import datetime as dt
 
 
@@ -307,7 +311,14 @@ def ngs_kpis(request):
 
 	return render(request, 'auto_qc/ngs_kpis.html', {'form': form})
 
+class SampleAnalysisList(generics.ListAPIView):
+	queryset = SampleAnalysis.objects.all()
+	serializer_class = SampleAnalysisSerializer
 
+
+class RunAnalysisList(generics.ListAPIView):
+	queryset = RunAnalysis.objects.all()
+	serializer_class = RunAnalysisSerializer
 
 
 

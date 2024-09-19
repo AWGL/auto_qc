@@ -11,11 +11,13 @@ dependencies:
   - psycopg2=2.8
   - pip=20
   - openpyxl=3
+  - pysam
   - pip:
     - django-crispy-forms==1.7.2
     - django-auditlog==0.4.5
     - interop==1.1.4
     - xmltodict==0.12.0
     - pyyaml==5.1.2
-    - pysam==0.15.3
+    - djangorestframework==3.14.0
+
 
