@@ -11,7 +11,6 @@ from qc_database.forms import *
 from qc_database.utils.kpi import make_kpi_excel
 
 from rest_framework import generics
-from django_filters import rest_framework as filters
 from .models import SampleAnalysis, RunAnalysis
 from .serializers import SampleAnalysisSerializer, RunAnalysisSerializer
 
