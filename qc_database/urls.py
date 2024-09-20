@@ -16,6 +16,6 @@ urlpatterns = [
     path('run-analyses/', RunAnalysisList.as_view(), name='run-analysis-list'),
     path('api/', SampleAnalysisList.as_view(), name='all-sample-analyses'),
     path('api/pipelines/<str:pipeline>/', SampleAnalysisList.as_view(), name='sample-analysis-by-pipeline'),
-    path('api/pipelines/<str:pipeline>/runs/<str:run>/', SampleAnalysisList.as_view(), name='sample-analysis-by-pipeline'),
-    path('api/pipelines/<str:pipeline>/runs/<str:run>/samples/<str:sample>', SampleAnalysisList.as_view(), name='sample-analysis-by-pipeline'),
+    path('api/pipelines/<str:pipeline>/runs/<str:run>/', SampleAnalysisList.as_view(), name='sample-analysis-by-run'),
+    path('api/pipelines/<str:pipeline>/runs/<str:run>/samples/<str:sample>', SampleAnalysisList.as_view(), name='sample-analysis-by-sample'),
 ]
