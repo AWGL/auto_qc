@@ -11,6 +11,7 @@ from qc_database.forms import *
 from qc_database.utils.kpi import make_kpi_excel
 
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
 from .models import SampleAnalysis, RunAnalysis
 from .serializers import SampleAnalysisSerializer, RunAnalysisSerializer
 
@@ -317,6 +318,7 @@ class SampleAnalysisList(generics.ListAPIView):
 	REST API filters Sample Analysis objects by pipeline, run and sample
 	"""
 	serializer_class = SampleAnalysisSerializer
+	permission_classes = [IsAuthenticated]
 
 	def get_queryset(self):
 		pipeline_name = self.kwargs.get('pipeline')

@@ -3,6 +3,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from auditlog.registry import auditlog
 from auditlog.models import AuditlogHistoryField
+from django.contrib.auth.models import User
+import secrets
 
 class Instrument(models.Model):
 	"""
@@ -2005,6 +2007,20 @@ class DragenCNVMetrics(models.Model):
 	number_of_passing_amplifications = models.IntegerField(null=True, blank=True)
 	number_of_passing_deletions = models.IntegerField(null=True, blank=True)
 
+
+class APIKey(models.Model):
+    key = models.CharField(max_length=255, unique=True)  # API key itself
+    created_at = models.DateTimeField(auto_now_add=True)  # When the key was created
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Associated user
+    is_active = models.BooleanField(default=True)  # Whether the key is active
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = secrets.token_hex(32)  # Generate key if not provided
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.key
 
 auditlog.register(RunAnalysis)
 auditlog.register(SampleAnalysis)
