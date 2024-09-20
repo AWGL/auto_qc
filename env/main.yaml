@@ -12,6 +12,7 @@ dependencies:
   - pip=20
   - openpyxl=3
   - pysam
+  - httpie
   - pip:
     - django-crispy-forms==1.7.2
     - django-auditlog==0.4.5
