@@ -312,18 +312,21 @@ def ngs_kpis(request):
 
 	return render(request, 'auto_qc/ngs_kpis.html', {'form': form})
 
-class SampleAnalysisList(generics.ListAPIView):
-	queryset = SampleAnalysis.objects.all()
-	serializer_class = SampleAnalysisSerializer
 
-class SampleAnalysisByPipeline(generics.ListAPIView):
+class SampleAnalysisList(generics.ListAPIView):
 	serializer_class = SampleAnalysisSerializer
 
 	def get_queryset(self):
 		pipeline_name = self.kwargs.get('pipeline')
+		run_name = self.kwargs.get('run')
+		sample_name = self.kwargs.get('sample')
 		queryset = SampleAnalysis.objects.all()
 		if pipeline_name:
 			queryset = queryset.filter(pipeline=pipeline_name)
+		if run_name:
+			queryset = queryset.filter(run=run_name)
+		if sample_name:
+			queryset = queryset.filter(sample=sample_name)
 		return queryset
 
 

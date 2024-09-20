@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import SampleAnalysisList, RunAnalysisList, SampleAnalysisByPipeline
+from .views import RunAnalysisList, SampleAnalysisList
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -13,7 +13,9 @@ urlpatterns = [
     path('archived/', views.view_archived_run_analysis, name='view_archived_run_analysis'),
     path('ngs_kpis/', views.ngs_kpis, name='ngs_kpis'),
     path('search/', views.search, name='search'),
-    path('sample-analyses/', SampleAnalysisList.as_view(), name='sample-analysis-list'),
     path('run-analyses/', RunAnalysisList.as_view(), name='run-analysis-list'),
-    path('pipelines/<str:pipeline>/', SampleAnalysisByPipeline.as_view(), name='sample-analysis-by-pipeline'),
+    path('api/', SampleAnalysisList.as_view(), name='all-sample-analyses'),
+    path('api/pipelines/<str:pipeline>/', SampleAnalysisList.as_view(), name='sample-analysis-by-pipeline'),
+    path('api/pipelines/<str:pipeline>/runs/<str:run>/', SampleAnalysisList.as_view(), name='sample-analysis-by-pipeline'),
+    path('api/pipelines/<str:pipeline>/runs/<str:run>/samples/<str:sample>', SampleAnalysisList.as_view(), name='sample-analysis-by-pipeline'),
 ]
