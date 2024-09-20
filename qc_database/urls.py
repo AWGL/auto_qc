@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import SampleAnalysisList, RunAnalysisList
+from .views import SampleAnalysisList, RunAnalysisList, SampleAnalysisByPipeline
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -15,4 +15,5 @@ urlpatterns = [
     path('search/', views.search, name='search'),
     path('sample-analyses/', SampleAnalysisList.as_view(), name='sample-analysis-list'),
     path('run-analyses/', RunAnalysisList.as_view(), name='run-analysis-list'),
+    path('pipelines/<str:pipeline>/', SampleAnalysisByPipeline.as_view(), name='sample-analysis-by-pipeline'),
 ]

@@ -118,6 +118,7 @@ class Sample(models.Model):
 
 		return False
 
+
 class Pipeline(models.Model):
 	"""
 	A pipeline - should be pipelinename + version
@@ -1931,7 +1932,8 @@ class Tso500Reads(models.Model):
 	percent_ntc_reads = models.IntegerField(null=True)
 	aligned_reads=models.IntegerField(null=True)
 	percent_ntc_contamination=models.IntegerField(null=True)
-	
+
+
 class ctDNAReads(models.Model):
 	"""
 	Parsed read numbers from ctDNA samples
@@ -1981,7 +1983,8 @@ class CNVMetrics(models.Model):
 	exome_depth_count = models.IntegerField(null=True)
 	exome_depth_autosomal_reference_count = models.IntegerField(null=True)
 	exome_depth_x_reference_count = models.IntegerField(null=True)
-	
+
+
 class DragenCNVMetrics(models.Model):
 	"""
 	Model for sample level CNV calling metrics from DragenWGS

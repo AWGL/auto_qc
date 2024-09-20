@@ -11,6 +11,7 @@ from qc_database.forms import *
 from qc_database.utils.kpi import make_kpi_excel
 
 from rest_framework import generics
+from django_filters import rest_framework as filters
 from .models import SampleAnalysis, RunAnalysis
 from .serializers import SampleAnalysisSerializer, RunAnalysisSerializer
 
@@ -314,6 +315,16 @@ def ngs_kpis(request):
 class SampleAnalysisList(generics.ListAPIView):
 	queryset = SampleAnalysis.objects.all()
 	serializer_class = SampleAnalysisSerializer
+
+class SampleAnalysisByPipeline(generics.ListAPIView):
+	serializer_class = SampleAnalysisSerializer
+
+	def get_queryset(self):
+		pipeline_name = self.kwargs.get('pipeline')
+		queryset = SampleAnalysis.objects.all()
+		if pipeline_name:
+			queryset = queryset.filter(pipeline=pipeline_name)
+		return queryset
 
 
 class RunAnalysisList(generics.ListAPIView):
