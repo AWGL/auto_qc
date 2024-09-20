@@ -313,6 +313,9 @@ def ngs_kpis(request):
 
 
 class SampleAnalysisList(generics.ListAPIView):
+	"""
+	REST API filters Sample Analysis objects by pipeline, run and sample
+	"""
 	serializer_class = SampleAnalysisSerializer
 
 	def get_queryset(self):
@@ -330,8 +333,18 @@ class SampleAnalysisList(generics.ListAPIView):
 
 
 class RunAnalysisList(generics.ListAPIView):
-	queryset = RunAnalysis.objects.all()
+	"""
+	REST API filters Run Analysis objects by run
+	"""
 	serializer_class = RunAnalysisSerializer
+
+	# May want to also filter by analysis_type, e.g. TSO500_DNA or TSO500_RNA
+	def get_queryset(self):
+		run_name = self.kwargs.get('run')
+		queryset = RunAnalysis.objects.all()
+		if run_name:
+			queryset = queryset.filter(run=run_name)
+		return queryset
 
 
 
