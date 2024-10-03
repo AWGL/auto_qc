@@ -4,6 +4,13 @@ It contains all changes from 2024-07-09 onwards
 
 ## [Unreleased]
 
+## [v2.0.1] - 11/07/2024
+
+### Added
+
+- Update config for CRM now going into SVD
+- Update min and max variants in FH config
+
 ## [v2.0.0] - 11/07/2024
 
 ### Added
