@@ -316,7 +316,10 @@ def ngs_kpis(request):
 class SampleAnalysisList(generics.ListAPIView):
 	"""
 	REST API filters Sample Analysis objects by pipeline, run and sample
+	Access using:
+	http GET http://<URL> 'Accept: application/json' 'Authorization: <api-key>'
 	"""
+
 	serializer_class = SampleAnalysisSerializer
 	permission_classes = [IsAuthenticated]
 
@@ -336,12 +339,14 @@ class SampleAnalysisList(generics.ListAPIView):
 
 class RunAnalysisList(generics.ListAPIView):
 	"""
-	REST API filters Run Analysis objects by run
+	REST API filters Run Analysis objects by run.
+	Access using:
+	http GET http://<URL> 'Accept: application/json' 'Authorization: <api-key>'
 	"""
 	serializer_class = RunAnalysisSerializer
  	permission_classes = [IsAuthenticated]
 
-	# May want to also filter by analysis_type, e.g. TSO500_DNA or TSO500_RNA
+	# Will want to further filter by analysis_type, e.g. TSO500_DNA or TSO500_RNA
 	def get_queryset(self):
 		run_name = self.kwargs.get('run')
 		queryset = RunAnalysis.objects.all()
