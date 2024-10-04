@@ -339,6 +339,7 @@ class RunAnalysisList(generics.ListAPIView):
 	REST API filters Run Analysis objects by run
 	"""
 	serializer_class = RunAnalysisSerializer
+ 	permission_classes = [IsAuthenticated]
 
 	# May want to also filter by analysis_type, e.g. TSO500_DNA or TSO500_RNA
 	def get_queryset(self):
