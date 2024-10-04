@@ -8,6 +8,7 @@ It contains all changes from 2024-07-09 onwards
 
 ### Fixed
 - Hotfix, commas missing from config file
+- Hotfix, BRCA does not produce _intersect.txt
 
 ## [v2.0.1] - 03/10/2024
 
