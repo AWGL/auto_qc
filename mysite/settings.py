@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 	'crispy_forms',
 	'auditlog',
 	'sample_sheet.apps.SampleSheetConfig',
+	'rest_framework',
 ]
 MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',
@@ -185,3 +186,10 @@ with open(HPO_FILEPATH) as file:
 			alt_id = line.split('alt_id:')[1].strip()
 			
 			HPO_TERMS_DICT[alt_id] = name
+
+# Use custom authentication class
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'qc_database.authentication.APIKeyAuthentication',
+    ],
+}
