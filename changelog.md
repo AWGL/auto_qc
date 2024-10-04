@@ -4,10 +4,14 @@ It contains all changes from 2024-07-09 onwards
 
 ## [Unreleased]
 
-## [v2.0.1] - 11/07/2024
+## [v2.0.2] - 04/10/2024
+
+### Fixed
+- Hotfix, commas missing from config file
+
+## [v2.0.1] - 03/10/2024
 
 ### Added
-
 - Update config for CRM now going into SVD
 - Update min and max variants in FH config
 
