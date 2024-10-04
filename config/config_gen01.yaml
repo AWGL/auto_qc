@@ -15,8 +15,8 @@ pipelines:
                   '*_QC.txt',
                   '*_filtered_meta_annotated.vcf',
                   '*_cosmic.csv',
-                  '*_intersect.txt'
-                  'hotspot_coverage'
+                  '*_intersect.txt',
+                  'hotspot_coverage',
                   '1_SomaticAmplicon.sh.e*'
                   ]
     sample_not_expected_files: ['*_fastqc.zip']
@@ -38,7 +38,6 @@ pipelines:
                   '*_QC.txt',
                   '*_filtered_meta_annotated.vcf',
                   '*_cosmic.csv',    
-                  '*_intersect.txt',
                   'hotspot_coverage',
                   '1_SomaticAmplicon.sh.e*'
                   ]
