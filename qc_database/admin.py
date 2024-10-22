@@ -36,3 +36,10 @@ class DragenCNVMetricsAdmin(admin.ModelAdmin):
 	raw_id_fields = ('sample_analysis',) 
 	
 admin.site.register(DragenCNVMetrics, DragenCNVMetricsAdmin)
+
+class APIKeyAdmin(admin.ModelAdmin):
+    list_display = ('key', 'created_at', 'user', 'is_active')
+    search_fields = ('key', 'user__username')
+    readonly_fields = ('key', 'created_at')
+
+admin.site.register(APIKey, APIKeyAdmin)
