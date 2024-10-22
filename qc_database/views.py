@@ -321,7 +321,7 @@ class SampleAnalysisList(generics.ListAPIView):
 	"""
 
 	serializer_class = SampleAnalysisSerializer
-	permission_classes = [IsAuthenticated]
+	#permission_classes = [IsAuthenticated]
 
 	def get_queryset(self):
 		pipeline_name = self.kwargs.get('pipeline')
