@@ -185,3 +185,12 @@ with open(HPO_FILEPATH) as file:
 			alt_id = line.split('alt_id:')[1].strip()
 			
 			HPO_TERMS_DICT[alt_id] = name
+
+# SampleSheet generator download location
+if deploy_location == 'gen01':
+
+	SSGEN_DOWNLOAD = '/mnt/wren/wren_temp/SampleSheets/'
+
+else:
+
+	SSGEN_DOWNLOAD = '/home/awmgs/SampleSheets/'
