@@ -849,13 +849,13 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 				#Save to webserver at set location
 				#get path from settings + type of sequencer
 				sequencer = worksheet_obj.sequencer
-				worksheet_id = worksheet_obj.worksheet_id
+				worksheet_folder = "_".join(worksheet_list)
 				initial_path = f'{settings.SSGEN_DOWNLOAD}/{sequencer}/'
 				#make worksheet sub-directory
-				cmd = f'mkdir -p {initial_path}/{worksheet_id}'
+				cmd = f'mkdir -p {initial_path}/{worksheet_folder}'
 				subprocess.check_output(cmd, shell=True, executable='/bin/bash')
 				#make final path
-				final_path = f'{initial_path}/{worksheet_id}/SampleSheet.csv'
+				final_path = f'{initial_path}/{worksheet_folder}/SampleSheet.csv'
 				#save to file
 				with open(final_path, mode='w') as f:
 					f.write(buffer.getvalue())
@@ -983,13 +983,13 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					#Save to webserver at set location
 					#get path from settings + type of sequencer
 					sequencer = worksheet_obj.sequencer
-					worksheet_id = worksheet_obj.worksheet_id
+					worksheet_folder = "_".join(worksheet_list)
 					initial_path = f'{settings.SSGEN_DOWNLOAD}/{sequencer}/'
 					#make worksheet sub-directory
-					cmd = f'mkdir -p {initial_path}/{worksheet_id}'
+					cmd = f'mkdir -p {initial_path}/{worksheet_folder}'
 					subprocess.check_output(cmd, shell=True, executable='/bin/bash')
 					#make final path
-					final_path = f'{initial_path}/{worksheet_id}/SampleSheet.csv'
+					final_path = f'{initial_path}/{worksheet_folder}/SampleSheet.csv'
 					#save to file
 					with open(final_path, mode='w') as f:
 						f.write(buffer.getvalue())
