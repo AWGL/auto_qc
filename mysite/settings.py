@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
-deploy_location = 'webserver'
+deploy_location = 'local'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -78,7 +78,9 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 # Database
 
-if deploy_location == 'gen01':
+if deploy_location == 'webserver':
+
+	URL_PREFIX = "autoqc/"
 
 	DB_PASSWORD_FILE = '/export/home/webapps/password.txt'
 	with open(DB_PASSWORD_FILE) as f:
@@ -97,6 +99,8 @@ if deploy_location == 'gen01':
 	}
 
 else:
+
+	URL_PREFIX = ""
 
 	DATABASES = {
 	'default': {
@@ -136,16 +140,21 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_URL = '/static/autoqc/'
+if deploy_location == "webserver":
+	STATIC_URL = '/static/autoqc/'
+	STATIC_ROOT = '/var/www/static/autoqc'
+
+else:
+	STATIC_URL = '/static/'
+
 STATICFILES_DIRS = [
 	os.path.join(BASE_DIR, "static"),
 ]
-STATIC_ROOT = '/var/www/static/autoqc'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 LOGIN_REDIRECT_URL = 'home_auto_qc'
-LOGIN_URL = '/autoqc/login/'
+LOGIN_URL = f'{URL_PREFIX}login/'
 
 
 MESSAGE_SLACK = False
