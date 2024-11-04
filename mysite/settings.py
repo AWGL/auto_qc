@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
-deploy_location = 'local'
+deploy_location = 'webserver'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -82,7 +82,7 @@ if deploy_location == 'webserver':
 
 	URL_PREFIX = "autoqc/"
 
-	DB_PASSWORD_FILE = '/export/home/webapps/password.txt'
+	DB_PASSWORD_FILE = '/u01/apps/autoqc/password.txt'
 	with open(DB_PASSWORD_FILE) as f:
 		db_password = f.readline().strip()
 
@@ -154,7 +154,7 @@ STATICFILES_DIRS = [
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 LOGIN_REDIRECT_URL = 'home_auto_qc'
-LOGIN_URL = f'{URL_PREFIX}login/'
+LOGIN_URL = f'/{URL_PREFIX}login/'
 
 
 MESSAGE_SLACK = False
