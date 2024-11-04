@@ -185,7 +185,7 @@ def view_worksheets(request, service_slug):
 	assay = get_object_or_404(Assay, assay_slug = service_slug)
 
 	# get all worksheets from selected service
-	worksheets = Worksheet.objects.filter(worksheet_test = assay).order_by('-worksheet_id')
+	worksheets = Worksheet.objects.filter(worksheet_test = assay).order_by('-upload_date')
 
 	ws_list = []
 
