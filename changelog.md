@@ -4,6 +4,14 @@ It contains all changes from 2024-07-09 onwards
 
 ## [Unreleased]
 
+## [v2.1.0] - 04/11/2024
+
+### Added
+- Ability to download samplesheet directly to Wren temp folder
+
+### Changed
+- Deployment config to run on webserver
+
 ## [v2.0.2] - 04/10/2024
 
 ### Fixed
