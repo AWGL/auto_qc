@@ -224,11 +224,11 @@ class Command(BaseCommand):
 
 				## format sex part. no semicolon in case its on a singleton/NTC
 				if values['Sex'] == 'Male':
-					sex_desc = 'sex$1'
+					sex_desc = 'sex=1'
 				elif values['Sex'] == 'Female':
-					sex_desc = 'sex$2'
+					sex_desc = 'sex=2'
 				else:
-					sex_desc = 'sex$0'
+					sex_desc = 'sex=0'
 
 				description_field = f'{description_dict[assay]}{sex_desc}'
 
@@ -287,11 +287,11 @@ class Command(BaseCommand):
 						assay_type = assays[1]
 
 					## create description field from assay_type variable for combined worksheets
-					description_field = f'{description_dict[assay_type]}ref${values["Referral"].replace("sec:familialcancer","null")}'
+					description_field = f'{description_dict[assay_type]}referral={values["Referral"].replace("sec:familialcancer","null")}'
 						
 				## use main assay variable for single worksheets
 				else:
-					description_field = f'{description_dict[assay]}ref${values["Referral"].replace("sec:familialcancer","null")}'
+					description_field = f'{description_dict[assay]}referall={values["Referral"].replace("sec:familialcancer","null")}'
 
 
 			elif assay == 'WES':
