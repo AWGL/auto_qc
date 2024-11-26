@@ -197,9 +197,9 @@ with open(HPO_FILEPATH) as file:
 			HPO_TERMS_DICT[alt_id] = name
 
 # SampleSheet generator download location
-if deploy_location == 'gen01':
+if deploy_location == 'webserver':
 
-	SSGEN_DOWNLOAD = '/mnt/wren/wren_temp/SampleSheets/'
+	SSGEN_DOWNLOAD = '/u01/apps/autoqc/samplesheet_downloads/SampleSheets/'
 
 else:
 
