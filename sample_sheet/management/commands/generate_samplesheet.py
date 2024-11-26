@@ -291,7 +291,7 @@ class Command(BaseCommand):
 						
 				## use main assay variable for single worksheets
 				else:
-					description_field = f'{description_dict[assay]}referall={values["Referral"].replace("sec:familialcancer","null")}'
+					description_field = f'{description_dict[assay]}referral={values["Referral"].replace("sec:familialcancer","null")}'
 
 
 			elif assay == 'WES':
