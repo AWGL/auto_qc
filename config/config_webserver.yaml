@@ -8,7 +8,7 @@ pipelines:
     qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 100000
     min_variants: 10
-    max_variants: 1000
+    max_variants: 300
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
@@ -31,7 +31,7 @@ pipelines:
     qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
     min_variants: 10
-    max_variants: 1000
+    max_variants: 300
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
