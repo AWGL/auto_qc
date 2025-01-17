@@ -29,7 +29,7 @@
 	<tr>
 		<td> {{sample.pk}} </td>
 		<td> {{sample.sample.sample_id}} </td>
-		<td> {{sample.run.run_id}} </td>
+		<td> <a href="{% url 'view_run_analysis' pk=sample.get_run_analysis.pk %}">{{sample.run.run_id}}</a></td>
 		<td> {{sample.worksheet.worksheet_id}} </td>
 		<td> {{sample.pipeline.pipeline_id}} </td>
 		<td> {{sample.analysis_type.analysis_type_id}} </td>
