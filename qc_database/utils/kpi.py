@@ -65,14 +65,15 @@ def make_kpi_excel(runs):
     panels = {
         'NGHS-102X': 'BRCA',
         'NGHS-101X': 'CRM',
-        'SMP2v3': 'CRUK',
-        'AgilentOGTFH': 'FH',
-        'TruSightMyeloid': 'Myeloid',
-        'NIPT': 'NIPT',
-        'RochePanCancer': 'PanCan',
-        'IlluminaTruSightOne': 'TSO',
+        'AgilentOGTFH': 'A_FH',
+        'TSO500_DNA': 'TSO500_DNA',
+        'TSO500_RNA': 'TSO500_RNA',
         'IlluminaTruSightCancer': 'TSC',
-        'NexteraDNAFlex': 'WGS'
+        'ctDNA': 'ctDNA',
+        'FastWGS': 'FastWGS',
+        'WGS': 'WGS',
+        'NonacusFH': 'NonacusFH',
+        'NonocusWES38': 'NonacusWES38'
     }
     
     # create sheet for each panel in panel dictionary
