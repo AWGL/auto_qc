@@ -178,7 +178,7 @@ pipelines:
     run_expected_files: ['RNA_QC_combined.txt', 'contamination-*.csv' ,'completed_samples.txt']
     metrics_file: ['RNA_QC_combined.txt']
 
-  DragenGE-master-INonocusWES38:
+  DragenGE-master-NonocusWES38:
     results_dir:  '/media/joseph/Storage/data/dragen_results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, coverage, relatedness, max_cnv_calls, min_average_coverage]
     min_q30_score: 0.75
