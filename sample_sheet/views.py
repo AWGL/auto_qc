@@ -5,19 +5,20 @@ from itertools import cycle, islice
 import numpy
 import subprocess
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.management import call_command
 from django.http import HttpResponse
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.forms import formset_factory
 from django.contrib.messages import get_messages
+from django.contrib import messages
 from sample_sheet.utils import import_worksheet_data
 from django import forms
 from django.conf import settings
 
 from sample_sheet.models import Assay, IndexSet, Worksheet, SampleToWorksheet, IndexToIndexSet, Index, Sample
-from .forms import TechSettingsForm, DownloadSamplesheetButton, EditIndexForm, uploadQuery, EditSampleNotesForm, ClinSciSignoffForm, ClinSciOpenWorksheetForm, TechteamSignoffForm, TechteamOpenWorksheetForm, EditSampleDetailsForm, ResetIndexForm, CreateFamilyForm, ClearFamilyForm, AdvancedDownloadForm
+from .forms import TechSettingsForm, DownloadSamplesheetButton, EditIndexForm, uploadQuery, EditSampleNotesForm, ClinSciSignoffForm, ClinSciOpenWorksheetForm, TechteamSignoffForm, TechteamOpenWorksheetForm, EditSampleDetailsForm, ResetIndexForm, CreateFamilyForm, ClearFamilyForm, AdvancedDownloadForm, ClearUrgentForm
 
 
 ########## home page ################
@@ -288,6 +289,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 		'reset_index_form' : ResetIndexForm(worksheet_obj=worksheet_obj),
 		'create_family_form' : CreateFamilyForm(worksheet_obj=worksheet_obj),
 		'clear_family_form' : ClearFamilyForm(worksheet_obj=worksheet_obj),
+		'clear_urgent_form' : ClearUrgentForm(worksheet_obj=worksheet_obj),
 		'advanced_download_form' : AdvancedDownloadForm(worksheet_obj=worksheet_obj),
 	}
 
@@ -445,33 +447,100 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 			sample_ws_obj = SampleToWorksheet.objects.get(id=request.POST['sample_details_obj'])
 			edit_details = EditSampleDetailsForm(request.POST, sample_details_obj=sample_ws_obj)
 			
+			# print(f"edit details = {edit_details}")
 			if edit_details.is_valid():
 
 				cleaned_data = edit_details.cleaned_data
+				print(f"cleaned_data = {cleaned_data}")
 
 				## edit urgency if changed
 				if cleaned_data['urgent'] != sample_ws_obj.urgent:
+
+					print(f'change in urgent for {sample_ws_obj}')
+
 					sample_ws_obj.urgent = cleaned_data['urgent']
 					sample_ws_obj.save()
 
-					## if the sample is now urgent, set up the NTC and the family members
-					if sample_ws_obj.urgent:
 
-						## Other family members need setting as urgent for FastWGS if the structure is set up
+					## Other family members need changing to match urgency if the structure is set up
+					if sample_ws_obj.sample.familyid:
+						family = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__familyid=sample_ws_obj.sample.familyid)
+
+						print('setting all as urgent in family', family)
+
+						for member in family:
+							member.urgent = cleaned_data['urgent']
+							member.save()
+
+					## NTC also needs setting as urgent for FastWGS
+					ntc = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__sampleid__startswith="NTC")
+					sample_objs = SampleToWorksheet.objects.exclude(worksheet=sample_ws_obj.worksheet, sample__sampleid__startswith="NTC")
+					sample_objs_urgent = sample_objs.filter(urgent=True)
+
+					## sense check - there should only be one NTC
+					if len(ntc) == 1:
+						ntc[0].urgent = True
+						ntc[0].save()
+					else:
+						print("Error! There should be 1 NTC per worklist")
+
+					# count number of samples in this worksheet
+					number_samples = len(sample_objs)
+
+					# count number of urgent samples in this worksheet and calculate the proportion of urgent
+					number_urgent_samples = len(sample_objs_urgent)				
+					proportion_of_urgent = number_urgent_samples/number_samples
+
+					print(f"number of samples = {number_samples}")
+					print(f"number of urgent samples = {number_urgent_samples}")
+					print(f"proportion of urgent samples = {proportion_of_urgent}")
+					
+					# if over 6 or 1/3rd total then refuse
+					max_urgent = 6
+					max_prop_urgent = 0.3333334
+					family = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__familyid=sample_ws_obj.sample.familyid)
+					if number_urgent_samples > max_urgent:
+						print(f"number urgent samples greater than max number ({max_urgent})")
+						# raise Exception("Sorry, can't have more than 6 urgent samples per run")
+						messages.warning(request, "Sorry, can't have more than 6 urgent samples per run")
 						if sample_ws_obj.sample.familyid:
 							family = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__familyid=sample_ws_obj.sample.familyid)
 							for member in family:
-								member.urgent = True
+								print('undoing all the members in family', member)
+								member.urgent = False
 								member.save()
+						sample_ws_obj.urgent = False
+						sample_ws_obj.save()
+					elif proportion_of_urgent > max_prop_urgent :
+						print(f"number urgent samples greater than max number ({max_prop_urgent})")
+						messages.warning(request, "Sorry, can't have more than 1/3rd of samples set as urgent")
+						if sample_ws_obj.sample.familyid:
+							family = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__familyid=sample_ws_obj.sample.familyid)
+							for member in family:
+								print('undoing all the members in family', member)
+								member.urgent = False
+								member.save()
+						sample_ws_obj.urgent = False
+						sample_ws_obj.save()
+					
+					sample_objs_urgent = sample_objs.filter(urgent=True)
+					number_urgent_samples = len(sample_objs_urgent)	
 
-						## NTC also needs setting as urgent for FastWGS
-						ntc = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__sampleid__startswith="NTC")
-						## sense check - there should only be one NTC
+					if number_urgent_samples > 0 :
 						if len(ntc) == 1:
+							print("number of urgent samples greater than 0, setting NTC to Urgent")
 							ntc[0].urgent = True
 							ntc[0].save()
 						else:
-							print("Error! There should be 1 NTC per worklist")
+							messages.warning(request, "Error! There should be 1 NTC per worklist")
+					else:
+						print("number of urgent samples 0, setting NTC to not urgent")
+						if len(ntc) == 1:
+							ntc[0].urgent = False
+							ntc[0].save()
+						else:
+							messages.warning(request, "Error! There should be 1 NTC per worklist")
+						
 
 				## edit referral if changed
 				if cleaned_data['referral_type'] != sample_ws_obj.referral:
@@ -612,6 +681,27 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					worksheet_obj = Worksheet.objects.get(worksheet_id = worksheet_id)
 					context['sample_data'] = get_sample_info(worksheet_obj)
 
+		## if clear urgent form submitted
+		if 'clear_urgent_check' in request.POST:
+
+			clear_urgent_form = ClearUrgentForm(request.POST, worksheet_obj=worksheet_obj)
+
+			if clear_urgent_form.is_valid():
+
+				cleaned_data = clear_urgent_form.cleaned_data
+
+				## only perform clearing if box was ticked
+				if cleaned_data['clear_urgent_check']:
+
+					samples = SampleToWorksheet.objects.filter(worksheet=worksheet_obj).order_by('pos')
+
+					for s in samples:
+						s.urgent = False
+						s.save()
+
+					## reload context
+					worksheet_obj = Worksheet.objects.get(worksheet_id = worksheet_id)
+					context['sample_data'] = get_sample_info(worksheet_obj)
 
 		## if clinsci sign off pressed
 		if 'clinsci_worksheet_checked' in request.POST:
@@ -1001,6 +1091,10 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 	return render(request, 'sample_sheet/worksheet_base.html', context)
 
 
+def my_view(request):
+    # Add a warning message
+    messages.warning(request, 'This is a warning message!')
+    return render(request, 'my_template.html')
 
 ## AJAX load of start position for indexes in tech settings form
 @transaction.atomic

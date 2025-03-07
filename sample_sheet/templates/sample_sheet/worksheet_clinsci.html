@@ -90,11 +90,16 @@
 
             <!-- formatting for urgent column -->
             {% if worksheet_info.assay_name in "WGS WINGS" %}
+            <!-- and "NTC" in sample.sample_obj.sampleid -->
             {% if sample.sample_obj.urgent %}
               <td>Yes</td>
             {% else %}
               <td>-</td>
             {% endif %}
+            {% endif %}
+
+            {% if "NTC" in sample.sample %}
+            <td></td>
             {% endif %}
 
             <!-- if signed off then remove buttons -->
@@ -108,8 +113,11 @@
             </td>           
             {% endif %}
 
+
           </tr>
           {% endfor %}
+
+
 
         </tbody>
       </table>
@@ -130,6 +138,12 @@
           <button data-bs-toggle="modal" data-bs-target="#clear-family" class="btn btn-danger btn-sm">
             <span class="fa fa-users-slash" style="width: 20px; color: white;"></span>
             Clear family
+          </button>
+        </div>
+        <div class = "col-3">
+          <button data-bs-toggle="modal" data-bs-target="#clear-urgent" class="btn btn-danger btn-sm">
+            <span class="fa fa-exclamation-slash" style="width: 20px; color: white;"></span>
+            Clear urgent
           </button>
         </div>
       </div>
@@ -224,6 +238,24 @@
         <h5><center>Warning: This will remove all family data from this worksheet.</center></h5>
 
         {% crispy clear_family_form %}
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- remove urgent data -->
+<div class="modal fade" id="clear-urgent" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #3AA7A9; color: white;">
+        <h5>Clear urgent information</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h5><center>Warning: This will remove all Urgent from this worksheet.</center></h5>
+
+        {% crispy clear_urgent_form %}
 
       </div>
     </div>
