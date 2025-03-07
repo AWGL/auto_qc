@@ -76,6 +76,7 @@
 
 	{% endif %}
 
+	<!-- WES Settings for CNVS-->
 	{% if run_analysis.display_cnv_qc_metrics %}
 
 	<tr>
@@ -83,9 +84,14 @@
 		<td>Pass/Fail</td>
 	</tr>
 
+	<tr>
+		<td>Minimum Average Coverage for CNVs</td>
+		<td> {{run_analysis.min_average_coverage_cutoff}} </td>
+
 	{% endif %}
 	
-	{% if 'min_average_coverage' in checks_to_do %}
+	<!-- WGS Settings for CNVs-->
+	{% if 'cnv_call_range' in checks_to_do %}
 	
 	<tr>
 		<td> Minimum Average Coverage for CNVs</td>
@@ -477,6 +483,10 @@
 	  {% if 'min_average_coverage' in checks_to_do %}
 	  
 	  <th> Average Coverage </th>
+
+	  {% endif %}
+
+	  {% if 'cnv_call_range' in checks_to_do %}
 	  
 	  <th> CNV Count </th>
 	  
@@ -556,8 +566,14 @@
 			{% if 'ntc_contamination' in checks_to_do %}
 			<td class="table-dark"> {{sample_analysis.passes_ntc_contamination}} </td>
 			{% endif %}
+
+			{% if run_analysis.display_cnv_qc_metrics %}
+			<td class="table-dark">NA</td>
+			<td class="table-dark">NA</td>
+
+			{% endif %}
 			
-			{% if 'min_average_coverage' in checks_to_do %}
+			{% if 'cnv_call_range' in checks_to_do %}
 			<td class="table-dark">NA</td>
 			<td class="table-dark">NA</td>
 			
@@ -771,6 +787,10 @@
 			{% else %}
 			<td class="table-danger">{{ sample_analysis.get_average_coverage }}</td>
 			{% endif %}
+
+		{% endif %}
+
+		{% if 'cnv_call_range' in checks_to_do %}
 			
 			{% if sample_analysis.passes_cnv_count %}
 			<td class="table-success">{{ sample_analysis.get_cnv_count }}</td>
@@ -779,6 +799,7 @@
 			{% endif %}
 			
 		{% endif %}
+		
 		{% if 'sex_match' in checks_to_do %}
 
 		{% if sample_analysis.passes_sex_check == True %}

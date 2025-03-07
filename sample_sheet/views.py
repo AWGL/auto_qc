@@ -73,10 +73,10 @@ def upload(request):
 					print('import failed due to logic checks')
 				
 			# if script fails, error.
-			except:
-
+			except Exception as e:
+				print(e)
 				print('did not upload ok due to script error')
-				context['error'] = 'An unknown error occurred, please check your input file or contact Bioinformatics'
+				context['error'] = 'An unknown error occurred, please check your input file or contact Bioinformatics' + str(e)
 
 	return render(request, 'sample_sheet/upload.html', context)
 
