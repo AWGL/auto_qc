@@ -98,12 +98,10 @@
             {% endif %}
             {% endif %}
 
-            {% if "NTC" in sample.sample %}
-            <td></td>
-            {% endif %}
+
 
             <!-- if signed off then remove buttons -->
-            {% if worksheet_info.clinsci_signoff_complete %}
+            {% if 'NTC' in sample.sample or worksheet_info.clinsci_signoff_complete %}
             <td></td>
             {% else %}
             <td style="text-align:right" data-bs-toggle="modal" data-bs-target="#edit-sample-{{ pos }}">

@@ -444,104 +444,113 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 		## if details edit form is submitted
 		if 'gender' in request.POST:
 
+			# get : all samples in worksheet, sample being edited, edit form
+			sample_list = [context["sample_data"][sample]["sample"] for sample in context["sample_data"]]
 			sample_ws_obj = SampleToWorksheet.objects.get(id=request.POST['sample_details_obj'])
 			edit_details = EditSampleDetailsForm(request.POST, sample_details_obj=sample_ws_obj)
-			
-			# print(f"edit details = {edit_details}")
+
 			if edit_details.is_valid():
 
 				cleaned_data = edit_details.cleaned_data
-				print(f"cleaned_data = {cleaned_data}")
+				print(f"INFO: cleaned_data = {cleaned_data}")
 
 				## edit urgency if changed
 				if cleaned_data['urgent'] != sample_ws_obj.urgent:
 
-					print(f'change in urgent for {sample_ws_obj}')
+					print(f'INFO: change in urgent for {sample_ws_obj}')
 
 					sample_ws_obj.urgent = cleaned_data['urgent']
 					sample_ws_obj.save()
 
-
-					## Other family members need changing to match urgency if the structure is set up
+					# get family details
+					family = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__familyid=sample_ws_obj.sample.familyid)
+					
+					## Other family members need changing to match urgency if the structure is set up					
+					urgency_modifier = 0
+					
 					if sample_ws_obj.sample.familyid:
-						family = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__familyid=sample_ws_obj.sample.familyid)
 
-						print('setting all as urgent in family', family)
+						print(f'INFO: updating urgency of all family members in {sample_ws_obj.sample.familyid}')
 
 						for member in family:
 							member.urgent = cleaned_data['urgent']
 							member.save()
-
-					## NTC also needs setting as urgent for FastWGS
-					ntc = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__sampleid__startswith="NTC")
-					sample_objs = SampleToWorksheet.objects.exclude(worksheet=sample_ws_obj.worksheet, sample__sampleid__startswith="NTC")
-					sample_objs_urgent = sample_objs.filter(urgent=True)
-
-					## sense check - there should only be one NTC
-					if len(ntc) == 1:
-						ntc[0].urgent = True
-						ntc[0].save()
+							urgency_modifier +=1
 					else:
-						print("Error! There should be 1 NTC per worklist")
+						
+						urgency_modifier = 1
 
-					# count number of samples in this worksheet
-					number_samples = len(sample_objs)
-
-					# count number of urgent samples in this worksheet and calculate the proportion of urgent
-					number_urgent_samples = len(sample_objs_urgent)				
-					proportion_of_urgent = number_urgent_samples/number_samples
-
-					print(f"number of samples = {number_samples}")
-					print(f"number of urgent samples = {number_urgent_samples}")
-					print(f"proportion of urgent samples = {proportion_of_urgent}")
+					## sense check - there should only be one NTC					
+					ntc_list = [i for i in sample_list if "NTC" in i]
 					
-					# if over 6 or 1/3rd total then refuse
+					if len(ntc_list) == 1:
+						
+						ntc_string = ntc_list[0]
+					
+					else:
+						
+						print("INFO: Error! There should be 1 NTC per worklist")
+						messages.warning(request, "Sorry, number of NTC must equal one")
+
+					# get non-ntc sample list, urgent sample list, ntc sample object
+					sl_not_ntc = [i for i in sample_list if "NTC" not in i]
+					urgent_sample_list = [context["sample_data"][sample]["sample"] for sample in context["sample_data"] if context["sample_data"][sample]["sample_obj"].urgent == True]
+					urgent_sample_list = [i for i in urgent_sample_list if "NTC" not in i]
+					ntc = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__sampleid__startswith=ntc_string)
+
+					# count : number of samples in this worksheet, new number of urgent samples and proportion urgent
+					number_samples = len(sl_not_ntc)				
+					number_urgent_samples = len(urgent_sample_list)
+					
+					if sample_ws_obj.urgent == True:
+						
+						number_urgent_samples = number_urgent_samples + urgency_modifier
+					
+					else: 
+						
+						number_urgent_samples = number_urgent_samples - urgency_modifier
+					
+					prop_urgent = number_urgent_samples/number_samples
+					
+					# if new number of urgent over 6 or 1/3rd total then undo edit
 					max_urgent = 6
 					max_prop_urgent = 0.3333334
-					family = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__familyid=sample_ws_obj.sample.familyid)
-					if number_urgent_samples > max_urgent:
-						print(f"number urgent samples greater than max number ({max_urgent})")
-						# raise Exception("Sorry, can't have more than 6 urgent samples per run")
-						messages.warning(request, "Sorry, can't have more than 6 urgent samples per run")
+														
+					if number_urgent_samples > max_urgent or prop_urgent > max_prop_urgent:
+						
+						print(f"INFO: number urgent samples greater than max number ({max_urgent})")
+						
+						if number_urgent_samples > max_urgent:
+							
+							messages.warning(request, "Sorry, can't have more than 6 urgent samples per run")
+						
+						if prop_urgent > max_prop_urgent:
+							
+							messages.warning(request, "Sorry, can't have more than 1/3rd of samples set as urgent")
+
 						if sample_ws_obj.sample.familyid:
-							family = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__familyid=sample_ws_obj.sample.familyid)
+							
 							for member in family:
-								print('undoing all the members in family', member)
+								print('INFO: undoing urgency change for family member', member)
 								member.urgent = False
 								member.save()
-						sample_ws_obj.urgent = False
-						sample_ws_obj.save()
-					elif proportion_of_urgent > max_prop_urgent :
-						print(f"number urgent samples greater than max number ({max_prop_urgent})")
-						messages.warning(request, "Sorry, can't have more than 1/3rd of samples set as urgent")
-						if sample_ws_obj.sample.familyid:
-							family = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__familyid=sample_ws_obj.sample.familyid)
-							for member in family:
-								print('undoing all the members in family', member)
-								member.urgent = False
-								member.save()
+						
 						sample_ws_obj.urgent = False
 						sample_ws_obj.save()
 					
-					sample_objs_urgent = sample_objs.filter(urgent=True)
-					number_urgent_samples = len(sample_objs_urgent)	
-
+					# set NTC as urgent if any samples urgent
 					if number_urgent_samples > 0 :
-						if len(ntc) == 1:
-							print("number of urgent samples greater than 0, setting NTC to Urgent")
-							ntc[0].urgent = True
-							ntc[0].save()
-						else:
-							messages.warning(request, "Error! There should be 1 NTC per worklist")
-					else:
-						print("number of urgent samples 0, setting NTC to not urgent")
-						if len(ntc) == 1:
-							ntc[0].urgent = False
-							ntc[0].save()
-						else:
-							messages.warning(request, "Error! There should be 1 NTC per worklist")
 						
-
+						print("INFO: number of urgent samples greater than 0, setting NTC to Urgent")
+						ntc[0].urgent = True
+						ntc[0].save()
+					
+					else:
+						
+						print("INFO: number of urgent samples 0, setting NTC to not urgent")
+						ntc[0].urgent = False
+						ntc[0].save()
+						
 				## edit referral if changed
 				if cleaned_data['referral_type'] != sample_ws_obj.referral:
 
@@ -1087,6 +1096,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 				else:
 
 					print('one or more worksheet is not signed off')
+
 
 	return render(request, 'sample_sheet/worksheet_base.html', context)
 
