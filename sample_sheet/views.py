@@ -496,8 +496,8 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					sl_not_ntc = [i for i in sample_list if "NTC" not in i]
 					urgent_sample_list = [context["sample_data"][sample]["sample"] for sample in context["sample_data"] if context["sample_data"][sample]["sample_obj"].urgent == True]
 					urgent_sample_list = [i for i in urgent_sample_list if "NTC" not in i]
-					ntc = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__sampleid__startswith=ntc_string)
-
+					ntc = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__sampleid__startswith=ntc_string)[0]
+					
 					# count : number of samples in this worksheet, new number of urgent samples and proportion urgent
 					number_samples = len(sl_not_ntc)				
 					number_urgent_samples = len(urgent_sample_list)
@@ -539,17 +539,17 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 						sample_ws_obj.save()
 					
 					# set NTC as urgent if any samples urgent
+					print(f"number of urgent samples = {number_urgent_samples}")
 					if number_urgent_samples > 0 :
 						
 						print("INFO: number of urgent samples greater than 0, setting NTC to Urgent")
-						ntc[0].urgent = True
-						ntc[0].save()
-					
+						ntc.urgent = True
+						ntc.save()
 					else:
 						
 						print("INFO: number of urgent samples 0, setting NTC to not urgent")
-						ntc[0].urgent = False
-						ntc[0].save()
+						ntc.urgent = False
+						ntc.save()
 						
 				## edit referral if changed
 				if cleaned_data['referral_type'] != sample_ws_obj.referral:
