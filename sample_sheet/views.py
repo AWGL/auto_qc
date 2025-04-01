@@ -518,14 +518,14 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 														
 					if number_urgent_samples > max_urgent or prop_urgent > max_prop_urgent:
 						
-						print(f"INFO: number urgent samples greater than max number ({max_urgent})")
-						
 						if number_urgent_samples > max_urgent:
 							
+							print(f"INFO: number urgent samples greater than max number ({max_urgent})")
 							messages.warning(request, "Sorry, can't have more than 6 urgent samples per run")
 						
 						if prop_urgent > max_prop_urgent:
 							
+							print(f"INFO: number urgent samples greater than max proportion of urgent samples (1/3rd)")
 							messages.warning(request, "Sorry, can't have more than 1/3rd of samples set as urgent")
 
 						if sample_ws_obj.sample.familyid:
@@ -537,6 +537,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 						
 						sample_ws_obj.urgent = False
 						sample_ws_obj.save()
+						number_urgent_samples = number_urgent_samples - urgency_modifier
 					
 					# set NTC as urgent if any samples urgent
 					print(f"number of urgent samples = {number_urgent_samples}")
