@@ -1305,9 +1305,8 @@ class SampleAnalysis(models.Model):
 			if max_over_threshold and not \
 			   	cnv_fail and \
 			   	total_cnv_count <= run_analysis.max_cnv_calls and \
-				autosomal_reference_count >= 2 and \
-				x_reference_count >= 2:
-				#TODO add a coverage cutoff
+				autosomal_reference_count >= 4 and \
+				x_reference_count >= 4:
 				return True
 			else:
 				return False

@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 
 
-deploy_location = 'webserver'
+deploy_location = 'local'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -30,7 +30,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', '10.59.210.245', '10.69.115.27']
 
-
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,7 +44,9 @@ INSTALLED_APPS = [
 	'crispy_forms',
 	'auditlog',
 	'sample_sheet.apps.SampleSheetConfig',
+	'crispy_bootstrap4',
 ]
+
 MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',
 	'django.contrib.sessions.middleware.SessionMiddleware',
