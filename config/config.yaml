@@ -1,0 +1,2 @@
+python manage.py update_database --raw_data_dir /media/joseph/Storage/data/archive/nextseq \
+								--config config/config_local.yaml
