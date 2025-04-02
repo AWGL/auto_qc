@@ -30,12 +30,12 @@ class Command(BaseCommand):
 						'TSO500RNA' : 'pipelineName=TSO500;pipelineVersion=master;',
 						'TSO500DNA' : 'pipelineName=TSO500;pipelineVersion=master;',
 						'Myeloid' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=TruSightMyeloid;',
-						'FH-OGT' : 'Name$ge%panel$AgilentOGTFH%',
+						'FH-OGT' : 'pipelineName=germline_enrichment_nextflow;pipelineVersion=master;panel=AgilentOGTFH;',
 						'FH-Nonacus': 'pipelineName=deepvariant_nextflow;pipelineVersion=main;panel=NonacusFH;',
 						'TruSightCancer' : 'pipelineName=germline_enrichment_nextflow;pipelineVersion=master;panel=IlluminaTruSightCancer;',
 						'TruSightOne' : 'pipelineName=DragenGE;pipelineVersion=master;panel=IlluminaTruSightOne;',
-						'BRCA' : 'Name$SA%panel$NGHS102X%',
-						'CRM' : 'Name$SA%panel$NGHS101X%',
+						'BRCA' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=NGHS-102X;',
+						'CRM' : 'pipelineName=SomaticAmplicon;pipelineVersion=master;panel=NGHS-101X;',
 						'WES' : 'pipelineName=DragenGE;pipelineVersion=master;panel=NonocusWES38;',
 						'ctDNA' : 'pipelineName=tso500_ctdna;pipelineVersion=master;',
 		}
@@ -224,11 +224,11 @@ class Command(BaseCommand):
 
 				## format sex part. no semicolon in case its on a singleton/NTC
 				if values['Sex'] == 'Male':
-					sex_desc = 'sex$1'
+					sex_desc = 'sex=1'
 				elif values['Sex'] == 'Female':
-					sex_desc = 'sex$2'
+					sex_desc = 'sex=2'
 				else:
-					sex_desc = 'sex$0'
+					sex_desc = 'sex=0'
 
 				description_field = f'{description_dict[assay]}{sex_desc}'
 
@@ -287,11 +287,11 @@ class Command(BaseCommand):
 						assay_type = assays[1]
 
 					## create description field from assay_type variable for combined worksheets
-					description_field = f'{description_dict[assay_type]}ref${values["Referral"].replace("sec:familialcancer","null")}'
+					description_field = f'{description_dict[assay_type]}referral={values["Referral"].replace("sec:familialcancer","null")}'
 						
 				## use main assay variable for single worksheets
 				else:
-					description_field = f'{description_dict[assay]}ref${values["Referral"].replace("sec:familialcancer","null")}'
+					description_field = f'{description_dict[assay]}referral={values["Referral"].replace("sec:familialcancer","null")}'
 
 
 			elif assay == 'WES':

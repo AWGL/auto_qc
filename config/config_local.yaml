@@ -64,24 +64,24 @@ pipelines:
 
   deepvariant_nextflow-main-NonacusFH:
     results_dir:  '/media/na282549/diskAshur2/Naomi/Deepvariant_Nextflow_AutoQC/231206_NB551415_0488_AHLFCFAFX5/results'
-    qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, coverage, sex_match]
+    qc_checks: [pct_q30, ntc_contamination, variant_check, coverage, sex_match]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 0
-    min_variants: 20
-    max_variants: 80
+    min_variants: 30
+    max_variants: 90
     min_coverage: 0.95
 
   deepvariant_nextflow-development-NonacusFH:
     results_dir:  '/media/na282549/diskAshur2/Naomi/Deepvariant_Nextflow_AutoQC/231206_NB551415_0488_AHLFCFAFX5/results'
-    qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, coverage, sex_match]
+    qc_checks: [pct_q30, ntc_contamination, variant_check, coverage, sex_match]
     min_q30_score: 0.8
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 0
-    min_variants: 20
-    max_variants: 80
+    min_variants: 30
+    max_variants: 90
     min_coverage: 0.95
 
   deepvariant_nextflow-main-AgilentOGTFH:
@@ -178,17 +178,19 @@ pipelines:
     run_expected_files: ['RNA_QC_combined.txt', 'contamination-*.csv' ,'completed_samples.txt']
     metrics_file: ['RNA_QC_combined.txt']
 
-  DragenGE-master-IlluminaTruSightOne:
+  DragenGE-master-NonocusWES38:
     results_dir:  '/media/joseph/Storage/data/dragen_results/'
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, coverage, relatedness, max_cnv_calls]
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, coverage, relatedness, max_cnv_calls, min_average_coverage]
     min_q30_score: 0.75
     contamination_cutoff: 0.10
     ntc_contamination_cutoff: 10
+    max_cnvs_called_cutoff: 100000
     min_sensitivity: 0.95
     min_fastq_size: 1000000
     min_variants: 40000
     max_variants: 50000
     min_coverage: 0.925
+    min_average_coverage: 80
     min_relatedness_parents: 0.2
     max_relatedness_unrelated: 0.04
     max_relatedness_between_parents: 0.04

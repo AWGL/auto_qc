@@ -1,14 +1,14 @@
 pipelines:
 
   SomaticAmplicon-master-NGHS-101X:
-    results_dir: '/mnt/wren_results/results/'
+    results_dir: '/mnt/wren/wren_results/results/'
     min_q30_score: 0.8
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 100000
     min_variants: 10
-    max_variants: 1000
+    max_variants: 300
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
@@ -24,14 +24,14 @@ pipelines:
     run_not_expected_files: []
 
   SomaticAmplicon-master-NGHS-102X:
-    results_dir: '/mnt/wren_results/results/'
+    results_dir: '/mnt/wren/wren_results/results/'
     min_q30_score: 0.8
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, variant_check, ntc_contamination]
     min_fastq_size: 10000000
     min_variants: 10
-    max_variants: 1000
+    max_variants: 300
     sample_expected_files: ['*_VariantReport.txt',
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
@@ -48,7 +48,7 @@ pipelines:
     run_not_expected_files: []
 
   DragenWGS-development-WGS:
-    results_dir: '/mnt/wren_results/results/'
+    results_dir: '/mnt/wren/wren_results/results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, cnv_call_range]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
@@ -75,7 +75,7 @@ pipelines:
     post_sample_files: []
 
   DragenWGS-master-WGS:
-    results_dir: '/mnt/wren_results/results/'
+    results_dir: '/mnt/wren/wren_results/results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, cnv_call_range]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
@@ -102,7 +102,7 @@ pipelines:
     post_sample_files: []
 
   DragenWGS-development-FastWGS:
-    results_dir: '/mnt/wren_results/results/'
+    results_dir: '/mnt/wren/wren_results/results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, cnv_call_range]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
@@ -129,7 +129,7 @@ pipelines:
     post_sample_files: []
 
   DragenWGS-master-FastWGS:
-    results_dir: '/mnt/wren_results/results/'
+    results_dir: '/mnt/wren/wren_results/results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, cnv_call_range]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
@@ -156,7 +156,7 @@ pipelines:
     post_sample_files: []
 
   germline_enrichment_nextflow-master-AgilentOGTFH:
-    results_dir:  '/mnt/wren_results/results/'
+    results_dir:  '/mnt/wren/wren_results/results/'
     qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, coverage, sex_match]
     min_q30_score: 0.8
     contamination_cutoff: 0.025
@@ -167,7 +167,7 @@ pipelines:
     min_coverage: 0.95
 
   deepvariant_nextflow-main-NonacusFH:
-    results_dir:  '/mnt/wren_results/results/'
+    results_dir:  '/mnt/wren/wren_results/results/'
     qc_checks: [pct_q30, ntc_contamination, variant_check, coverage, sex_match]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
@@ -178,7 +178,7 @@ pipelines:
     min_coverage: 0.95
 
   deepvariant_nextflow-development-NonacusFH:
-    results_dir:  '/mnt/wren_results/results/'
+    results_dir:  '/mnt/wren/wren_results/results/'
     qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, coverage, sex_match]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
@@ -189,7 +189,7 @@ pipelines:
     min_coverage: 0.95
 
   deepvariant_nextflow-main-AgilentOGTFH:
-    results_dir:  '/mnt/wren_results/results/'
+    results_dir:  '/mnt/wren/wren_results/results/'
     qc_checks: [pct_q30, ntc_contamination, variant_check, coverage, sex_match]
     min_q30_score: 0.8
     contamination_cutoff: 0.025
@@ -200,7 +200,7 @@ pipelines:
     min_coverage: 0.95
 
   germline_enrichment_nextflow-master-IlluminaTruSightCancer:
-    results_dir:  '/mnt/wren_results/results/'
+    results_dir:  '/mnt/wren/wren_results/results/'
     qc_checks: [pct_q30, fastqc, variant_check, contamination, ntc_contamination, sex_match]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
@@ -210,8 +210,8 @@ pipelines:
     max_variants: 500
 
   DragenGE-master-NonocusWES38:
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, coverage, relatedness, max_cnv_calls]
-    results_dir:  '/mnt/wren_results/results/'
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, coverage, relatedness, max_cnv_calls, min_average_coverage]
+    results_dir:  '/mnt/wren/wren_results/results/'
     min_q30_score: 0.75
     contamination_cutoff: 0.10
     ntc_contamination_cutoff: 10
@@ -221,6 +221,7 @@ pipelines:
     min_variants: 50000
     max_variants: 150000
     min_coverage: 0.925
+    min_average_coverage: 80
     min_relatedness_parents: 0.2
     max_relatedness_unrelated: 0.04
     max_relatedness_between_parents: 0.04
@@ -232,8 +233,8 @@ pipelines:
     post_sample_files: []
 
   DragenGE-development-NonocusWES38:
-    results_dir:  '/mnt/wren_results/results/' 
-    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, coverage, relatedness, max_cnv_calls]
+    results_dir:  '/mnt/wren/wren_results/results/' 
+    qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, coverage, relatedness, max_cnv_calls, min_average_coverage]
     min_q30_score: 0.75
     contamination_cutoff: 0.10
     ntc_contamination_cutoff: 10
@@ -243,6 +244,7 @@ pipelines:
     min_variants: 50000
     max_variants: 150000
     min_coverage: 0.925
+    min_average_coverage: 80
     min_relatedness_parents: 0.2
     max_relatedness_unrelated: 0.04
     max_relatedness_between_parents: 0.04
@@ -255,7 +257,7 @@ pipelines:
 
 
   TSO500-master-TSO500_DNA:
-    results_dir:  '/mnt/wren_results/results/'
+    results_dir:  '/mnt/wren/wren_results/results/'
     min_q30_score: 0.8
     max_ntc_contamination: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination_TSO500]
@@ -268,7 +270,7 @@ pipelines:
 
 
   TSO500-master-TSO500_RNA:
-    results_dir:  '/mnt/wren_results/results/'
+    results_dir:  '/mnt/wren/wren_results/results/'
     min_q30_score: 0.8
     qc_checks: [pct_q30, fastqc, reads_tso500]
     min_fastq_size: 0
@@ -280,7 +282,7 @@ pipelines:
 
 
   tso500_ctdna-master-ctDNA:
-    results_dir: '/mnt/wren_results/results/'
+    results_dir: '/mnt/wren/wren_results/results/'
     min_q30_score: 0.8
     ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination]

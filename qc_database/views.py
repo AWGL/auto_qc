@@ -176,7 +176,8 @@ def view_run_analysis(request, pk):
 															 'reset_form': reset_form,
 															 'sensitivity_form': sensitivity_form,
 															 'checks_to_do': checks_to_do,
-															 'relatedness': relatedness})
+															 'relatedness': relatedness,
+															 'cpf_warning': 60.0})
 
 
 @transaction.atomic
