@@ -3,6 +3,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from auditlog.registry import auditlog
 from auditlog.models import AuditlogHistoryField
+from django.contrib.auth.models import User
+import secrets
 
 class Instrument(models.Model):
 	"""
@@ -117,6 +119,7 @@ class Sample(models.Model):
 				return True
 
 		return False
+
 
 class Pipeline(models.Model):
 	"""
@@ -1975,7 +1978,8 @@ class Tso500Reads(models.Model):
 	percent_ntc_reads = models.IntegerField(null=True)
 	aligned_reads=models.IntegerField(null=True)
 	percent_ntc_contamination=models.IntegerField(null=True)
-	
+
+
 class ctDNAReads(models.Model):
 	"""
 	Parsed read numbers from ctDNA samples
@@ -2025,7 +2029,8 @@ class CNVMetrics(models.Model):
 	exome_depth_count = models.IntegerField(null=True)
 	exome_depth_autosomal_reference_count = models.IntegerField(null=True)
 	exome_depth_x_reference_count = models.IntegerField(null=True)
-	
+
+
 class DragenCNVMetrics(models.Model):
 	"""
 	Model for sample level CNV calling metrics from DragenWGS
@@ -2046,6 +2051,20 @@ class DragenCNVMetrics(models.Model):
 	number_of_passing_amplifications = models.IntegerField(null=True, blank=True)
 	number_of_passing_deletions = models.IntegerField(null=True, blank=True)
 
+
+class APIKey(models.Model):
+    key = models.CharField(max_length=255, unique=True)  # API key itself
+    created_at = models.DateTimeField(auto_now_add=True)  # When the key was created
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Associated user
+    is_active = models.BooleanField(default=True)  # Whether the key is active
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = secrets.token_hex(32)  # Generate key if not provided
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.key
 
 auditlog.register(RunAnalysis)
 auditlog.register(SampleAnalysis)

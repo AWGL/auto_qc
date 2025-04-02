@@ -45,6 +45,8 @@ INSTALLED_APPS = [
 	'auditlog',
 	'sample_sheet.apps.SampleSheetConfig',
 	'crispy_bootstrap4',
+	'rest_framework',
+
 ]
 
 MIDDLEWARE = [
@@ -199,6 +201,7 @@ with open(HPO_FILEPATH) as file:
 			
 			HPO_TERMS_DICT[alt_id] = name
 
+<<<<<<< HEAD
 # SampleSheet generator download location
 if deploy_location == 'webserver':
 
@@ -207,3 +210,10 @@ if deploy_location == 'webserver':
 else:
 
 	SSGEN_DOWNLOAD = '/home/awmgs/SampleSheets/'
+
+# Use custom authentication class
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'qc_database.authentication.APIKeyAuthentication',
+    ],
+}
