@@ -321,7 +321,7 @@ class SampleAnalysisList(generics.ListAPIView):
 	"""
 
 	serializer_class = SampleAnalysisSerializer
-	#permission_classes = [IsAuthenticated]
+	permission_classes = [IsAuthenticated]
 
 	def get_queryset(self):
 		pipeline_name = self.kwargs.get('pipeline')
@@ -344,7 +344,7 @@ class RunAnalysisList(generics.ListAPIView):
 	http GET http://<URL> 'Accept: application/json' 'Authorization: <api-key>'
 	"""
 	serializer_class = RunAnalysisSerializer
- 	permission_classes = [IsAuthenticated]
+	permission_classes = [IsAuthenticated]
 
 	# Will want to further filter by analysis_type, e.g. TSO500_DNA or TSO500_RNA
 	def get_queryset(self):
