@@ -15,6 +15,15 @@
             <br>
             <br>
             <h3>{{ worksheet_info.assay_name }} Worksheet {{ worksheet_info.worksheet_id }}</h3>
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
             <br>
             <br>
         </div>

@@ -214,6 +214,32 @@ class ClearFamilyForm(forms.Form):
 				)
 
 
+class ClearUrgentForm(forms.Form):
+	clear_urgent_check = forms.BooleanField(required=False, label = 'I am sure.')
+
+	def __init__(self, *args, **kwargs):
+		self.worksheet_obj = kwargs.pop('worksheet_obj')
+		super(ClearUrgentForm, self).__init__(*args, **kwargs)
+		self.helper = FormHelper()
+		self.fields['clear_urgent_check'].initial = False
+		self.helper.form_id = 'clear-urgent-form'
+		self.helper.form_method = 'POST'
+		self.helper.layout = Layout(
+			Div(
+				Div(
+					Field('clear_urgent_check'),
+						style="text-align: center"
+					),
+				Div(
+					ButtonHolder(
+						Submit('submit', 'Clear urgent data', css_class='btn btn-danger w-25')
+						),
+						style="text-align: center"
+					)
+					),
+				)
+
+
 class ClinSciSignoffForm(forms.Form):
 
 	clinsci_worksheet_checked = forms.BooleanField(required=False, label = 'Manual check')

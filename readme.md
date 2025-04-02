@@ -106,9 +106,16 @@ Database schema are available for:
 - the [AutoQC](schema/qc_database_schema.png) database
 - the [Samplesheet Generator](schema/sample_sheet_schema.png) database
 
-#
-##
-## FAQ
+## API
+
+A REST API is provided to query runs and samples e.g.
+
+```
+http GET http://127.0.0.1:8000/api/sample-analyses/pipelines/DragenWGS-master/runs/200327_A00748_0019_AHL3JHDRXX/ 'Accept: application/json' 'Authorization: $your_key'
+
+```
+
+Create an API key in the admin panel
 
 ## References
 

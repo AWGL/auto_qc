@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+
 deploy_location = 'webserver'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -29,7 +30,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', '10.59.210.245', '10.69.115.27']
 
-
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,7 +44,11 @@ INSTALLED_APPS = [
 	'crispy_forms',
 	'auditlog',
 	'sample_sheet.apps.SampleSheetConfig',
+	'crispy_bootstrap4',
+	'rest_framework',
+
 ]
+
 MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',
 	'django.contrib.sessions.middleware.SessionMiddleware',
@@ -196,6 +201,7 @@ with open(HPO_FILEPATH) as file:
 			
 			HPO_TERMS_DICT[alt_id] = name
 
+<<<<<<< HEAD
 # SampleSheet generator download location
 if deploy_location == 'webserver':
 
@@ -204,3 +210,10 @@ if deploy_location == 'webserver':
 else:
 
 	SSGEN_DOWNLOAD = '/home/awmgs/SampleSheets/'
+
+# Use custom authentication class
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'qc_database.authentication.APIKeyAuthentication',
+    ],
+}

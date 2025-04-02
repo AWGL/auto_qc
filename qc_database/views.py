@@ -10,6 +10,11 @@ from qc_database.models import *
 from qc_database.forms import *
 from qc_database.utils.kpi import make_kpi_excel
 
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from .models import SampleAnalysis, RunAnalysis
+from .serializers import SampleAnalysisSerializer, RunAnalysisSerializer
+
 from datetime import datetime as dt
 
 
@@ -308,6 +313,46 @@ def ngs_kpis(request):
 	return render(request, 'auto_qc/ngs_kpis.html', {'form': form})
 
 
+class SampleAnalysisList(generics.ListAPIView):
+	"""
+	REST API filters Sample Analysis objects by pipeline, run and sample
+	Access using:
+	http GET http://<URL> 'Accept: application/json' 'Authorization: <api-key>'
+	"""
+
+	serializer_class = SampleAnalysisSerializer
+	permission_classes = [IsAuthenticated]
+
+	def get_queryset(self):
+		pipeline_name = self.kwargs.get('pipeline')
+		run_name = self.kwargs.get('run')
+		sample_name = self.kwargs.get('sample')
+		queryset = SampleAnalysis.objects.all()
+		if pipeline_name:
+			queryset = queryset.filter(pipeline=pipeline_name)
+		if run_name:
+			queryset = queryset.filter(run=run_name)
+		if sample_name:
+			queryset = queryset.filter(sample=sample_name)
+		return queryset
+
+
+class RunAnalysisList(generics.ListAPIView):
+	"""
+	REST API filters Run Analysis objects by run.
+	Access using:
+	http GET http://<URL> 'Accept: application/json' 'Authorization: <api-key>'
+	"""
+	serializer_class = RunAnalysisSerializer
+	permission_classes = [IsAuthenticated]
+
+	# Will want to further filter by analysis_type, e.g. TSO500_DNA or TSO500_RNA
+	def get_queryset(self):
+		run_name = self.kwargs.get('run')
+		queryset = RunAnalysis.objects.all()
+		if run_name:
+			queryset = queryset.filter(run=run_name)
+		return queryset
 
 
 
