@@ -14,11 +14,11 @@ dependencies:
   - httpie=3
   - pip:
     - django-crispy-forms
-    - django-auditlog
-    - interop=1.4.0
+    - django-auditlog==2
+    - interop==1.4.0
     - xmltodict
     - pyyaml
     - pysam
-    - djangorestframework==3
-
+    - djangorestframework==3.16.0
+    - crispy-bootstrap4
 
