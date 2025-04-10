@@ -201,7 +201,6 @@ with open(HPO_FILEPATH) as file:
 			
 			HPO_TERMS_DICT[alt_id] = name
 
-<<<<<<< HEAD
 # SampleSheet generator download location
 if deploy_location == 'webserver':
 
