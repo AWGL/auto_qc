@@ -140,7 +140,7 @@ def add_dragen_fastqc_data(dragen_fastqc_dict, run_analysis_obj):
 		sample_obj = Sample.objects.get(sample_id=key)
 
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
-						   								run=run,
+														run=run,
 														pipeline=pipeline,
 														analysis_type=run_analysis_obj.analysis_type)
 		
@@ -157,37 +157,36 @@ def add_dragen_fastqc_data(dragen_fastqc_dict, run_analysis_obj):
 def add_hs_metrics(hs_metrics_dict, run_analysis_obj):
 	"""
 	Add data from picard hs metrics files to database.
-
 	"""
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
-
-	for key in hs_metrics_dict:
-
-		sample_obj = Sample.objects.get(sample_id=key)
-
+	
+	for sample_id in hs_metrics_dict:
+		sample_obj = Sample.objects.get(sample_id=sample_id)
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline,
-														analysis_type = run_analysis_obj.analysis_type)
-
-		existing_data = SampleHsMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+														pipeline=pipeline,
+														analysis_type=run_analysis_obj.analysis_type)
+		existing_data = SampleHsMetrics.objects.filter(sample_analysis=sample_analysis_obj)
 			
 		if len(existing_data) < 1:
-
-			sample_data = hs_metrics_dict[key]
-
-			del sample_data['sample']
-			del sample_data['library']
-			del sample_data['read_group']
-
+			# Create a copy of the dictionary to avoid modifying the original
+			sample_data = hs_metrics_dict[sample_id].copy()
+			
+			# Remove keys that need to be deleted
+			if 'sample' in sample_data:
+				del sample_data['sample']
+			if 'library' in sample_data:
+				del sample_data['library']
+			if 'read_group' in sample_data:
+				del sample_data['read_group']
+				
 			sample_data['sample_analysis'] = sample_analysis_obj
-
-			for key in sample_data:
-
-				if sample_data[key] == '?' or sample_data[key] == '':
-
-					sample_data[key] = None
+			
+			# Process other fields - iterate over a static list of keys
+			for field_key in list(sample_data.keys()):
+				if sample_data[field_key] == '?' or sample_data[field_key] == '':
+					sample_data[field_key] = None
 					
 			new_hsmetrics_obj = SampleHsMetrics(**sample_data)
 			new_hsmetrics_obj.save()
@@ -196,27 +195,26 @@ def add_hs_metrics(hs_metrics_dict, run_analysis_obj):
 def add_depth_of_coverage_metrics(depth_metrics_dict, run_analysis_obj):
 	"""
 	Add data from depth of coverage summary files to database.
-
 	"""
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
-
-	for key in depth_metrics_dict:
-
-		sample_obj = Sample.objects.get(sample_id=key)
-
+	
+	for sample_id in depth_metrics_dict:
+		sample_obj = Sample.objects.get(sample_id=sample_id)
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline,
-														analysis_type = run_analysis_obj.analysis_type)
-
-		existing_data = SampleDepthofCoverageMetrics.objects.filter(sample_analysis= sample_analysis_obj)
-
+														pipeline=pipeline,
+														analysis_type=run_analysis_obj.analysis_type)
+		existing_data = SampleDepthofCoverageMetrics.objects.filter(sample_analysis=sample_analysis_obj)
+		
 		if len(existing_data) < 1:
-
-			sample_data = depth_metrics_dict[key]
-			del sample_data['sample_id']
-
+			# Create a copy of the dictionary to avoid modifying the original
+			sample_data = depth_metrics_dict[sample_id].copy()
+			
+			# Remove the sample_id key safely
+			if 'sample_id' in sample_data:
+				del sample_data['sample_id']
+				
 			sample_data['sample_analysis'] = sample_analysis_obj
 			new_depth_obj = SampleDepthofCoverageMetrics(**sample_data)
 			new_depth_obj.save()
@@ -586,86 +584,75 @@ def add_sensitivity_metrics(sensitivity_metrics, run_analysis_obj):
 
 
 def add_dragen_wgs_coverage_metrics(dragen_wgs_coverage_metrics, run_analysis_obj):
-
 	"""
 	Add data from the Dragen Variant Calling WGS coverage files to database.
-
 	"""
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
 
-	for key in dragen_wgs_coverage_metrics:
+	for sample_id in dragen_wgs_coverage_metrics:
 		
-		sample_obj = Sample.objects.get(sample_id=key)
-
+		sample_obj = Sample.objects.get(sample_id=sample_id)
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline,
-														analysis_type = run_analysis_obj.analysis_type)
+														pipeline=pipeline,
+														analysis_type=run_analysis_obj.analysis_type)
 		
-		existing_data = DragenWGSCoverageMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+		existing_data = DragenWGSCoverageMetrics.objects.filter(sample_analysis=sample_analysis_obj)
 		
 		if len(existing_data) < 1:
-
-			sample_data = dragen_wgs_coverage_metrics[key]
-
+			
+			sample_data = dragen_wgs_coverage_metrics[sample_id].copy()  # Make a copy
 			sample_data['sample_analysis'] = sample_analysis_obj
 			
-			for key in sample_data:
+			# Handle the renamed field before iteration
+			if 'pct_of_genome_with_coverage_50x_100x' in sample_data:
 
+				sample_data['pct_of_genome_with_coverage_50x100x'] = sample_data['pct_of_genome_with_coverage_50x_100x']
+				del sample_data['pct_of_genome_with_coverage_50x_100x']
+			
+			# Process other fields
+			for field_key in list(sample_data.keys()):  # Create a list of keys
 
-				if sample_data[key] == 'NA' or sample_data[key] == ''  or sample_data[key] == 'inf':
+				if sample_data[field_key] == 'NA' or sample_data[field_key] == '' or sample_data[field_key] == 'inf':
 
-					sample_data[key] = None
-					
-				#Updating single field which is renamed for dragen v3.10.8 so it matches old outputs			
-				if key == 'pct_of_genome_with_coverage_50x_100x':
-					
-					sample_data['pct_of_genome_with_coverage_50x100x'] = sample_data[key]
-					del sample_data[key]
-
+					sample_data[field_key] = None
+			
 			new_dragen_wgs_cov_obj = DragenWGSCoverageMetrics(**sample_data)
 			new_dragen_wgs_cov_obj.save()
 
 
 def add_dragen_exonic_coverage_metrics(dragen_exonic_coverage_metrics, run_analysis_obj):
-
 	"""
 	Add data from the Dragen Variant Calling WGS coverage files to database.
-
 	"""
 	pipeline = run_analysis_obj.pipeline
 	run = run_analysis_obj.run
-
-	for key in dragen_exonic_coverage_metrics:
-		
-		sample_obj = Sample.objects.get(sample_id=key)
-
+	
+	for sample_id in dragen_exonic_coverage_metrics:
+		sample_obj = Sample.objects.get(sample_id=sample_id)
 		sample_analysis_obj = SampleAnalysis.objects.get(sample=sample_obj,
 														run=run,
-														pipeline = pipeline,
-														analysis_type = run_analysis_obj.analysis_type)
+														pipeline=pipeline,
+														analysis_type=run_analysis_obj.analysis_type)
 		
-		existing_data = DragenRegionCoverageMetrics.objects.filter(sample_analysis= sample_analysis_obj)
+		existing_data = DragenRegionCoverageMetrics.objects.filter(sample_analysis=sample_analysis_obj)
 		
 		if len(existing_data) < 1:
-
-			sample_data = dragen_exonic_coverage_metrics[key]
-
+			# Create a copy of the dictionary to avoid modifying the original
+			sample_data = dragen_exonic_coverage_metrics[sample_id].copy()
 			sample_data['sample_analysis'] = sample_analysis_obj
 			
-			for key in sample_data:
-
-				if sample_data[key] == 'NA' or sample_data[key] == ''  or sample_data[key] == 'inf':
-
-					sample_data[key] = None
-				
-				#Updating single field which is renamed for dragen v3.10.8 so it matches old outputs			
-				if key == 'pct_of_qc_coverage_region_with_coverage_50x_100x':
-					
-					sample_data['pct_of_qc_coverage_region_with_coverage_50x100x'] = sample_data[key]
-					del sample_data[key]
-
+			# Handle the field renaming before the main iteration
+			if 'pct_of_qc_coverage_region_with_coverage_50x_100x' in sample_data:
+				sample_data['pct_of_qc_coverage_region_with_coverage_50x100x'] = sample_data['pct_of_qc_coverage_region_with_coverage_50x_100x']
+				del sample_data['pct_of_qc_coverage_region_with_coverage_50x_100x']
+			
+			# Process other fields using a static list of keys
+			for field_key in list(sample_data.keys()):
+				if sample_data[field_key] == 'NA' or sample_data[field_key] == '' or sample_data[field_key] == 'inf':
+					sample_data[field_key] = None
+			
 			new_dragen_region_cov_obj = DragenRegionCoverageMetrics(**sample_data)
 			new_dragen_region_cov_obj.save()
 
