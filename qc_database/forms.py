@@ -103,3 +103,20 @@ class KpiDateForm(forms.Form):
 		initial=INITIAL_END_DATE,
 		widget=forms.SelectDateWidget(years=YEAR_CHOICES)
 	)
+
+class DataDownloadForm(forms.Form):
+    assay_type = forms.ModelChoiceField(
+        queryset=AnalysisType.objects.all(),
+        required=True,
+        label="Assay Type"
+    )
+    start_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        required=True,
+        label="Start Date"
+    )
+    end_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        required=True,
+        label="End Date"
+    )

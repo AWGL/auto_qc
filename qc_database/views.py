@@ -1,3 +1,4 @@
+import csv
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
@@ -5,6 +6,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
 from django.conf import settings
 from django.http import HttpResponse
+from django.views import View
 
 from qc_database.models import *
 from qc_database.forms import *
@@ -354,7 +356,162 @@ class RunAnalysisList(generics.ListAPIView):
 			queryset = queryset.filter(run=run_name)
 		return queryset
 
+class DataDownloader(View):
+    template_name = 'auto_qc/downloader.html'
+    
+    def get(self, request):
+        form = DataDownloadForm()
+        return render(request, self.template_name, {'form': form})
+    
+    def post(self, request):
+        form = DataDownloadForm(request.POST)
+        if form.is_valid():
+            assay_type = form.cleaned_data['assay_type']
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+            
+            # Generate CSV response
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="{assay_type}_samples_{start_date}_to_{end_date}.csv"'
+            
+            writer = csv.writer(response)
+            
+            # Get all samples of the selected assay type within date range
+            samples = Sample.objects.filter(
+                assay_type=assay_type,
+                run__date__gte=start_date,
+                run__date__lte=end_date
+            ).select_related('run')
+            
+            # Write CSV data based on assay type
+            if assay_type == 'WGS':
+                self._write_wgs_data(writer, samples)
+            elif assay_type == 'TSO500':
+                self._write_tso500_data(writer, samples)
+            elif assay_type == 'RNA':
+                self._write_rna_data(writer, samples)
+            # Add other assay types as needed
+            
+            return response
+        
+        return render(request, self.template_name, {'form': form})
 
-
-
+    def _write_wgs_data(self, writer, samples):
+        # Define headers for WGS
+        headers = [
+            'sample_id', 'run_name', 'instrument', 'pipeline', 'assay_type', 
+            'pass_fail', 'Q30', 'aligned_reads', 'mean_coverage', 'coverage_uniformity',
+            'percent_genome_covered_10x', 'percent_genome_covered_20x', 
+            'snv_count', 'indel_count', 'sv_count', 'cnv_count'
+        ]
+        writer.writerow(headers)
+        
+        # Write data rows
+        for sample in samples:
+            try:
+                # Get related metrics objects
+                run_quality = InteropRunQuality.objects.filter(run=sample.run).first()
+                alignment = DragenAlignmentMetrics.objects.filter(sample=sample).first()
+                variant_calling = DragenVariantCallingMetrics.objects.filter(sample=sample).first()
+                region_coverage = DragenRegionCoverageMetrics.objects.filter(sample=sample).first()
+                
+                row = [
+                    sample.id,
+                    sample.run.name,
+                    sample.run.instrument,
+                    sample.run.pipeline,
+                    sample.assay_type,
+                    sample.pass_fail,
+                    run_quality.q30 if run_quality else 'N/A',
+                    alignment.aligned_reads if alignment else 'N/A',
+                    alignment.mean_coverage if alignment else 'N/A',
+                    alignment.coverage_uniformity if alignment else 'N/A',
+                    region_coverage.percent_covered_10x if region_coverage else 'N/A',
+                    region_coverage.percent_covered_20x if region_coverage else 'N/A',
+                    variant_calling.snv_count if variant_calling else 'N/A',
+                    variant_calling.indel_count if variant_calling else 'N/A',
+                    variant_calling.sv_count if variant_calling else 'N/A',
+                    variant_calling.cnv_count if variant_calling else 'N/A'
+                ]
+                writer.writerow(row)
+            except Exception as e:
+                # Log error and continue with next sample
+                print(f"Error processing sample {sample.id}: {str(e)}")
+                continue
+    
+    def _write_tso500_data(self, writer, samples):
+        # Define headers for TSO500
+        headers = [
+            'sample_id', 'run_name', 'instrument', 'pipeline', 'assay_type', 
+            'pass_fail', 'Q30', 'total_reads', 'mapped_reads', 'tumor_mutational_burden',
+            'msi_status', 'percent_target_covered_500x', 'median_exon_coverage'
+        ]
+        writer.writerow(headers)
+        
+        # Write data rows
+        for sample in samples:
+            try:
+                # Get related metrics objects
+                run_quality = InteropRunQuality.objects.filter(run=sample.run).first()
+                tso_metrics = TSO500Metrics.objects.filter(sample=sample).first()
+                
+                row = [
+                    sample.id,
+                    sample.run.name,
+                    sample.run.instrument,
+                    sample.run.pipeline,
+                    sample.assay_type,
+                    sample.pass_fail,
+                    run_quality.q30 if run_quality else 'N/A',
+                    tso_metrics.total_reads if tso_metrics else 'N/A',
+                    tso_metrics.mapped_reads if tso_metrics else 'N/A',
+                    tso_metrics.tumor_mutational_burden if tso_metrics else 'N/A',
+                    tso_metrics.msi_status if tso_metrics else 'N/A',
+                    tso_metrics.percent_target_covered_500x if tso_metrics else 'N/A',
+                    tso_metrics.median_exon_coverage if tso_metrics else 'N/A'
+                ]
+                writer.writerow(row)
+            except Exception as e:
+                # Log error and continue with next sample
+                print(f"Error processing sample {sample.id}: {str(e)}")
+                continue
+    
+    def _write_rna_data(self, writer, samples):
+        # Define headers for RNA-Seq
+        headers = [
+            'sample_id', 'run_name', 'instrument', 'pipeline', 'assay_type', 
+            'pass_fail', 'Q30', 'total_reads', 'uniquely_mapped_reads', 
+            'percent_ribosomal_rna', 'percent_mrna', 'gene_count',
+            'transcript_count', 'median_cv_coverage'
+        ]
+        writer.writerow(headers)
+        
+        # Write data rows
+        for sample in samples:
+            try:
+                # Get related metrics objects
+                run_quality = InteropRunQuality.objects.filter(run=sample.run).first()
+                rna_metrics = RNASeqMetrics.objects.filter(sample=sample).first()
+                
+                row = [
+                    sample.id,
+                    sample.run.name,
+                    sample.run.instrument,
+                    sample.run.pipeline,
+                    sample.assay_type,
+                    sample.pass_fail,
+                    run_quality.q30 if run_quality else 'N/A',
+                    rna_metrics.total_reads if rna_metrics else 'N/A',
+                    rna_metrics.uniquely_mapped_reads if rna_metrics else 'N/A',
+                    rna_metrics.percent_ribosomal_rna if rna_metrics else 'N/A',
+                    rna_metrics.percent_mrna if rna_metrics else 'N/A',
+                    rna_metrics.gene_count if rna_metrics else 'N/A',
+                    rna_metrics.transcript_count if rna_metrics else 'N/A',
+                    rna_metrics.median_cv_coverage if rna_metrics else 'N/A'
+                ]
+                writer.writerow(row)
+            except Exception as e:
+                # Log error and continue with next sample
+                print(f"Error processing sample {sample.id}: {str(e)}")
+                continue
 
