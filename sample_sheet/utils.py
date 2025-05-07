@@ -80,7 +80,17 @@ def import_worksheet_data(filepath):
     else:
         if debug_notes:
             print('all samples unique: OK')
-
+    
+    # reject sample sheet if any worksheets ids contain an underscore
+    for sample_dict in shire_query:
+        ws = sample_dict['WORKSHEET']
+        if "_" in ws:
+            message = 'Worksheet not uploaded. One or more worksheet ID contains an underscore, please amend the input file'
+            if debug_notes:
+                print(message)
+            worksheet = ''
+            assay = ''
+            return False, message, worksheet, assay
 
     # make dictionary sorted by worksheet
     # LIMITATION: only handles one ws at a time for returning ws_id to view
