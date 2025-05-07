@@ -105,10 +105,11 @@ class KpiDateForm(forms.Form):
 	)
 
 class DataDownloadForm(forms.Form):
-    assay_type = forms.ModelChoiceField(
+    assay_type = forms.ModelMultipleChoiceField(
         queryset=AnalysisType.objects.all(),
         required=True,
-        label="Assay Type"
+        label="Assay Type",
+        widget=forms.widgets.CheckboxSelectMultiple,
     )
     start_date = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'}),

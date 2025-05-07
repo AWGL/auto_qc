@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "auto_qc/base.html" %}
 
 {% block content %}
 <div class="container">
@@ -9,7 +9,18 @@
         {% csrf_token %}
         <div class="form-group">
             <label for="{{ form.assay_type.id_for_label }}">Assay Type:</label>
-            {{ form.assay_type }}
+            <div class="multi-column-options">
+                {% for choice in form.assay_type.field.choices %}
+                    <div class="option-item">
+                        <input type="{% if form.assay_type.field.widget.allow_multiple_selected %}checkbox{% else %}radio{% endif %}" 
+                               name="{{ form.assay_type.name }}" 
+                               id="{{ form.assay_type.id_for_label }}_{{ forloop.counter }}" 
+                               value="{{ choice.0 }}"
+                               {% if choice.0 in form.assay_type.value|default:'' %}checked{% endif %}>
+                        <label for="{{ form.assay_type.id_for_label }}_{{ forloop.counter }}">{{ choice.1 }}</label>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
         
         <div class="form-group">
@@ -25,4 +36,29 @@
         <button type="submit" class="btn btn-primary">Export CSV</button>
     </form>
 </div>
+
+<style>
+    .multi-column-options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Creates 3 columns */
+        gap: 0px;
+    }
+    
+    /* For responsive behavior */
+    @media (max-width: 768px) {
+        .multi-column-options {
+            grid-template-columns: repeat(2, 1fr); /* Switch to 2 columns on smaller screens */
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .multi-column-options {
+            grid-template-columns: 1fr; /* Switch to 1 column on very small screens */
+        }
+    }
+    
+    .option-item {
+        margin-bottom: 5px;
+    }
+</style>
 {% endblock %}
