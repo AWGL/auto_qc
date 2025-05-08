@@ -2,63 +2,165 @@
 
 {% block content %}
 <div class="container">
-    <h2>Export Sample Data</h2>
-    <p>Select assay type and date range to export sample data as CSV</p>
-    
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="{{ form.assay_type.id_for_label }}">Assay Type:</label>
-            <div class="multi-column-options">
-                {% for choice in form.assay_type.field.choices %}
-                    <div class="option-item">
-                        <input type="{% if form.assay_type.field.widget.allow_multiple_selected %}checkbox{% else %}radio{% endif %}" 
-                               name="{{ form.assay_type.name }}" 
-                               id="{{ form.assay_type.id_for_label }}_{{ forloop.counter }}" 
-                               value="{{ choice.0 }}"
-                               {% if choice.0 in form.assay_type.value|default:'' %}checked{% endif %}>
-                        <label for="{{ form.assay_type.id_for_label }}_{{ forloop.counter }}">{{ choice.1 }}</label>
-                    </div>
+    <div class="card shadow my-4">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0"><i class="fas fa-file-export"></i> Export Sample Data</h2>
+        </div>
+        
+        <div class="card-body">
+            <p class="lead">Select assay types and date range to export sample data as CSV</p>
+            
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                <strong>Error:</strong>
+                {% for error in form.non_field_errors %}
+                    {{ error }}
                 {% endfor %}
             </div>
+            {% endif %}
+            
+            {% if form.warnings_list %}
+            <div class="alert alert-warning">
+                <strong>Warning:</strong>
+                {% for warning in form.warnings_list %}
+                    {{ warning }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <form method="post" class="needs-validation">
+                {% csrf_token %}
+                
+                <div class="form-group mb-4">
+                    <label for="{{ form.assay_type.id_for_label }}" class="form-label fw-bold">
+                        {{ form.assay_type.label }}:
+                        {% if form.assay_type.field.required %}<span class="text-danger">*</span>{% endif %}
+                    </label>
+                    
+                    {% if form.assay_type.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.assay_type.errors }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="multi-column-options py-2">
+                        {% for choice in form.assay_type.field.choices %}
+                            <div class="option-item">
+                                <input type="checkbox" 
+                                       name="{{ form.assay_type.name }}" 
+                                       id="{{ form.assay_type.id_for_label }}_{{ forloop.counter }}" 
+                                       value="{{ choice.0 }}"
+                                       class="form-check-input"
+                                       {% if choice.0 in form.assay_type.value|default:'' %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ form.assay_type.id_for_label }}_{{ forloop.counter }}">
+                                    {{ choice.1 }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if form.assay_type.help_text %}
+                    <small class="form-text text-muted">{{ form.assay_type.help_text }}</small>
+                    {% endif %}
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.start_date.id_for_label }}" class="form-label fw-bold">
+                                {{ form.start_date.label }}:
+                                {% if form.start_date.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            {{ form.start_date|safe }}
+                            {% if form.start_date.errors %}
+                            <div class="alert alert-danger mt-2">
+                                {{ form.start_date.errors }}
+                            </div>
+                            {% endif %}
+                            {% if form.start_date.help_text %}
+                            <small class="form-text text-muted">{{ form.start_date.help_text }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.end_date.id_for_label }}" class="form-label fw-bold">
+                                {{ form.end_date.label }}:
+                                {% if form.end_date.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            {{ form.end_date|safe }}
+                            {% if form.end_date.errors %}
+                            <div class="alert alert-danger mt-2">
+                                {{ form.end_date.errors }}
+                            </div>
+                            {% endif %}
+                            {% if form.end_date.help_text %}
+                            <small class="form-text text-muted">{{ form.end_date.help_text }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-file-download"></i> Export CSV
+                    </button>
+                </div>
+            </form>
         </div>
         
-        <div class="form-group">
-            <label for="{{ form.start_date.id_for_label }}">Start Date:</label>
-            {{ form.start_date }}
+        <div class="card-footer bg-light">
+            <p class="mb-0 small text-muted">
+                The generated CSV will include all available metrics for the selected sample types.
+                Larger date ranges may take longer to process.
+            </p>
         </div>
-        
-        <div class="form-group">
-            <label for="{{ form.end_date.id_for_label }}">End Date:</label>
-            {{ form.end_date }}
-        </div>
-        
-        <button type="submit" class="btn btn-primary">Export CSV</button>
-    </form>
+    </div>
 </div>
 
 <style>
     .multi-column-options {
         display: grid;
-        grid-template-columns: repeat(3, 1fr); /* Creates 3 columns */
-        gap: 0px;
-    }
-    
-    /* For responsive behavior */
-    @media (max-width: 768px) {
-        .multi-column-options {
-            grid-template-columns: repeat(2, 1fr); /* Switch to 2 columns on smaller screens */
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .multi-column-options {
-            grid-template-columns: 1fr; /* Switch to 1 column on very small screens */
-        }
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
     }
     
     .option-item {
-        margin-bottom: 5px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .option-item label {
+        margin-left: 8px;
+        margin-bottom: 0;
+    }
+    
+    /* For responsive behavior */
+    @media (max-width: 992px) {
+        .multi-column-options {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .multi-column-options {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Improve date input appearance */
+    input[type="date"] {
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     }
 </style>
 {% endblock %}

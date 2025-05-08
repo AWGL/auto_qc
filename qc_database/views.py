@@ -318,38 +318,50 @@ def ngs_kpis(request):
 @transaction.atomic
 @login_required
 def downloader(request):
-	"""
-	Query NGS runs between 2 dates and output excel sheet for tech team
-	"""
-	form = DataDownloadForm()
-
-	if request.POST:
-		form = DataDownloadForm(request.POST)
-
-		if form.is_valid():
-			assay_type = form.cleaned_data['assay_type']
-			start_date = form.cleaned_data['start_date']
-			end_date = form.cleaned_data['end_date']
-				
-			# Generate CSV response
-			response = HttpResponse(content_type='text/csv')
-			response['Content-Disposition'] = f'attachment; filename="{assay_type}_samples_{start_date}_to_{end_date}.csv"'
-			# Add other assay types as needed
-
-			writer = csv.writer(response)
-			print(f"assay_type = {assay_type}")
-			samples = SampleAnalysis.objects.filter(
-				analysis_type__in=assay_type,
-				run__instrument_date__gte=start_date,
-				run__instrument_date__lte=end_date
-			)
-			
-			data_models = return_data_models(samples)
-			
-			write_wgs_data(writer, samples, assay_type, data_models)
-			return response
-
-	return render(request, 'auto_qc/downloader.html', {'form': form})
+    """
+    Query samples between 2 dates for specified assay types and export as CSV
+    """
+    form = DataDownloadForm()
+    
+    if request.method == 'POST':
+        form = DataDownloadForm(request.POST)
+        
+        if form.is_valid():
+            assay_types = form.cleaned_data['assay_type']
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+            
+            # Generate filename using assay type names
+            assay_names = '_'.join([assay.analysis_type_id for assay in assay_types])
+            if len(assay_names) > 50:  # Limit filename length
+                assay_names = assay_names[:47] + '...'
+                
+            # Generate CSV response
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="{assay_names}_samples_{start_date}_to_{end_date}.csv"'
+            
+            writer = csv.writer(response)
+            
+            # Query samples matching the criteria
+            samples = SampleAnalysis.objects.filter(
+                analysis_type__in=assay_types,
+                run__instrument_date__gte=start_date,
+                run__instrument_date__lte=end_date
+            ).select_related('run', 'sample', 'run__instrument')
+            
+            if samples.exists():
+                # Find which data models have data for these samples
+                data_models = return_data_models(samples)
+                
+                # Write CSV data
+                write_wgs_data(writer, samples, assay_types, data_models)
+            else:
+                # No samples found - write header with message
+                writer.writerow(['No samples found matching the criteria'])
+                
+            return response
+    
+    return render(request, 'auto_qc/downloader.html', {'form': form})
 
 
 class SampleAnalysisList(generics.ListAPIView):

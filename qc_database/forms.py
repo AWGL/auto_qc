@@ -106,18 +106,58 @@ class KpiDateForm(forms.Form):
 
 class DataDownloadForm(forms.Form):
     assay_type = forms.ModelMultipleChoiceField(
-        queryset=AnalysisType.objects.all(),
+        queryset=AnalysisType.objects.all().order_by('analysis_type_id'),
         required=True,
         label="Assay Type",
         widget=forms.widgets.CheckboxSelectMultiple,
+        help_text="Select one or more assay types to include in the export"
     )
+    
     start_date = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'}),
         required=True,
-        label="Start Date"
+        label="Start Date",
+        initial=datetime.date.today() - datetime.timedelta(days=30),  # Default to last 30 days
+        help_text="Select the starting date for samples to include"
     )
+    
     end_date = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'}),
         required=True,
-        label="End Date"
+        label="End Date",
+        initial=datetime.date.today(),  # Default to today
+        help_text="Select the ending date for samples to include"
     )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.add_input(Submit('submit', 'Export CSV', css_class='btn btn-primary'))
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
+        
+        # Validate date range
+        if start_date and end_date:
+            if start_date > end_date:
+                raise forms.ValidationError(
+                    "Start date must be before or equal to end date."
+                )
+            
+            # Optional: Warn about large date ranges
+            date_diff = (end_date - start_date).days
+            if date_diff > 90:
+                self.add_warning(
+                    "Large date range selected. The export may take longer to process and result in a large file."
+                )
+        
+        return cleaned_data
+    
+    def add_warning(self, message):
+        """Add a non-blocking warning message to the form"""
+        if not hasattr(self, 'warnings_list'):
+            self.warnings_list = []
+        self.warnings_list.append(message)
