@@ -112,6 +112,14 @@ class DataDownloadForm(forms.Form):
         widget=forms.widgets.CheckboxSelectMultiple,
         help_text="Select one or more assay types to include in the export"
     )
+    # This field will be populated dynamically via JavaScript
+    data_models = forms.MultipleChoiceField(
+        required=False,
+        label="Data Models to Include",
+        widget=forms.widgets.CheckboxSelectMultiple,
+        help_text="Select which data models to include in the export (updates based on selected assay types)",
+        choices=[]  # Will be populated dynamically
+    )
     
     start_date = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'}),
@@ -135,24 +143,34 @@ class DataDownloadForm(forms.Form):
         self.helper.form_method = 'post'
         self.helper.add_input(Submit('submit', 'Export CSV', css_class='btn btn-primary'))
     
+        # Set choices for data_models if it's in POST data
+        if args and isinstance(args[0], dict) and 'data_models' in args[0]:
+            choices = [(model, model) for model in args[0].getlist('data_models')]
+            self.fields['data_models'].choices = choices
+    
     def clean(self):
         cleaned_data = super().clean()
-        start_date = cleaned_data.get("start_date")
-        end_date = cleaned_data.get("end_date")
+		# If data_models is provided but not in available choices, don't raise validation error
+        if 'data_models' in self.data and not cleaned_data.get('data_models'):
+            cleaned_data['data_models'] = []
+
+
+        # start_date = cleaned_data.get("start_date")
+        # end_date = cleaned_data.get("end_date")
         
-        # Validate date range
-        if start_date and end_date:
-            if start_date > end_date:
-                raise forms.ValidationError(
-                    "Start date must be before or equal to end date."
-                )
+        # # Validate date range
+        # if start_date and end_date:
+        #     if start_date > end_date:
+        #         raise forms.ValidationError(
+        #             "Start date must be before or equal to end date."
+        #         )
             
-            # Optional: Warn about large date ranges
-            date_diff = (end_date - start_date).days
-            if date_diff > 90:
-                self.add_warning(
-                    "Large date range selected. The export may take longer to process and result in a large file."
-                )
+        #     # Optional: Warn about large date ranges
+        #     date_diff = (end_date - start_date).days
+        #     if date_diff > 90:
+        #         self.add_warning(
+        #             "Large date range selected. The export may take longer to process and result in a large file."
+        #         )
         
         return cleaned_data
     

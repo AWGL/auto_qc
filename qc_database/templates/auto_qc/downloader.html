@@ -28,7 +28,7 @@
             </div>
             {% endif %}
             
-            <form method="post" class="needs-validation">
+            <form method="post" class="needs-validation" id="data-export-form">
                 {% csrf_token %}
                 
                 <div class="form-group mb-4">
@@ -50,7 +50,7 @@
                                        name="{{ form.assay_type.name }}" 
                                        id="{{ form.assay_type.id_for_label }}_{{ forloop.counter }}" 
                                        value="{{ choice.0 }}"
-                                       class="form-check-input"
+                                       class="form-check-input assay-type-checkbox"
                                        {% if choice.0 in form.assay_type.value|default:'' %}checked{% endif %}>
                                 <label class="form-check-label" for="{{ form.assay_type.id_for_label }}_{{ forloop.counter }}">
                                     {{ choice.1 }}
@@ -61,6 +61,39 @@
                     {% if form.assay_type.help_text %}
                     <small class="form-text text-muted">{{ form.assay_type.help_text }}</small>
                     {% endif %}
+                </div>
+                
+                <!-- Data Models Section - Will be populated dynamically -->
+                <div class="form-group mb-4" id="data-models-container" style="display: none;">
+                    <label class="form-label fw-bold">
+                        {{ form.data_models.label }}:
+                    </label>
+                    
+                    <div id="loading-data-models" style="display: none;">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border text-primary me-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span>Analyzing available data models...</span>
+                        </div>
+                    </div>
+                    
+                    <div id="no-data-models-message" style="display: none;" class="alert alert-info">
+                        No data models are available for the selected assay types.
+                    </div>
+                    
+                    <div class="multi-column-options py-2" id="data-models-options">
+                        <!-- Will be populated via JavaScript -->
+                    </div>
+                    
+                    {% if form.data_models.help_text %}
+                    <small class="form-text text-muted">{{ form.data_models.help_text }}</small>
+                    {% endif %}
+                    
+                    <div class="mt-2">
+                        <button type="button" id="select-all-models" class="btn btn-sm btn-outline-secondary me-2">Select All</button>
+                        <button type="button" id="deselect-all-models" class="btn btn-sm btn-outline-secondary">Deselect All</button>
+                    </div>
                 </div>
                 
                 <div class="row mb-4">
@@ -111,7 +144,7 @@
         
         <div class="card-footer bg-light">
             <p class="mb-0 small text-muted">
-                The generated CSV will include all available metrics for the selected sample types.
+                The generated CSV will include all selected metrics for the chosen sample types.
                 Larger date ranges may take longer to process.
             </p>
         </div>
@@ -163,4 +196,179 @@
         transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get CSRF token for AJAX
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Elements
+        const assayCheckboxes = document.querySelectorAll('.assay-type-checkbox');
+        const dataModelsContainer = document.getElementById('data-models-container');
+        const dataModelsOptions = document.getElementById('data-models-options');
+        const loadingIndicator = document.getElementById('loading-data-models');
+        const noDataModelsMessage = document.getElementById('no-data-models-message');
+        const selectAllBtn = document.getElementById('select-all-models');
+        const deselectAllBtn = document.getElementById('deselect-all-models');
+        
+        // Add event listeners to assay type checkboxes
+        assayCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateDataModels);
+        });
+        
+        // Select/Deselect all buttons
+        selectAllBtn.addEventListener('click', function() {
+            const checkboxes = document.querySelectorAll('[name="data_models"]');
+            checkboxes.forEach(cb => {
+                cb.checked = true;
+            });
+        });
+        
+        deselectAllBtn.addEventListener('click', function() {
+            const checkboxes = document.querySelectorAll('[name="data_models"]');
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+            });
+        });
+        
+        // Function to update data models based on selected assay types
+        function updateDataModels() {
+            console.log('updateDataModels function called');
+
+            // Check CSRF token
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            if (!csrftoken) {
+                console.error('CSRF token not found!');
+                alert('Security token not found. Please refresh the page.');
+                return;
+            }
+            console.log('CSRF token found: ', csrftoken.substring(0, 5) + '...');
+
+
+            // Get selected assay type IDs
+            const selectedAssayTypeIds = Array.from(assayCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+            
+            console.log('Selected assay types:', selectedAssayTypeIds);
+            
+            // If none selected, hide data models section
+            if (selectedAssayTypeIds.length === 0) {
+                dataModelsContainer.style.display = 'none';
+                return;
+            }
+            
+            // Show loading indicator
+            dataModelsContainer.style.display = 'block';
+            loadingIndicator.style.display = 'block';
+            dataModelsOptions.style.display = 'none';
+            noDataModelsMessage.style.display = 'none';
+            
+            console.log('Selected assay type IDs:', selectedAssayTypeIds);
+
+            // Make AJAX request
+            fetch('{% url "get_available_data_models" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    assay_type_ids: selectedAssayTypeIds
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data received from server:', data);
+                // Hide loading indicator
+                loadingIndicator.style.display = 'none';
+                
+                // Clear existing options
+                dataModelsOptions.innerHTML = '';
+                
+                if (data.data_models && data.data_models.length > 0) {
+                    // Show options
+                    dataModelsOptions.style.display = 'grid';
+                    noDataModelsMessage.style.display = 'none';
+                    
+                    // Add each data model as a checkbox
+                    data.data_models.forEach((model, index) => {
+                        const optionItem = document.createElement('div');
+                        optionItem.className = 'option-item';
+                        
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.name = 'data_models';
+                        checkbox.id = `id_data_models_${index}`;
+                        checkbox.value = model.id;
+                        checkbox.className = 'form-check-input';
+                        checkbox.checked = true; // Default to checked
+                        
+                        const label = document.createElement('label');
+                        label.className = 'form-check-label';
+                        label.htmlFor = `id_data_models_${index}`;
+                        label.textContent = model.name;
+                        
+                        optionItem.appendChild(checkbox);
+                        optionItem.appendChild(label);
+                        dataModelsOptions.appendChild(optionItem);
+                    });
+                } else {
+                    // Show no data message
+                    dataModelsOptions.style.display = 'none';
+                    noDataModelsMessage.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching data models:', error);
+                loadingIndicator.style.display = 'none';
+                dataModelsOptions.style.display = 'none';
+                
+                // Show error message
+                noDataModelsMessage.textContent = 'Error loading data models: ' + error.message;
+                noDataModelsMessage.style.display = 'block';
+            });
+        }
+        
+        // Check if any assay types are already selected on page load
+        const initialSelectedAssays = Array.from(assayCheckboxes).filter(cb => cb.checked);
+        if (initialSelectedAssays.length > 0) {
+            updateDataModels();
+        };
+    });
+
+    document.getElementById('data-export-form').addEventListener('submit', function(e) {
+        // Get selected assay types
+        const selectedAssayTypes = Array.from(document.querySelectorAll('.assay-type-checkbox:checked'));
+    
+        // If none selected, prevent submission and show error
+        if (selectedAssayTypes.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one assay type');
+            return false;
+        }
+    
+        // If data models are showing but none selected, select all by default
+        const dataModelsContainer = document.getElementById('data-models-container');
+        if (dataModelsContainer.style.display !== 'none') {
+            const dataModelCheckboxes = document.querySelectorAll('[name="data_models"]');
+            const selectedDataModels = Array.from(dataModelCheckboxes).filter(cb => cb.checked);
+            
+            if (dataModelCheckboxes.length > 0 && selectedDataModels.length === 0) {
+                // Select all data models by default
+                dataModelCheckboxes.forEach(cb => {
+                    cb.checked = true;
+                });
+            };   
+        };
+        return true;  
+    });
+   
+</script>
+
 {% endblock %}

@@ -13,6 +13,25 @@ data_models_dict = {
     "SampleFastqcData": [SampleFastqcData, True],
     "SampleDragenFastqcData": [SampleDragenFastqcData, True],
     "SampleDepthofCoverageMetrics": [SampleDepthofCoverageMetrics, True],
+    "RunAnalysis": [RunAnalysis, False],
+    "RelatednessQuality": [RelatednessQuality, False],
+    "SampleAnalysis": [SampleAnalysis, True],
+    "DuplicationMetrics": [DuplicationMetrics, True],
+    "ContaminationMetrics": [ContaminationMetrics, True],
+    "CalculatedSexMetrics": [CalculatedSexMetrics, True],
+    "AlignmentMetrics": [AlignmentMetrics, True],
+    "VariantCallingMetrics": [VariantCallingMetrics, True],
+    "InsertMetrics": [InsertMetrics, True],
+    "VCFVariantCount": [VCFVariantCount, True],
+    "InteropIndexMetrics": [InteropIndexMetrics, True],
+    "FusionContamination": [FusionContamination, True],
+    "FusionAlignmentMetrics": [FusionAlignmentMetrics, True],
+    "Tso500Reads": [Tso500Reads, True],
+    "ctDNAReads": [ctDNAReads, True],
+    "DragenPloidyMetrics": [DragenPloidyMetrics, True],
+    "CustomCoverageMetrics": [CustomCoverageMetrics, True],
+    "CNVMetrics": [CNVMetrics, True],
+    "DragenCNVMetrics": [DragenCNVMetrics, True],
 }
 
 
@@ -41,23 +60,65 @@ def return_data_models(samples):
     for sample in samples:
         for label, model_info in data_models_dict.items():
             model_class, is_per_sample = model_info
-            
+            print(f"  Checking model: {label}, is_per_sample: {is_per_sample}")
+
             try:
                 if is_per_sample:
-                    model_objs = model_class.objects.filter(sample_analysis=sample)
+                    # Try different ways to query for per-sample metrics
+                    try:
+                        # First attempt with sample_analysis
+                        model_objs = model_class.objects.filter(sample_analysis__sample__sample_id=sample.sample.sample_id)
+                        if model_objs.exists():
+                            print(f"        Found data for {label} using sample_analysis_id")
+                            data_models.add(label)
+                        else: 
+                            print(f"        Data not found for {label} using sample_analysis_id")
+                        continue
+                    except Exception as e:
+                        print(f"        Error checking sample_analysis_id: {str(e)}")
+                        
+                    try:
+                        # Second attempt with sample
+                        model_objs = model_class.objects.filter(sample__sample_id=sample.sample.sample_id)
+                        if model_objs.exists():
+                            print(f"        Found data for {label} using sample.sample_id")
+                            data_models.add(label)
+                        else: 
+                            print(f"        Data not found for {label} using sample.sample_id")
+                        continue
+                    except Exception as e:
+                        print(f"        Error checking sample_id: {str(e)}")
+
                 else:
-                    model_objs = model_class.objects.filter(run=sample.run)
+                    # Try different ways to query for run-level metrics
+                    try:
+                        # First attempt with run
+                        model_objs = model_class.objects.filter(run__run_id=sample.run.run_id)
+                        if model_objs.exists():
+                            print(f"        Found data for {label} using run_id")
+                            data_models.add(label)
+                        else:
+                            print(f"        Data not found for {label} using run_id")
+                        continue
+                    except Exception as e:
+                        print(f"        Error checking run: {str(e)}")
+                        
+                    try:
+                        # Second attempt with run_analysis
+                        model_objs = model_class.objects.filter(run_analysis__run__run_id=sample.run.run_id)
+                        if model_objs.exists():
+                            print(f"        Found data for {label} using run_analysis")
+                            data_models.add(label)
+                        else:
+                            print(f"        Data not found for {label} using run_analysis")
+                        continue
+                    except Exception as e:
+                        print(f"        Error checking run_analysis: {str(e)}")
                 
-                if model_objs.exists():
-                    print(f'INFO: We have {label} for {sample.sample.sample_id}')
-                    data_models.add(label)
-                    
             except Exception as e:
-                # Log error and continue with next sample
-                print(f"Error checking {label} for sample {sample.sample.sample_id}: {str(e)}")
+                # Just continue to the next model
                 continue
-    
-    print(f"Data present for these models: {data_models}")
+    print(f"Found available data models {data_models}")
     return data_models
 
 
@@ -117,11 +178,27 @@ def write_wgs_data(writer, samples, assay_types, data_models):
                 
                 try:
                     if is_per_sample:
-                        metrics = model_class.objects.filter(sample_analysis=sample).first()
+                        try:
+                            metrics = model_class.objects.filter(sample_analysis=sample).first()
+                        except Exception as e:
+                            print(f"Error checking sample_analysis: {str(e)}")
+                        try:
+                            metrics = model_class.objects.filter(sample=sample.sample).first()
+                        except Exception as e:
+                            print(f"Error checking sample_id: {str(e)}")
+
                     else:
-                        metrics = model_class.objects.filter(run=sample.run).first()
+                        try:
+                            metrics = model_class.objects.filter(run=sample.run).first()
+                        except Exception as e:
+                            print(f"Error checking sample_analysis_id: {str(e)}")
+                        try:
+                            metrics = model_class.objects.filter(run_analysis__run=sample.run).first()
+                        except Exception as e:
+                            print(f"Error checking sample_analysis_id: {str(e)}")
                         # metrics = get_all_field_averages(query)
                     # Add each field value to the row
+                    
                     if metrics:
                         for field_name in model_fields:
                             field_value = getattr(metrics, field_name, '')
