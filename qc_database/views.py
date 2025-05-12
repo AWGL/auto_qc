@@ -13,7 +13,6 @@ from qc_database.models import *
 from qc_database.forms import *
 from qc_database.utils.kpi import make_kpi_excel
 from qc_database.utils.downloader import write_wgs_data, return_data_models
-from qc_database.utils.build_data_models_dictionary import return_analysis_type_data_models_models_dict, data_models_dict
 
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -21,7 +20,7 @@ from .models import SampleAnalysis, RunAnalysis
 from .serializers import SampleAnalysisSerializer, RunAnalysisSerializer
 
 from datetime import datetime as dt
-from .utils.downloader import return_data_models, write_wgs_data, data_models_dict
+from .utils.downloader import return_data_models, write_wgs_data
 import json
 
 @transaction.atomic
@@ -321,118 +320,107 @@ def ngs_kpis(request):
 @transaction.atomic
 @login_required
 def downloader(request):
-    """
-    Query samples between 2 dates for specified assay types and export as CSV
-    """
-    form = DataDownloadForm()
-    
-    if request.method == 'POST':
-        form = DataDownloadForm(request.POST)
-        
-        if form.is_valid():
-            assay_types = form.cleaned_data['assay_type']
-            start_date = form.cleaned_data['start_date']
-            end_date = form.cleaned_data['end_date']
-            selected_data_models = form.cleaned_data['data_models']
-            
-            # Generate filename using assay type names
-            assay_names = '_'.join([assay.analysis_type_id for assay in assay_types])
-            if len(assay_names) > 50:  # Limit filename length
-                assay_names = assay_names[:47] + '...'
-                
-            # Generate CSV response
-            response = HttpResponse(content_type='text/csv')
-            response['Content-Disposition'] = f'attachment; filename="{assay_names}_samples_{start_date}_to_{end_date}.csv"'
-            
-            writer = csv.writer(response)
-            print(f"assay_types = {assay_types}")
+	"""
+	Query samples between 2 dates for specified assay types and export as CSV
+	"""
+	form = DataDownloadForm()
+	
+	if request.method == 'POST':
+		form = DataDownloadForm(request.POST)
+		
+		if form.is_valid():
+			assay_types = form.cleaned_data['assay_type']
+			start_date = form.cleaned_data['start_date']
+			end_date = form.cleaned_data['end_date']
+			selected_data_models = form.cleaned_data['data_models']
+			
+			# Generate filename using assay type names
+			assay_names = '_'.join([assay.analysis_type_id for assay in assay_types])
+			if len(assay_names) > 50:  # Limit filename length
+				assay_names = assay_names[:47] + '...'
+				
+			# Generate CSV response
+			response = HttpResponse(content_type='text/csv')
+			response['Content-Disposition'] = f'attachment; filename="{assay_names}_samples_{start_date}_to_{end_date}.csv"'
+			
+			writer = csv.writer(response)
 
+			# Query samples matching the criteria
+			samples = SampleAnalysis.objects.filter(
+				analysis_type__in=assay_types,
+				run__instrument_date__gte=start_date,
+				run__instrument_date__lte=end_date
+			).select_related('run', 'sample', 'run__instrument')
 
-            # Query samples matching the criteria
-            samples = SampleAnalysis.objects.filter(
-                analysis_type__in=assay_types,
-                run__instrument_date__gte=start_date,
-                run__instrument_date__lte=end_date
-            ).select_related('run', 'sample', 'run__instrument')
-            
-            print(f"samples: {samples}")
-
-            if samples.exists():
-                # Find which data models have data for these samples
-                available_data_models = return_data_models(samples)
-                
-                # Filter by user selection if provided
-                if selected_data_models:
-                    data_models_to_use = [model for model in available_data_models if model in selected_data_models]
-                else:
-                    data_models_to_use = available_data_models
-                
-                # Write CSV data
-                write_wgs_data(writer, samples, assay_types, data_models_to_use)
-            else:
-                # No samples found - write header with message
-                writer.writerow(['No samples found matching the criteria'])
-                
-            return response
-    
-    return render(request, 'auto_qc/downloader.html', {'form': form})
+			if samples.exists():
+				# Find which data models have data for these samples
+				available_data_models = return_data_models(samples)
+				
+				# Filter by user selection if provided
+				if selected_data_models:
+					data_models_to_use = [model for model in available_data_models if model in selected_data_models]
+				else:
+					data_models_to_use = available_data_models
+				
+				# Print list of samples matching criteria
+				samples_list = [s.sample.sample_id for s in samples]
+				print(f"Samples matching criteria {samples_list}")
+				
+				# Write CSV data
+				write_wgs_data(writer, samples, assay_types, data_models_to_use)
+			else:
+				# No samples found - write header with message
+				writer.writerow(['No samples found matching the criteria'])
+				
+			return response
+	
+	return render(request, 'auto_qc/downloader.html', {'form': form})
 
 
 @login_required
 def get_available_data_models(request):
-    """AJAX endpoint to get available data models for selected assay types"""
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            assay_type_ids = data.get('assay_type_ids', [])
-            
-            if not assay_type_ids:
-                return JsonResponse({'data_models': []})
-            
-            # Get one sample for each distinct assay type
-            # samples_distinct = SampleAnalysis.objects.filter(
-            #     analysis_type__in=assay_type_ids
-            # ).values('analysis_type').annotate(
-            #     min_id=Min('sample_id')
-            # ).values_list('min_id', flat=True)
-            
-            # samples = SampleAnalysis.objects.filter(
-            #     analysis_type__in=assay_type_ids,
-            # ).select_related('run', 'sample')
+	"""AJAX endpoint to get available data models for selected assay types"""
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body)
+			assay_type_ids = data.get('assay_type_ids', [])
+			
+			if not assay_type_ids:
+				return JsonResponse({'data_models': []})
+			
+			samples_distinct = SampleAnalysis.objects.filter(
+				analysis_type__in=assay_type_ids
+			).values('analysis_type').annotate(
+				min_id=Min('sample_id')
+			).values_list('min_id', flat=True)
+			
+			samples = SampleAnalysis.objects.filter(
+				sample_id__in=samples_distinct
+			).select_related('run', 'sample')
 
-            samples_distinct = SampleAnalysis.objects.filter(
-                analysis_type__in=assay_type_ids
-            ).values('analysis_type').annotate(
-                min_id=Min('sample_id')
-            ).values_list('min_id', flat=True)
-            
-            samples = SampleAnalysis.objects.filter(
-                sample_id__in=samples_distinct
-            ).select_related('run', 'sample')
+			if not samples:
+				return JsonResponse({'data_models': []})
+			
+			# Get available data models
+			available_models = return_data_models(samples)
+			
+			# Debug: Print available models to console
+			print(f"Available models for selected assay types: {available_models}")
 
-            if not samples:
-                return JsonResponse({'data_models': []})
-            
-            # Get available data models
-            available_models = return_data_models(samples)
-            
-            # Debug: Print available models to console
-            print(f"Available models for selected assay types: {available_models}")
-
-            # Format for the frontend
-            data_models_choices = [
-                {'id': model_name, 'name': model_name, 'description': f"Data from {model_name} model"}
-                for model_name in available_models
-            ]
-            
-            return JsonResponse({'data_models': data_models_choices})
-            
-        except Exception as e:
-            import traceback
-            print(traceback.format_exc())  # Better error logging
-            return JsonResponse({'error': str(e)}, status=400)
-    
-    return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
+			# Format for the frontend
+			data_models_choices = [
+				{'id': model_name, 'name': model_name, 'description': f"Data from {model_name} model"}
+				for model_name in available_models
+			]
+			
+			return JsonResponse({'data_models': data_models_choices})
+			
+		except Exception as e:
+			import traceback
+			print(traceback.format_exc())  # Better error logging
+			return JsonResponse({'error': str(e)}, status=400)
+	
+	return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
 
 
 class SampleAnalysisList(generics.ListAPIView):
