@@ -367,7 +367,7 @@ def downloader(request):
 				print(f"Samples matching criteria {samples_list}")
 				
 				# Write CSV data
-				write_wgs_data(writer, samples, assay_types, data_models_to_use)
+				write_wgs_data(writer, samples, data_models_to_use)
 			else:
 				# No samples found - write header with message
 				writer.writerow(['No samples found matching the criteria'])
@@ -388,12 +388,14 @@ def get_available_data_models(request):
 			if not assay_type_ids:
 				return JsonResponse({'data_models': []})
 			
+			# Get one sample per distinct assay_type
 			samples_distinct = SampleAnalysis.objects.filter(
 				analysis_type__in=assay_type_ids
 			).values('analysis_type').annotate(
 				min_id=Min('sample_id')
 			).values_list('min_id', flat=True)
 			
+			# use sample ids to get complete SampleAnalysis objects and their related fields
 			samples = SampleAnalysis.objects.filter(
 				sample_id__in=samples_distinct
 			).select_related('run', 'sample')

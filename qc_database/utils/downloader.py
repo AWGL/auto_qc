@@ -57,7 +57,6 @@ def get_all_field_averages(queryset):
     """
     # Get the model class from the queryset
     model_class = queryset.model
-    print(f"model class : {model_class}")
 
     # Get all numeric fields
     numeric_fields = [field.name for field in model_class._meta.get_fields() 
@@ -87,7 +86,6 @@ def return_data_models(samples):
     for sample in samples:
         for label, model_info in data_models_dict.items():
             model_class, is_per_sample = model_info
-            # print(f"  Checking model: {label}, is_per_sample: {is_per_sample}")
 
             try:
                 if is_per_sample:
@@ -96,27 +94,19 @@ def return_data_models(samples):
                         # First attempt with sample_analysis
                         model_objs = model_class.objects.filter(sample_analysis__sample__sample_id=sample.sample.sample_id)
                         if model_objs.exists():
-                            # print(f"        Found data for {label} using sample_analysis_id")
                             data_models.add(label)
-                        # else: 
-                            # print(f"        Data not found for {label} using sample_analysis_id")
                         continue
                     except Exception as e:
                         pass
-                        # print(f"        Error checking sample_analysis_id: {str(e)}")
                         
                     try:
                         # Second attempt with sample
                         model_objs = model_class.objects.filter(sample__sample_id=sample.sample.sample_id)
                         if model_objs.exists():
-                            # print(f"        Found data for {label} using sample.sample_id")
                             data_models.add(label)
-                        # else: 
-                        #     print(f"        Data not found for {label} using sample.sample_id")
                         continue
                     except Exception as e:
                         pass
-                        # print(f"        Error checking sample_id: {str(e)}")
 
                 else:
                     # Try different ways to query for run-level metrics
@@ -124,36 +114,27 @@ def return_data_models(samples):
                         # First attempt with run
                         model_objs = model_class.objects.filter(run__run_id=sample.run.run_id)
                         if model_objs.exists():
-                            # print(f"        Found data for {label} using run_id")
                             data_models.add(label)
-                        # else:
-                        #     print(f"        Data not found for {label} using run_id")
                         continue
                     except Exception as e:
                         pass
-                        # print(f"        Error checking run: {str(e)}")
                         
                     try:
                         # Second attempt with run_analysis
                         model_objs = model_class.objects.filter(run_analysis__run__run_id=sample.run.run_id)
                         if model_objs.exists():
-                            # print(f"        Found data for {label} using run_analysis")
                             data_models.add(label)
-                        # else:
-                        #     print(f"        Data not found for {label} using run_analysis")
                         continue
                     except Exception as e:
                         pass
-                        # print(f"        Error checking run_analysis: {str(e)}")
                 
             except Exception as e:
                 # Just continue to the next model
                 continue
-    # print(f"Found available data models {data_models}")
     return data_models
 
 
-def write_wgs_data(writer, samples, assay_types, data_models):
+def write_wgs_data(writer, samples, data_models):
     """
     Write a CSV with all available data for the selected samples
     """
@@ -175,8 +156,7 @@ def write_wgs_data(writer, samples, assay_types, data_models):
     # Build complete header row with fields from all available data models
     header_fields = base_fields.copy()
     model_fields_map = {}  # Store fields for each model for later use
-    
-    
+        
     for model_name in data_models:
         model_class, is_per_sample = data_models_dict[model_name]
         model_fields_list = []
@@ -201,9 +181,10 @@ def write_wgs_data(writer, samples, assay_types, data_models):
             # Base sample information
             try:
                 run_analysis = RunAnalysis.objects.filter(run=sample.run).first()
+
             except Exception as e:
                 pass        
-                # print(f"Error checking run_analysis: {str(e)}")
+
             row_data = [
                 sample.run.run_id,
                 sample.run.instrument.instrument_id if hasattr(sample.run, 'instrument') else '',
@@ -224,33 +205,24 @@ def write_wgs_data(writer, samples, assay_types, data_models):
                     if is_per_sample:
                         try:
                             metrics = model_class.objects.filter(sample_analysis=sample).first()
-                            # print(f"sample analysis metrics {metrics}")
                         except Exception as e:
                             pass
-                            # print(f"Error checking sample_analysis: {str(e)}")
                         try:
                             metrics = model_class.objects.filter(sample=sample.sample).first()
-                            # print(f"sample metrics {metrics}")
                         except Exception as e:
                             pass
-                            # print(f"Error checking sample_id: {str(e)}")
 
                     else:
                         try:
                             metrics = get_all_field_averages(model_class.objects.filter(run=sample.run))
-                            # print(f"run metrics = {metrics}")
                         except Exception as e:
                             pass
-                            # print(f"Error checking sample_analysis_id: {str(e)}")
                         try:
                             metrics = get_all_field_averages(model_class.objects.filter(run_analysis__run=sample.run))
-                            # print(f"run metrics = {metrics}")
                         except Exception as e:
                             pass
-                            # print(f"Error checking sample_analysis_id: {str(e)}")
-                        # metrics = get_all_field_averages(query)
-                    # Add each field value to the row
-                    
+
+                    # Add each field value to the row                  
                     if metrics:
                         for field_name in model_fields:
                             if isinstance(metrics, dict):
@@ -263,14 +235,12 @@ def write_wgs_data(writer, samples, assay_types, data_models):
                         row_data.extend([''] * len(model_fields))
                         
                 except Exception as e:
-                    # print(f"Error getting {model_name} data for sample {sample.sample.sample_id}: {str(e)}")
                     # Add empty values for this model's fields
                     row_data.extend([''] * len(model_fields))
             
             # Write the complete row
             
             writer.writerow(row_data)
-            # print(f"Sample {sample.sample.sample_id} data written to table")
         except Exception as e:
             print(f"Error processing sample {sample.sample.sample_id}: {str(e)}")
             continue
