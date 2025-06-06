@@ -6,6 +6,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_http_methods
 from django.views import View
 from django.db.models import Min
 
@@ -20,8 +21,9 @@ from .models import SampleAnalysis, RunAnalysis
 from .serializers import SampleAnalysisSerializer, RunAnalysisSerializer
 
 from datetime import datetime as dt
-from .utils.downloader import return_data_models, write_wgs_data
+from .utils.downloader import *
 import json
+import plotly.offline as pyo
 
 @transaction.atomic
 @login_required
@@ -324,6 +326,8 @@ def downloader(request):
 	Query samples between 2 dates for specified assay types and export as CSV
 	"""
 	form = DataDownloadForm()
+	plot_html = None
+
 	
 	if request.method == 'POST':
 		form = DataDownloadForm(request.POST)
@@ -333,60 +337,89 @@ def downloader(request):
 			start_date = form.cleaned_data['start_date']
 			end_date = form.cleaned_data['end_date']
 			selected_data_models = form.cleaned_data['data_models']
-			
-			# Generate filename using assay type names
-			assay_names = '_'.join([assay.analysis_type_id for assay in assay_types])
-			if len(assay_names) > 50:  # Limit filename length
-				assay_names = assay_names[:47] + '...'
-				
-			# Generate CSV response
-			response = HttpResponse(content_type='text/csv')
-			response['Content-Disposition'] = f'attachment; filename="{assay_names}_samples_{start_date}_to_{end_date}.csv"'
-			
-			writer = csv.writer(response)
+			selected_x = form.cleaned_data['x_variable_to_plot']
+			selected_y = form.cleaned_data['y_variable_to_plot']
 
 			# Query samples matching the criteria
 			samples = SampleAnalysis.objects.filter(
-				analysis_type__in=assay_types,
-				run__instrument_date__gte=start_date,
-				run__instrument_date__lte=end_date
-			).select_related('run', 'sample', 'run__instrument')
+					analysis_type__in=assay_types,
+					run__instrument_date__gte=start_date,
+					run__instrument_date__lte=end_date
+				).select_related('run', 'sample', 'run__instrument')
+			
+			# Check if this is a CSV export request
+			if 'export_csv' in request.POST:
+				# Generate filename using assay type names
+				assay_names = '_'.join([assay.analysis_type_id for assay in assay_types])
+				if len(assay_names) > 50:  # Limit filename length
+					assay_names = assay_names[:47] + '...'
+					
+				# Generate CSV response
+				response = HttpResponse(content_type='text/csv')
+				response['Content-Disposition'] = f'attachment; filename="{assay_names}_samples_{start_date}_to_{end_date}.csv"'
+				
+				writer = csv.writer(response)
 
-			if samples.exists():
-				# Find which data models have data for these samples
-				available_data_models = return_data_models(samples)
+				if samples.exists():
+					# Find which data models have data for these samples
+					available_data_models = return_data_models(samples)
+					
+					# Filter by user selection if provided
+					if selected_data_models:
+						data_models_to_use = [model for model in available_data_models if model in selected_data_models]
+					else:
+						data_models_to_use = available_data_models
+					
+					# Print list of samples matching criteria
+					samples_list = [s.sample.sample_id for s in samples]
+					print(f"Samples matching criteria {samples_list}")
+					
+					# Write CSV data
+					write_wgs_data(writer, samples, data_models_to_use)
+
+				return response
+
+			elif 'generate_plot' in request.POST:
+				if samples.exists():
+					# Find which data models have data for these samples
+					available_data_models = return_data_models(samples)
+					
+					# Filter by user selection if provided
+					if selected_data_models:
+						data_models_to_use = [model for model in available_data_models if model in selected_data_models]
+					else:
+						data_models_to_use = available_data_models
+
+				writer = False
+				df = write_wgs_data(writer, samples, data_models_to_use)
+				plottable_cols = get_plottable_cols(df)
+				print(f"plottable_cols: {plottable_cols}")
+
+				fig = plotly_dashboard(df, selected_x, selected_y)
 				
-				# Filter by user selection if provided
-				if selected_data_models:
-					data_models_to_use = [model for model in available_data_models if model in selected_data_models]
-				else:
-					data_models_to_use = available_data_models
-				
-				# Print list of samples matching criteria
-				samples_list = [s.sample.sample_id for s in samples]
-				print(f"Samples matching criteria {samples_list}")
-				
-				# Write CSV data
-				write_wgs_data(writer, samples, data_models_to_use)
-			else:
+				# Convert plot to HTML
+				plot_html = pyo.plot(fig, output_type='div', include_plotlyjs=True)
 				# No samples found - write header with message
-				writer.writerow(['No samples found matching the criteria'])
-				
-			return response
-	
-	return render(request, 'auto_qc/downloader.html', {'form': form})
+
+	context = {
+		'form': form,
+		'plot_html': plot_html,
+		'title': 'Interactive plotter',
+		}	
+		
+	return render(request, 'auto_qc/downloader.html', context)
 
 
 @login_required
 def get_available_data_models(request):
 	"""AJAX endpoint to get available data models for selected assay types"""
-	if request.method == 'POST':
+	if request.method == 'POST':			
 		try:
 			data = json.loads(request.body)
 			assay_type_ids = data.get('assay_type_ids', [])
 			
 			if not assay_type_ids:
-				return JsonResponse({'data_models': []})
+				return JsonResponse({'data_models': [], 'data_fields': []})
 			
 			# Get one sample per distinct assay_type
 			samples_distinct = SampleAnalysis.objects.filter(
@@ -395,27 +428,41 @@ def get_available_data_models(request):
 				min_id=Min('sample_id')
 			).values_list('min_id', flat=True)
 			
+			if not samples_distinct:
+				return JsonResponse({'data_models': [], 'data_fields': []})
+			
 			# use sample ids to get complete SampleAnalysis objects and their related fields
 			samples = SampleAnalysis.objects.filter(
 				sample_id__in=samples_distinct
 			).select_related('run', 'sample')
 
 			if not samples:
-				return JsonResponse({'data_models': []})
+				return JsonResponse({'data_models': [], 'data_fields': []})
 			
-			# Get available data models
-			available_models = return_data_models(samples)
-			
-			# Debug: Print available models to console
-			print(f"Available models for selected assay types: {available_models}")
+			# Get selected data models
+
+			available_data_models = return_data_models(samples)
+			print(f"available_data_models {available_data_models}")
+
+			available_data_fields = return_data_fields(available_data_models)
 
 			# Format for the frontend
 			data_models_choices = [
 				{'id': model_name, 'name': model_name, 'description': f"Data from {model_name} model"}
-				for model_name in available_models
+				for model_name, model in available_data_models
 			]
-			
-			return JsonResponse({'data_models': data_models_choices})
+
+			data_fields_choices = [
+				{'id': field_name, 'name': field_name, 'description': f"Data from {field_name} field"}
+				for field_name in available_data_fields
+			]
+
+			context = {
+				'data_models': data_models_choices,
+				'data_fields': data_fields_choices,
+			}
+
+			return JsonResponse(context)
 			
 		except Exception as e:
 			import traceback
@@ -423,6 +470,33 @@ def get_available_data_models(request):
 			return JsonResponse({'error': str(e)}, status=400)
 	
 	return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
+
+@login_required
+@require_http_methods(["POST"])
+def get_available_fields(request):
+    """
+    Get available fields for selected data models
+    """
+    try:
+        data = json.loads(request.body)
+        data_model_ids = data.get('data_model_ids', [])
+        
+        if not data_model_ids:
+            return JsonResponse({'fields': []})
+
+
+        all_fields.sort(key=lambda x: x['display_name'])
+        
+        return JsonResponse({
+            'fields': all_fields,
+            'success': True
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e),
+            'success': False
+        }, status=400)
 
 
 class SampleAnalysisList(generics.ListAPIView):

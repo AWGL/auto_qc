@@ -5,7 +5,7 @@ from crispy_forms.bootstrap import Field
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, HTML
 from django.forms import ModelForm
-from .utils.downloader import assays_to_show
+from .utils.downloader import assay_colours
 import datetime
 
 
@@ -114,7 +114,7 @@ class DataDownloadForm(forms.Form):
 	"""
 	assay_type = forms.ModelMultipleChoiceField(
 		queryset=AnalysisType.objects.filter(
-			analysis_type_id__in=assays_to_show
+			analysis_type_id__in=[key for key in assay_colours]
 			).order_by('analysis_type_id'),
 		required=True,
 		label="Assay Type",
@@ -147,6 +147,24 @@ class DataDownloadForm(forms.Form):
 		help_text="Select the ending date for samples to include"
 	)
 	
+	# This field will be populated dynamically via JavaScript
+	x_variable_to_plot = forms.ChoiceField(
+		required=False,
+		label="Fields to plot (select up to 10)",
+		widget=forms.widgets.Select,
+		help_text="Select which data field to plot on the x-axis (updates based on selected data models)",
+		choices=[]  # Will be populated dynamically
+	)
+
+	# This field will be populated dynamically via JavaScript
+	y_variable_to_plot = forms.ChoiceField(
+		required=False,
+		label="Fields to plot (select up to 10)",
+		widget=forms.widgets.Select,
+		help_text="Select which data field to plot on the x-axis (updates based on selected data models)",
+		choices=[]  # Will be populated dynamically
+	)
+
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.helper = FormHelper()

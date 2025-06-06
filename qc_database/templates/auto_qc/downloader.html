@@ -133,13 +133,37 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" name="export_csv" class="btn btn-primary">
                         <i class="fas fa-file-download"></i> Export CSV
                     </button>
                 </div>
+            
+                <!-- Plot variables section - Will be populated dynamically -->
+                <div class="form-group mb-4" id="data-fields-container" style="display: none;">
+                    <label class="form-label fw-bold">
+                        {{ form.x_variable_to_plot.label }}:
+                    </label>
+                    
+                    <div id="loading-data-models" style="display: none;">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border text-primary me-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span>Analyzing available fields...</span>
+                        </div>
+                    </div>
+                    
+                    <div id="no-data-fields-message" style="display: none;" class="alert alert-info">
+                        No data models are available for the selected assay types.
+                    </div>
+                    
+                    <div class="multi-column-options py-2" id="data-fields-options">
+                        <!-- Will be populated via JavaScript -->
+                    </div>
             </form>
+
         </div>
         
         <div class="card-footer bg-light">
@@ -149,6 +173,10 @@
             </p>
         </div>
     </div>
+</div>
+
+<div class="plot-container mt-4">
+    {{ plot_html|safe }}
 </div>
 
 <style>
@@ -167,6 +195,12 @@
     .option-item label {
         margin-left: 8px;
         margin-bottom: 0;
+    }
+
+    .plot-container {
+    width: 100%;
+    min-height: 400px;
+    margin-top: 20px;
     }
     
     /* For responsive behavior */
@@ -210,10 +244,18 @@
         const noDataModelsMessage = document.getElementById('no-data-models-message');
         const selectAllBtn = document.getElementById('select-all-models');
         const deselectAllBtn = document.getElementById('deselect-all-models');
+        const fieldsDropdown = document.querySelectorAll('fields-dropdown');
+        const dataFieldsContainer = document.getElementById('data-fields-container');
+        const dataFieldsOptions = document.getElementById('data-fields-options');
+        const noDataFieldsMessage = document.getElementById('no-data-fields-message');
         
         // Add event listeners to assay type checkboxes
         assayCheckboxes.forEach(checkbox => {
             checkbox.addEventListener('change', updateDataModels);
+        });
+        // Add event listeners to assay type checkboxes
+        modelsCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateDataFields);
         });
         
         // Select/Deselect all buttons
@@ -307,7 +349,7 @@
                         checkbox.id = `id_data_models_${index}`;
                         checkbox.value = model.id;
                         checkbox.className = 'form-check-input';
-                        checkbox.checked = true; // Default to checked
+                        checkbox.checked = false; // Default to unchecked
                         
                         const label = document.createElement('label');
                         label.className = 'form-check-label';
@@ -335,11 +377,124 @@
             });
         }
         
+
+        // Function to update data fields based on selected data models
+        function updateDataFields() {
+            console.log('updateDataFields function called');
+
+            // Check CSRF token
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            if (!csrftoken) {
+                console.error('CSRF token not found!');
+                alert('Security token not found. Please refresh the page.');
+                return;
+            }
+            console.log('CSRF token found: ', csrftoken.substring(0, 5) + '...');
+
+
+            // Get selected data models type IDs
+            const selectedDataModels = Array.from(modelsCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+            
+            console.log('Selected data models:', selectedDataModels);
+            
+            // If none selected, hide data models section
+            if (selectedAssayTypeIds.length === 0) {
+                dataModelsContainer.style.display = 'none';
+                return;
+            }
+            
+            // Show loading indicator
+            dataFieldsContainer.style.display = 'block';
+            loadingIndicator.style.display = 'block';
+            dataFieldsOptions.style.display = 'none';
+            noDataFieldsMessage.style.display = 'none';
+            
+            console.log('Selected assay type IDs:', selectedModelsIds);
+
+            // Make AJAX request
+            fetch('{% url "get_available_data_models" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    assay_type_ids: selectedModelsIds
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data received from server:', data);
+                // Hide loading indicator
+                loadingIndicator.style.display = 'none';
+                
+                // Clear existing options
+                datafieldsOptions.innerHTML = '';
+                
+                if (data.data_fields && data.data_fields.length > 0) {
+                    // Show options
+                    datafieldsOptions.style.display = 'grid';
+                    noDatafieldsMessage.style.display = 'none';
+                    
+                    // Add each data model as a checkbox
+                    data.data_fields.forEach((model, index) => {
+                        const optionItem = document.createElement('div');
+                        optionItem.className = 'option-item';
+                        
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.name = 'data_fields';
+                        checkbox.id = `id_data_fields_${index}`;
+                        checkbox.value = model.id;
+                        checkbox.className = 'form-check-input';
+                        checkbox.checked = false; // Default to unchecked
+                        
+                        const label = document.createElement('label');
+                        label.className = 'form-check-label';
+                        label.htmlFor = `id_data_fields_${index}`;
+                        label.textContent = model.name;
+                        
+                        optionItem.appendChild(checkbox);
+                        optionItem.appendChild(label);
+                        datafieldsOptions.appendChild(optionItem);
+                    });
+                } else {
+                    // Show no data message
+                    datafieldsOptions.style.display = 'none';
+                    noDatafieldsMessage.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching data fields:', error);
+                loadingIndicator.style.display = 'none';
+                datafieldsOptions.style.display = 'none';
+                
+                // Show error message
+                noDatafieldsMessage.textContent = 'Error loading data fields: ' + error.message;
+                noDatafieldsMessage.style.display = 'block';
+            });
+        }    
+
+
         // Check if any assay types are already selected on page load
         const initialSelectedAssays = Array.from(assayCheckboxes).filter(cb => cb.checked);
         if (initialSelectedAssays.length > 0) {
             updateDataModels();
         };
+
+        // Force Plotly to resize if it exists
+        if (window.Plotly) {
+            setTimeout(function() {
+                window.Plotly.Plots.resize();
+            }, 100);
+        }
     });
 
     document.getElementById('data-export-form').addEventListener('submit', function(e) {
@@ -366,7 +521,7 @@
                 });
             };   
         };
-        return true;  
+        return true; 
     });
    
 </script>
