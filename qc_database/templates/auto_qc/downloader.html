@@ -156,7 +156,7 @@
                     </div>
                     
                     <div id="no-data-fields-message" style="display: none;" class="alert alert-info">
-                        No data models are available for the selected assay types.
+                        No fields are available for the selected model types.
                     </div>
                     
                     <div class="multi-column-options py-2" id="data-fields-options">
@@ -244,7 +244,6 @@
         const noDataModelsMessage = document.getElementById('no-data-models-message');
         const selectAllBtn = document.getElementById('select-all-models');
         const deselectAllBtn = document.getElementById('deselect-all-models');
-        const fieldsDropdown = document.querySelectorAll('fields-dropdown');
         const dataFieldsContainer = document.getElementById('data-fields-container');
         const dataFieldsOptions = document.getElementById('data-fields-options');
         const noDataFieldsMessage = document.getElementById('no-data-fields-message');
@@ -253,17 +252,15 @@
         assayCheckboxes.forEach(checkbox => {
             checkbox.addEventListener('change', updateDataModels);
         });
-        // Add event listeners to assay type checkboxes
-        modelsCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', updateDataFields);
-        });
         
-        // Select/Deselect all buttons
+        // Select/Deselect all buttons for data models
         selectAllBtn.addEventListener('click', function() {
             const checkboxes = document.querySelectorAll('[name="data_models"]');
             checkboxes.forEach(cb => {
                 cb.checked = true;
             });
+            // Trigger data fields update when selecting all models
+            updateDataFields();
         });
         
         deselectAllBtn.addEventListener('click', function() {
@@ -271,21 +268,28 @@
             checkboxes.forEach(cb => {
                 cb.checked = false;
             });
+            // Hide data fields when deselecting all models
+            dataFieldsContainer.style.display = 'none';
         });
+        
+        // Function to add event listeners to dynamically created data model checkboxes
+        function addDataModelEventListeners() {
+            const modelCheckboxes = document.querySelectorAll('[name="data_models"]');
+            modelCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateDataFields);
+            });
+        }
         
         // Function to update data models based on selected assay types
         function updateDataModels() {
             console.log('updateDataModels function called');
 
             // Check CSRF token
-            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
             if (!csrftoken) {
                 console.error('CSRF token not found!');
                 alert('Security token not found. Please refresh the page.');
                 return;
             }
-            console.log('CSRF token found: ', csrftoken.substring(0, 5) + '...');
-
 
             // Get selected assay type IDs
             const selectedAssayTypeIds = Array.from(assayCheckboxes)
@@ -294,9 +298,10 @@
             
             console.log('Selected assay types:', selectedAssayTypeIds);
             
-            // If none selected, hide data models section
+            // If none selected, hide both data models and data fields sections
             if (selectedAssayTypeIds.length === 0) {
                 dataModelsContainer.style.display = 'none';
+                dataFieldsContainer.style.display = 'none';
                 return;
             }
             
@@ -306,7 +311,8 @@
             dataModelsOptions.style.display = 'none';
             noDataModelsMessage.style.display = 'none';
             
-            console.log('Selected assay type IDs:', selectedAssayTypeIds);
+            // Hide data fields container until models are selected
+            dataFieldsContainer.style.display = 'none';
 
             // Make AJAX request
             fetch('{% url "get_available_data_models" %}', {
@@ -326,7 +332,7 @@
                 return response.json();
             })
             .then(data => {
-                console.log('Data received from server:', data);
+                console.log('Data models received from server:', data);
                 // Hide loading indicator
                 loadingIndicator.style.display = 'none';
                 
@@ -349,7 +355,7 @@
                         checkbox.id = `id_data_models_${index}`;
                         checkbox.value = model.id;
                         checkbox.className = 'form-check-input';
-                        checkbox.checked = false; // Default to unchecked
+                        checkbox.checked = false;
                         
                         const label = document.createElement('label');
                         label.className = 'form-check-label';
@@ -360,6 +366,9 @@
                         optionItem.appendChild(label);
                         dataModelsOptions.appendChild(optionItem);
                     });
+                    
+                    // Add event listeners to the newly created checkboxes
+                    addDataModelEventListeners();
                 } else {
                     // Show no data message
                     dataModelsOptions.style.display = 'none';
@@ -376,75 +385,91 @@
                 noDataModelsMessage.style.display = 'block';
             });
         }
-        
 
-        // Function to update data fields based on selected data models
+         // Replace your updateDataFields function with this version that includes debugging
         function updateDataFields() {
             console.log('updateDataFields function called');
 
             // Check CSRF token
-            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
             if (!csrftoken) {
                 console.error('CSRF token not found!');
                 alert('Security token not found. Please refresh the page.');
                 return;
             }
-            console.log('CSRF token found: ', csrftoken.substring(0, 5) + '...');
 
-
-            // Get selected data models type IDs
-            const selectedDataModels = Array.from(modelsCheckboxes)
+            // Get selected data model IDs (query dynamically since they're created after page load)
+            const modelCheckboxes = document.querySelectorAll('[name="data_models"]');
+            const selectedDataModels = Array.from(modelCheckboxes)
                 .filter(cb => cb.checked)
                 .map(cb => cb.value);
             
             console.log('Selected data models:', selectedDataModels);
             
-            // If none selected, hide data models section
-            if (selectedAssayTypeIds.length === 0) {
-                dataModelsContainer.style.display = 'none';
+            // If none selected, hide data fields section
+            if (selectedDataModels.length === 0) {
+                dataFieldsContainer.style.display = 'none';
                 return;
             }
             
-            // Show loading indicator
+            // Show loading indicator for data fields
             dataFieldsContainer.style.display = 'block';
-            loadingIndicator.style.display = 'block';
+            const fieldsLoadingIndicator = dataFieldsContainer.querySelector('#loading-data-models') || loadingIndicator;
+            fieldsLoadingIndicator.style.display = 'block';
             dataFieldsOptions.style.display = 'none';
             noDataFieldsMessage.style.display = 'none';
-            
-            console.log('Selected assay type IDs:', selectedModelsIds);
 
             // Make AJAX request
-            fetch('{% url "get_available_data_models" %}', {
+            fetch('{% url "get_available_fields" %}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrftoken
                 },
                 body: JSON.stringify({
-                    assay_type_ids: selectedModelsIds
+                    data_model_ids: selectedDataModels
                 })
             })
             .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error('Network response was not ok: ' + response.status);
                 }
                 return response.json();
             })
             .then(data => {
-                console.log('Data received from server:', data);
+                // DEBUG: Log the entire response to see what you're actually getting
+                console.log('FULL DATA RESPONSE:', data);
+                console.log('Type of data:', typeof data);
+                console.log('Keys in data object:', Object.keys(data));
+                
+                // Check different possible key names
+                console.log('data.data_fields:', data.data_fields);
+                console.log('data.fields:', data.fields);
+                console.log('data.available_fields:', data.available_fields);
+                console.log('data.results:', data.results);
+                
                 // Hide loading indicator
-                loadingIndicator.style.display = 'none';
+                fieldsLoadingIndicator.style.display = 'none';
                 
                 // Clear existing options
-                datafieldsOptions.innerHTML = '';
+                dataFieldsOptions.innerHTML = '';
                 
-                if (data.data_fields && data.data_fields.length > 0) {
+                // Try different possible key names for the fields data
+                let fieldsData = data.data_fields || data.fields || data.available_fields || data.results || data;
+                
+                console.log('Using fieldsData:', fieldsData);
+                console.log('fieldsData length:', fieldsData ? fieldsData.length : 'undefined');
+                
+                if (fieldsData && Array.isArray(fieldsData) && fieldsData.length > 0) {
                     // Show options
-                    datafieldsOptions.style.display = 'grid';
-                    noDatafieldsMessage.style.display = 'none';
+                    dataFieldsOptions.style.display = 'grid';
+                    noDataFieldsMessage.style.display = 'none';
                     
-                    // Add each data model as a checkbox
-                    data.data_fields.forEach((model, index) => {
+                    // Add each data field as a checkbox
+                    fieldsData.forEach((field, index) => {
+                        console.log('Processing field:', field);
+                        
                         const optionItem = document.createElement('div');
                         optionItem.className = 'option-item';
                         
@@ -452,42 +477,49 @@
                         checkbox.type = 'checkbox';
                         checkbox.name = 'data_fields';
                         checkbox.id = `id_data_fields_${index}`;
-                        checkbox.value = model.id;
+                        // Try different possible key names for field ID and name
+                        checkbox.value = field.id || field.value || field.key || index;
                         checkbox.className = 'form-check-input';
-                        checkbox.checked = false; // Default to unchecked
+                        checkbox.checked = false;
                         
                         const label = document.createElement('label');
                         label.className = 'form-check-label';
                         label.htmlFor = `id_data_fields_${index}`;
-                        label.textContent = model.name;
+                        // Try different possible key names for field name/label
+                        label.textContent = field.name || field.label || field.display_name || field.title || field.toString();
                         
                         optionItem.appendChild(checkbox);
                         optionItem.appendChild(label);
-                        datafieldsOptions.appendChild(optionItem);
+                        dataFieldsOptions.appendChild(optionItem);
                     });
                 } else {
-                    // Show no data message
-                    datafieldsOptions.style.display = 'none';
-                    noDatafieldsMessage.style.display = 'block';
+                    // Show no data message with more details
+                    dataFieldsOptions.style.display = 'none';
+                    noDataFieldsMessage.innerHTML = `
+                        No data fields found. Debug info:<br>
+                        - Response keys: ${Object.keys(data).join(', ')}<br>
+                        - fieldsData type: ${typeof fieldsData}<br>
+                        - fieldsData length: ${fieldsData ? fieldsData.length : 'N/A'}
+                    `;
+                    noDataFieldsMessage.style.display = 'block';
                 }
             })
             .catch(error => {
                 console.error('Error fetching data fields:', error);
-                loadingIndicator.style.display = 'none';
-                datafieldsOptions.style.display = 'none';
+                fieldsLoadingIndicator.style.display = 'none';
+                dataFieldsOptions.style.display = 'none';
                 
                 // Show error message
-                noDatafieldsMessage.textContent = 'Error loading data fields: ' + error.message;
-                noDatafieldsMessage.style.display = 'block';
+                noDataFieldsMessage.textContent = 'Error loading data fields: ' + error.message;
+                noDataFieldsMessage.style.display = 'block';
             });
-        }    
-
+        }
 
         // Check if any assay types are already selected on page load
         const initialSelectedAssays = Array.from(assayCheckboxes).filter(cb => cb.checked);
         if (initialSelectedAssays.length > 0) {
             updateDataModels();
-        };
+        }
 
         // Force Plotly to resize if it exists
         if (window.Plotly) {
@@ -497,17 +529,18 @@
         }
     });
 
+    // Form submission validation
     document.getElementById('data-export-form').addEventListener('submit', function(e) {
         // Get selected assay types
         const selectedAssayTypes = Array.from(document.querySelectorAll('.assay-type-checkbox:checked'));
-    
+
         // If none selected, prevent submission and show error
         if (selectedAssayTypes.length === 0) {
             e.preventDefault();
             alert('Please select at least one assay type');
             return false;
         }
-    
+
         // If data models are showing but none selected, select all by default
         const dataModelsContainer = document.getElementById('data-models-container');
         if (dataModelsContainer.style.display !== 'none') {
@@ -519,8 +552,8 @@
                 dataModelCheckboxes.forEach(cb => {
                     cb.checked = true;
                 });
-            };   
-        };
+            }
+        }
         return true; 
     });
    

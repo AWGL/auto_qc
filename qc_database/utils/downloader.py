@@ -146,11 +146,11 @@ def return_data_fields(models):
         "signoff_date",
     ]
 
-    for label, model in models:
+    for model_name, model in models.items():
         for field in model._meta.get_fields():
             if field.name not in fields_to_remove:
                 if isinstance(field, (IntegerField, FloatField, DecimalField)):
-                    model_field = f"{model} {field.name}"
+                    model_field = f"{model_name} {field.name}"
                     numeric_field_names.append(model_field)
     
     return numeric_field_names

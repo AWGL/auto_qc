@@ -13,7 +13,7 @@ from django.db.models import Min
 from qc_database.models import *
 from qc_database.forms import *
 from qc_database.utils.kpi import make_kpi_excel
-from qc_database.utils.downloader import write_wgs_data, return_data_models
+from qc_database.utils.downloader import *
 
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -419,7 +419,7 @@ def get_available_data_models(request):
 			assay_type_ids = data.get('assay_type_ids', [])
 			
 			if not assay_type_ids:
-				return JsonResponse({'data_models': [], 'data_fields': []})
+				return JsonResponse({'data_models': []})
 			
 			# Get one sample per distinct assay_type
 			samples_distinct = SampleAnalysis.objects.filter(
@@ -429,7 +429,7 @@ def get_available_data_models(request):
 			).values_list('min_id', flat=True)
 			
 			if not samples_distinct:
-				return JsonResponse({'data_models': [], 'data_fields': []})
+				return JsonResponse({'data_models': []})
 			
 			# use sample ids to get complete SampleAnalysis objects and their related fields
 			samples = SampleAnalysis.objects.filter(
@@ -437,14 +437,11 @@ def get_available_data_models(request):
 			).select_related('run', 'sample')
 
 			if not samples:
-				return JsonResponse({'data_models': [], 'data_fields': []})
+				return JsonResponse({'data_models': []})
 			
 			# Get selected data models
 
 			available_data_models = return_data_models(samples)
-			print(f"available_data_models {available_data_models}")
-
-			available_data_fields = return_data_fields(available_data_models)
 
 			# Format for the frontend
 			data_models_choices = [
@@ -452,14 +449,9 @@ def get_available_data_models(request):
 				for model_name, model in available_data_models
 			]
 
-			data_fields_choices = [
-				{'id': field_name, 'name': field_name, 'description': f"Data from {field_name} field"}
-				for field_name in available_data_fields
-			]
 
 			context = {
 				'data_models': data_models_choices,
-				'data_fields': data_fields_choices,
 			}
 
 			return JsonResponse(context)
@@ -472,31 +464,45 @@ def get_available_data_models(request):
 	return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
 
 @login_required
-@require_http_methods(["POST"])
 def get_available_fields(request):
-    """
-    Get available fields for selected data models
-    """
-    try:
-        data = json.loads(request.body)
-        data_model_ids = data.get('data_model_ids', [])
-        
-        if not data_model_ids:
-            return JsonResponse({'fields': []})
+	"""AJAX endpoint to get available data models for selected assay types"""
+	if request.method == 'POST':			
+		try:
+			data = json.loads(request.body)
+			data_models_ids = data.get('data_model_ids', [])
+			
+			if not data_models_ids:
+				return JsonResponse({'data_fields': []})
+			
+			print(f"available_data_fields {data_models_ids}")
+			
+			selected_models = {}
+			
+			for model_name in data_models_ids:
+				selected_models[model_name] = data_models_dict[model_name][0]
+ 
+ 
+			available_data_fields = return_data_fields(selected_models)
+			
+			
+			# Format for the frontend
+			data_fields_choices = [
+				{'id': field_name, 'name': field_name, 'description': f"Data from {field_name} field"}
+				for field_name in available_data_fields
+			]
 
+			context = {
+				'data_fields': data_fields_choices,
+			}
 
-        all_fields.sort(key=lambda x: x['display_name'])
-        
-        return JsonResponse({
-            'fields': all_fields,
-            'success': True
-        })
-        
-    except Exception as e:
-        return JsonResponse({
-            'error': str(e),
-            'success': False
-        }, status=400)
+			return JsonResponse(context)
+			
+		except Exception as e:
+			import traceback
+			print(traceback.format_exc())  # Better error logging
+			return JsonResponse({'error': str(e)}, status=400)
+	
+	return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
 
 
 class SampleAnalysisList(generics.ListAPIView):
