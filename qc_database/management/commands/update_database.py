@@ -23,7 +23,12 @@ class Command(BaseCommand):
 	def handle(self, *args, **options):
 
 		logging.basicConfig(level=logging.DEBUG)
-		logger = logging.getLogger(__name__)
+		logger = logging.getLogger()
+		logger.handlers.clear()
+		ch = logging.StreamHandler()
+		formatter = logging.Formatter("%(levelname)s\t%(asctime)s\t%(message)s")
+		ch.setFormatter(formatter)
+		logger.addHandler(ch)
 
 		# Make or get initial model instances
 		raw_data_dir = options['raw_data_dir'][0]

@@ -3,20 +3,22 @@ from datetime import datetime
 from itertools import cycle, islice
 
 import numpy
+import subprocess
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.management import call_command
 from django.http import HttpResponse
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.forms import formset_factory
 from django.contrib.messages import get_messages
+from django.contrib import messages
 from sample_sheet.utils import import_worksheet_data
 from django import forms
 from django.conf import settings
 
 from sample_sheet.models import Assay, IndexSet, Worksheet, SampleToWorksheet, IndexToIndexSet, Index, Sample
-from .forms import TechSettingsForm, DownloadSamplesheetButton, EditIndexForm, uploadQuery, EditSampleNotesForm, ClinSciSignoffForm, ClinSciOpenWorksheetForm, TechteamSignoffForm, TechteamOpenWorksheetForm, EditSampleDetailsForm, ResetIndexForm, CreateFamilyForm, ClearFamilyForm, AdvancedDownloadForm
+from .forms import TechSettingsForm, DownloadSamplesheetButton, EditIndexForm, uploadQuery, EditSampleNotesForm, ClinSciSignoffForm, ClinSciOpenWorksheetForm, TechteamSignoffForm, TechteamOpenWorksheetForm, EditSampleDetailsForm, ResetIndexForm, CreateFamilyForm, ClearFamilyForm, AdvancedDownloadForm, ClearUrgentForm
 
 
 ########## home page ################
@@ -72,10 +74,10 @@ def upload(request):
 					print('import failed due to logic checks')
 				
 			# if script fails, error.
-			except:
-
+			except Exception as e:
+				print(e)
 				print('did not upload ok due to script error')
-				context['error'] = 'An unknown error occurred, please check your input file or contact Bioinformatics'
+				context['error'] = 'An unknown error occurred, please check your input file or contact Bioinformatics' + str(e)
 
 	return render(request, 'sample_sheet/upload.html', context)
 
@@ -184,7 +186,7 @@ def view_worksheets(request, service_slug):
 	assay = get_object_or_404(Assay, assay_slug = service_slug)
 
 	# get all worksheets from selected service
-	worksheets = Worksheet.objects.filter(worksheet_test = assay).order_by('-worksheet_id')
+	worksheets = Worksheet.objects.filter(worksheet_test = assay).order_by('-upload_date')
 
 	ws_list = []
 
@@ -287,6 +289,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 		'reset_index_form' : ResetIndexForm(worksheet_obj=worksheet_obj),
 		'create_family_form' : CreateFamilyForm(worksheet_obj=worksheet_obj),
 		'clear_family_form' : ClearFamilyForm(worksheet_obj=worksheet_obj),
+		'clear_urgent_form' : ClearUrgentForm(worksheet_obj=worksheet_obj),
 		'advanced_download_form' : AdvancedDownloadForm(worksheet_obj=worksheet_obj),
 	}
 
@@ -441,37 +444,114 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 		## if details edit form is submitted
 		if 'gender' in request.POST:
 
+			# get : all samples in worksheet, sample being edited, edit form
+			sample_list = [context["sample_data"][sample]["sample"] for sample in context["sample_data"]]
 			sample_ws_obj = SampleToWorksheet.objects.get(id=request.POST['sample_details_obj'])
 			edit_details = EditSampleDetailsForm(request.POST, sample_details_obj=sample_ws_obj)
-			
+
 			if edit_details.is_valid():
 
 				cleaned_data = edit_details.cleaned_data
+				print(f"INFO: cleaned_data = {cleaned_data}")
 
 				## edit urgency if changed
 				if cleaned_data['urgent'] != sample_ws_obj.urgent:
+
+					print(f'INFO: change in urgent for {sample_ws_obj}')
+
 					sample_ws_obj.urgent = cleaned_data['urgent']
 					sample_ws_obj.save()
 
-					## if the sample is now urgent, set up the NTC and the family members
-					if sample_ws_obj.urgent:
+					# get family details
+					family = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__familyid=sample_ws_obj.sample.familyid)
+					
+					## Other family members need changing to match urgency if the structure is set up					
+					urgency_modifier = 0
+					
+					if sample_ws_obj.sample.familyid:
 
-						## Other family members need setting as urgent for FastWGS if the structure is set up
+						print(f'INFO: updating urgency of all family members in {sample_ws_obj.sample.familyid}')
+
+						for member in family:
+							member.urgent = cleaned_data['urgent']
+							member.save()
+							urgency_modifier +=1
+					else:
+						
+						urgency_modifier = 1
+
+					## sense check - there should only be one NTC					
+					ntc_list = [i for i in sample_list if "NTC" in i]
+					
+					if len(ntc_list) == 1:
+						
+						ntc_string = ntc_list[0]
+					
+					else:
+						
+						print("INFO: Error! There should be 1 NTC per worklist")
+						messages.warning(request, "Sorry, number of NTC must equal one")
+
+					# get non-ntc sample list, urgent sample list, ntc sample object
+					sl_not_ntc = [i for i in sample_list if "NTC" not in i]
+					urgent_sample_list = [context["sample_data"][sample]["sample"] for sample in context["sample_data"] if context["sample_data"][sample]["sample_obj"].urgent == True]
+					urgent_sample_list = [i for i in urgent_sample_list if "NTC" not in i]
+					ntc = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__sampleid__startswith=ntc_string)[0]
+					
+					# count : number of samples in this worksheet, new number of urgent samples and proportion urgent
+					number_samples = len(sl_not_ntc)				
+					number_urgent_samples = len(urgent_sample_list)
+					
+					if sample_ws_obj.urgent == True:
+						
+						number_urgent_samples = number_urgent_samples + urgency_modifier
+					
+					else: 
+						
+						number_urgent_samples = number_urgent_samples - urgency_modifier
+					
+					prop_urgent = number_urgent_samples/number_samples
+					
+					# if new number of urgent over 6 or 1/3rd total then undo edit
+					max_urgent = 6
+					max_prop_urgent = 0.3333334
+														
+					if number_urgent_samples > max_urgent or prop_urgent > max_prop_urgent:
+						
+						if number_urgent_samples > max_urgent:
+							
+							print(f"INFO: number urgent samples greater than max number ({max_urgent})")
+							messages.warning(request, "Sorry, can't have more than 6 urgent samples per run")
+						
+						if prop_urgent > max_prop_urgent:
+							
+							print(f"INFO: number urgent samples greater than max proportion of urgent samples (1/3rd)")
+							messages.warning(request, "Sorry, can't have more than 1/3rd of samples set as urgent")
+
 						if sample_ws_obj.sample.familyid:
-							family = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__familyid=sample_ws_obj.sample.familyid)
+							
 							for member in family:
-								member.urgent = True
+								print('INFO: undoing urgency change for family member', member)
+								member.urgent = False
 								member.save()
-
-						## NTC also needs setting as urgent for FastWGS
-						ntc = SampleToWorksheet.objects.filter(worksheet=sample_ws_obj.worksheet, sample__sampleid__startswith="NTC")
-						## sense check - there should only be one NTC
-						if len(ntc) == 1:
-							ntc[0].urgent = True
-							ntc[0].save()
-						else:
-							print("Error! There should be 1 NTC per worklist")
-
+						
+						sample_ws_obj.urgent = False
+						sample_ws_obj.save()
+						number_urgent_samples = number_urgent_samples - urgency_modifier
+					
+					# set NTC as urgent if any samples urgent
+					print(f"number of urgent samples = {number_urgent_samples}")
+					if number_urgent_samples > 0 :
+						
+						print("INFO: number of urgent samples greater than 0, setting NTC to Urgent")
+						ntc.urgent = True
+						ntc.save()
+					else:
+						
+						print("INFO: number of urgent samples 0, setting NTC to not urgent")
+						ntc.urgent = False
+						ntc.save()
+						
 				## edit referral if changed
 				if cleaned_data['referral_type'] != sample_ws_obj.referral:
 
@@ -611,6 +691,27 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					worksheet_obj = Worksheet.objects.get(worksheet_id = worksheet_id)
 					context['sample_data'] = get_sample_info(worksheet_obj)
 
+		## if clear urgent form submitted
+		if 'clear_urgent_check' in request.POST:
+
+			clear_urgent_form = ClearUrgentForm(request.POST, worksheet_obj=worksheet_obj)
+
+			if clear_urgent_form.is_valid():
+
+				cleaned_data = clear_urgent_form.cleaned_data
+
+				## only perform clearing if box was ticked
+				if cleaned_data['clear_urgent_check']:
+
+					samples = SampleToWorksheet.objects.filter(worksheet=worksheet_obj).order_by('pos')
+
+					for s in samples:
+						s.urgent = False
+						s.save()
+
+					## reload context
+					worksheet_obj = Worksheet.objects.get(worksheet_id = worksheet_id)
+					context['sample_data'] = get_sample_info(worksheet_obj)
 
 		## if clinsci sign off pressed
 		if 'clinsci_worksheet_checked' in request.POST:
@@ -782,7 +883,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 					context['download_form'] = download_form
 
 
-		## if download samplesheet button is pressed
+		## if download samplesheet button is pressed - local save
 		if 'download-samplesheet' in request.POST:
 
 			download_button = DownloadSamplesheetButton(request.POST, checks_complete=True, assay_obj=assay)
@@ -816,10 +917,51 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 				response = HttpResponse(out, content_type='text/csv')
 				response['Content-Disposition'] = 'attachment; filename="SampleSheet.csv"'
 				return response
+			
+		## if download samplesheet button is pressed - webserver save
+		if 'download-webserver' in request.POST:
 
+			download_button = DownloadSamplesheetButton(request.POST, checks_complete=True, assay_obj=assay)
 
-		## if advanced fownload form is used
-		if 'advanced_download_text' in request.POST:
+			if download_button.is_valid():
+
+				cleaned_data = download_button.cleaned_data
+
+				worksheet_list = [worksheet_obj.worksheet_id]
+				assay_list = [worksheet_obj.worksheet_test.assay_name]
+
+				## if additional worksheet is selected then put as second worksheet id and assay type
+				if cleaned_data['additional_worksheet']:
+
+					print(f'additional worksheet selected: {cleaned_data["additional_worksheet"].worksheet_id}')
+					worksheet_obj2 = Worksheet.objects.get(worksheet_id = cleaned_data['additional_worksheet'])
+					worksheet_list.append(worksheet_obj2.worksheet_id)
+					assay_list.append(worksheet_obj2.worksheet_test.assay_name)
+
+				worksheets = ','.join(worksheet_list)
+				assays = ','.join(assay_list)
+
+				# run generate_samplesheet management command and save output as variable
+				buffer = StringIO()
+				# TODO - add option to reverse complement or not
+				call_command('generate_samplesheet', '--worksheets', worksheets, '--assays', assays, stdout=buffer)
+				
+				#Save to webserver at set location
+				#get path from settings + type of sequencer
+				sequencer = worksheet_obj.sequencer
+				worksheet_folder = "_".join(worksheet_list)
+				initial_path = f'{settings.SSGEN_DOWNLOAD}/{sequencer}/'
+				#make worksheet sub-directory
+				cmd = f'mkdir -p {initial_path}/{worksheet_folder}'
+				subprocess.check_output(cmd, shell=True, executable='/bin/bash')
+				#make final path
+				final_path = f'{initial_path}/{worksheet_folder}/SampleSheet.csv'
+				#save to file
+				with open(final_path, mode='w') as f:
+					f.write(buffer.getvalue())
+
+		## if advanced fdwnload form is used - save locally
+		if 'advanced-download-samplesheet' in request.POST:
 
 			advanced_download_form = AdvancedDownloadForm(request.POST, worksheet_obj=worksheet_obj)
 
@@ -884,9 +1026,80 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 
 					print('one or more worksheet is not signed off')
 
+		## if advanced download form is used - save webserver
+		if 'advanced-download-webserver' in request.POST:
+
+			advanced_download_form = AdvancedDownloadForm(request.POST, worksheet_obj=worksheet_obj)
+
+			if advanced_download_form.is_valid():
+
+				cleaned_data = advanced_download_form.cleaned_data
+
+				## remove whitespace and split into comma seperated list
+				worksheet_list = cleaned_data['advanced_download_text'].replace(' ','').split(',')
+
+				## remove blank instances in case of careless comma use
+				worksheet_list = list(filter(None, worksheet_list))
+
+				## create empty assay and checked list
+				assay_list = []
+				checked_ws_list = []
+
+				## check that worksheets in list exist and are all completed worksheets
+				for wsid in worksheet_list:
+
+					## check exists by querying for wsid
+					try:
+						worksheet_obj2 = Worksheet.objects.get(worksheet_id = wsid)
+
+						if worksheet_obj2.get_ws_status() == "Signed Off":
+
+							print(f'ws {wsid} is signed off')
+
+							checked_ws_list.append(worksheet_obj2.worksheet_id)
+							assay_list.append(worksheet_obj2.worksheet_test.assay_name)
+
+						else:
+
+							print(f'worksheet {wsid} not signed off')
+
+					except:
+
+						print(f'Error occurred with worksheet {wsid}')
+						pass
+
+				if checked_ws_list == worksheet_list and len(checked_ws_list) > 0:
+
+					print('worksheet lists match')
+
+					# join lists to pass into function
+					worksheets = ','.join(checked_ws_list)
+					assays = ','.join(assay_list)
+
+					# run generate_samplesheet management command and save output as variable
+					buffer = StringIO()
+					call_command('generate_samplesheet', '--worksheets', worksheets, '--assays', assays, stdout=buffer)
+				
+					#Save to webserver at set location
+					#get path from settings + type of sequencer
+					sequencer = worksheet_obj.sequencer
+					worksheet_folder = "_".join(worksheet_list)
+					initial_path = f'{settings.SSGEN_DOWNLOAD}/{sequencer}/'
+					#make worksheet sub-directory
+					cmd = f'mkdir -p {initial_path}/{worksheet_folder}'
+					subprocess.check_output(cmd, shell=True, executable='/bin/bash')
+					#make final path
+					final_path = f'{initial_path}/{worksheet_folder}/SampleSheet.csv'
+					#save to file
+					with open(final_path, mode='w') as f:
+						f.write(buffer.getvalue())
+				
+				else:
+
+					print('one or more worksheet is not signed off')
+
+
 	return render(request, 'sample_sheet/worksheet_base.html', context)
-
-
 
 ## AJAX load of start position for indexes in tech settings form
 @transaction.atomic

@@ -214,6 +214,32 @@ class ClearFamilyForm(forms.Form):
 				)
 
 
+class ClearUrgentForm(forms.Form):
+	clear_urgent_check = forms.BooleanField(required=False, label = 'I am sure.')
+
+	def __init__(self, *args, **kwargs):
+		self.worksheet_obj = kwargs.pop('worksheet_obj')
+		super(ClearUrgentForm, self).__init__(*args, **kwargs)
+		self.helper = FormHelper()
+		self.fields['clear_urgent_check'].initial = False
+		self.helper.form_id = 'clear-urgent-form'
+		self.helper.form_method = 'POST'
+		self.helper.layout = Layout(
+			Div(
+				Div(
+					Field('clear_urgent_check'),
+						style="text-align: center"
+					),
+				Div(
+					ButtonHolder(
+						Submit('submit', 'Clear urgent data', css_class='btn btn-danger w-25')
+						),
+						style="text-align: center"
+					)
+					),
+				)
+
+
 class ClinSciSignoffForm(forms.Form):
 
 	clinsci_worksheet_checked = forms.BooleanField(required=False, label = 'Manual check')
@@ -399,7 +425,7 @@ class uploadQuery(forms.Form):
 
 class DownloadSamplesheetButton(forms.Form):
 	"""
-	Button to download samplesheet. Renders in an alert box which changes coour depending on the status
+	Button to download samplesheet. Renders in an alert box which changes colour depending on the status
 	of the samplesheet checks - green if complete and red if not
 	"""
 	additional_worksheet = ModelChoiceField(queryset=Worksheet.objects.filter(clinsci_signoff_complete = True, techteam_signoff_complete = True).order_by('-worksheet_id'), required=False, label="Available worksheets")
@@ -447,10 +473,17 @@ class DownloadSamplesheetButton(forms.Form):
 						),
 						Div(
 							StrictButton(
-								'<span class="fa fa-file-download" style="width:20px"></span>Download', 
+								'<span class="fa fa-file-download" style="width:20px"></span>Download Locally', 
 								css_class=f'btn btn-{message_class} btn-sm w-100',
 								type='submit', 
 								name='download-samplesheet'
+							),
+							HTML('<br><br>'),
+							StrictButton(
+								'<span class="fa fa-file-download" style="width:20px"></span>Download to Webserver', 
+								css_class=f'btn btn-{message_class} btn-sm w-100',
+								type='submit', 
+								name='download-webserver'
 							),
 							css_class='col-4'
 						),
@@ -472,10 +505,17 @@ class DownloadSamplesheetButton(forms.Form):
 						),
 						Div(
 							StrictButton(
-								'<span class="fa fa-file-download" style="width:20px"></span>Download', 
+								'<span class="fa fa-file-download" style="width:20px"></span>Download Locally', 
 								css_class=f'btn btn-{message_class} btn-sm w-100',
 								type='submit', 
 								name='download-samplesheet'
+							),
+							HTML('<br><br>'),
+							StrictButton(
+								'<span class="fa fa-file-download" style="width:20px"></span>Download to Webserver', 
+								css_class=f'btn btn-{message_class} btn-sm w-100',
+								type='submit', 
+								name='download-webserver'
 							),
 							css_class='col-4'
 						), 
@@ -503,9 +543,20 @@ class AdvancedDownloadForm(forms.Form):
 						Field('advanced_download_text'),
 					),
 					Div(
-						ButtonHolder(
-							Submit('submit', 'Submit', css_class='btn-outline-light buttons1')
+						StrictButton(
+							'<span class="fa fa-file-download" style="width:20px"></span>Download Locally', 
+							css_class=f'btn-outline-light buttons1',
+							type='submit', 
+							name='advanced-download-samplesheet'
 						),
-						style="text-align: right"
-					),
-			))
+						HTML('<br><br>'),
+						StrictButton(
+							'<span class="fa fa-file-download" style="width:20px"></span>Download to Webserver', 
+							css_class=f'btn-outline-light buttons1',
+							type='submit', 
+							name='advanced-download-webserver'
+						),
+						css_class='col-4'
+					)
+			)
+		)

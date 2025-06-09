@@ -4,18 +4,21 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - python=3.6.7
-  - django=2.2.5
-  - numpy=1.16.0
-  - pandas=0.23.4
-  - psycopg2=2.8
-  - pip=20
-  - openpyxl=3
+  - python=3.11
+  - django=5.1.7
+  - pandas=2.2.3
+  - psycopg2=2
+  - pip
+  - openpyxl=3.1.5
+  - gunicorn=23
+  - httpie=3
   - pip:
-    - django-crispy-forms==1.7.2
-    - django-auditlog==0.4.5
-    - interop==1.1.4
-    - xmltodict==0.12.0
-    - pyyaml==5.1.2
-    - pysam==0.15.3
+    - django-crispy-forms
+    - django-auditlog==2
+    - interop==1.4.0
+    - xmltodict
+    - pyyaml
+    - pysam
+    - djangorestframework==3.16.0
+    - crispy-bootstrap4
 

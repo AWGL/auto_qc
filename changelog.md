@@ -6,6 +6,26 @@ It contains all changes from 2024-07-09 onwards
 ### Added
 - Added new SampleSheet generator application to handle outputs from GLIMS
 
+## [v2.1.0] - 04/11/2024
+
+### Added
+- Ability to download samplesheet directly to Wren temp folder
+
+### Changed
+- Deployment config to run on webserver
+
+## [v2.0.2] - 04/10/2024
+
+### Fixed
+- Hotfix, commas missing from config file
+- Hotfix, BRCA does not produce _intersect.txt
+
+## [v2.0.1] - 03/10/2024
+
+### Added
+- Update config for CRM now going into SVD
+- Update min and max variants in FH config
+
 ## [v2.0.0] - 11/07/2024
 
 ### Added

@@ -1,7 +1,7 @@
 from django.test import TestCase
 import unittest
 
-from qc_database.models import AnalysisType, CNVMetrics, Pipeline, Run, RunAnalysis, Sample, SampleAnalysis, WorkSheet, DragenCNVMetrics, DragenWGSCoverageMetrics
+from qc_database.models import AnalysisType, CNVMetrics, Pipeline, Run, RunAnalysis, Sample, SampleAnalysis, WorkSheet, DragenCNVMetrics, DragenWGSCoverageMetrics, CustomCoverageMetrics
 from pipelines.parsers import parse_exome_postprocessing_cnv_qc_metrics, parse_dragen_cnv_metrics_file
 
 class TestParseCNVQC(unittest.TestCase):
@@ -87,7 +87,8 @@ class TestCNVModels(TestCase):
             sex="male",
             contamination_cutoff=10,
             ntc_contamination_cutoff=10,
-            max_cnvs_called_cutoff=300
+            max_cnvs_called_cutoff=300,
+            min_average_coverage_cutoff=80,
         )
         self.sample_analysis_obj = SampleAnalysis.objects.get(sample=self.sample_obj)
 
@@ -105,6 +106,19 @@ class TestCNVModels(TestCase):
             exome_depth_x_reference_count=3
         )
         self.dragen_cnv_metrics_obj = CNVMetrics.objects.get(sample_analysis=self.sample_analysis_obj)
+
+        CustomCoverageMetrics.objects.create(
+            sample_analysis=self.sample_analysis_obj,
+            mean_depth=100,
+            min_depth=100,
+            max_depth=100,
+            stddev_depth=0.1,
+            pct_greater_20x=0.99,
+            pct_greater_30x=0.99,
+            pct_greater_250x=0.99,
+            pct_greater_160x=0.99
+        )
+        self.custom_cov_metrics = CustomCoverageMetrics.objects.get(sample_analysis=self.sample_analysis_obj)
 
     def test_get_exome_cnv_qc_metrics(self):
         max_over_threshold, cnv_fail, total_cnv_count, autosomal_reference_count, x_reference_count = self.sample_analysis_obj.get_exome_cnv_qc_metrics()
@@ -150,6 +164,15 @@ class TestCNVModels(TestCase):
         CNVMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(exome_depth_x_reference_count=1)
         passes_cnv_calling = self.sample_analysis_obj.passes_cnv_calling()
         self.assertFalse(passes_cnv_calling)
+
+    def test_passes_cnv_coverage(self):
+        passes_cnv_cov = self.sample_analysis_obj.passes_average_coverage()
+        self.assertTrue(passes_cnv_cov)
+
+    def test_fails_cnv_coverage(self):
+        CustomCoverageMetrics.objects.filter(sample_analysis=self.sample_analysis_obj).update(mean_depth=50)
+        passes_cnv_cov = self.sample_analysis_obj.passes_average_coverage()
+        self.assertFalse(passes_cnv_cov)
 
 class TestWGSCNVQC(unittest.TestCase):
     
