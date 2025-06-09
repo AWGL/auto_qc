@@ -5,7 +5,7 @@
         "fields": {
             "referral_code": "R27",
             "referral_for_pipeline": "paediatric_disorders_green",
-            "assay": ["WGS", "FastWGS"]
+            "assay": [9, 10]
         }
     },
     {
@@ -14,7 +14,7 @@
         "fields": {
             "referral_code": "R27",
             "referral_for_pipeline": "paediatric_disorders_green_wes",
-            "assay": ["WES"]
+            "assay": [8]
         }
     },
     {
@@ -23,7 +23,7 @@
         "fields": {
             "referral_code": "R59",
             "referral_for_pipeline": "genetic_epilepsy_syndromes_green",
-            "assay": ["FastWGS", "WGS", "WES"]
+            "assay": [10, 9, 8]
         }
     }
 ]

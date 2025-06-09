@@ -184,7 +184,7 @@ class GlimsSample:
         try:
             # for urgent WGS samples, we want to return FastWGS
             if test == "WGS" and urgency == "U":
-                assay = Assay.objects.get(pk="FastWGS")
+                assay = Assay.objects.get(assay="FastWGS")
             else:
                 assay = Assay.objects.get(lims_test=test)
             return assay

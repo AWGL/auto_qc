@@ -20,7 +20,7 @@ class TestGlimsSample(TestCase):
 
     def test_create_glims_sample(self):
         self.maxDiff = None
-        assay = Assay.objects.get(pk="TSO500RNA")
+        assay = Assay.objects.get(assay="TSO500RNA")
         expected_dict = {"lab_no": "24-1331-A-02-01", "position": "12", "worksheet": "24-TSOSEQ-29", "test": "TSO500RNA", "reason_for_referral": "", 
                          "sex": "F", "index_well": "A-B4", "i5_index": "UDP0012", "i5_seq": "CGCTCCACGA", "i7_index": "UDP0012", "i7_seq": "GAACTGAGCG", 
                          "affected": "affected", "family_id": "FAM001", "family_pos": "Proband", "hpo_terms": "HPO1;HPO2", "urgency": "R", "assay": assay,
@@ -224,43 +224,43 @@ class TestGlimsSample(TestCase):
 
         # get TSO500 DNA
         tso500dna = GlimsSample.get_assay("TSO500DNA", "U")
-        self.assertEqual(tso500dna, Assay.objects.get(pk="TSO500DNA"))
+        self.assertEqual(tso500dna, Assay.objects.get(assay="TSO500DNA"))
 
         # get TSO500 RNA
         tso500rna = GlimsSample.get_assay("TSO500RNA", "R")
-        self.assertEqual(tso500rna, Assay.objects.get(pk="TSO500RNA"))
+        self.assertEqual(tso500rna, Assay.objects.get(assay="TSO500RNA"))
 
         # get TSO500 ctDNA
         tso500ctdna = GlimsSample.get_assay("TSO500CTDNA", "U")
-        self.assertEqual(tso500ctdna, Assay.objects.get(pk="ctDNA"))
+        self.assertEqual(tso500ctdna, Assay.objects.get(assay="ctDNA"))
 
         # get BRCA
         brca = GlimsSample.get_assay("NGS GR BC", "routine")
-        self.assertEqual(brca, Assay.objects.get(pk="BRCA"))
+        self.assertEqual(brca, Assay.objects.get(assay="BRCA"))
 
         # get CRM
         crm = GlimsSample.get_assay("NGS GR CRM", "routine")
-        self.assertEqual(crm, Assay.objects.get(pk="CRM"))
+        self.assertEqual(crm, Assay.objects.get(assay="CRM"))
 
         # get TSC
         tsc = GlimsSample.get_assay("NGSTRUAUTO", "R")
-        self.assertEqual(tsc, Assay.objects.get(pk="TSC"))
+        self.assertEqual(tsc, Assay.objects.get(assay="TSC"))
 
         # get FH
         fh = GlimsSample.get_assay("FHNGS", "R")
-        self.assertEqual(fh, Assay.objects.get(pk="FH"))
+        self.assertEqual(fh, Assay.objects.get(assay="FH"))
 
         # get WES
         wes = GlimsSample.get_assay("WES", "U")
-        self.assertEqual(wes, Assay.objects.get(pk="WES"))
+        self.assertEqual(wes, Assay.objects.get(assay="WES"))
 
         # get WGS
         wgs = GlimsSample.get_assay("WGS", "R")
-        self.assertEqual(wgs, Assay.objects.get(pk="WGS"))
+        self.assertEqual(wgs, Assay.objects.get(assay="WGS"))
 
         # get FastWGS
         fastwgs = GlimsSample.get_assay("WGS", "U")
-        self.assertEqual(fastwgs, Assay.objects.get(pk="FastWGS"))
+        self.assertEqual(fastwgs, Assay.objects.get(assay="FastWGS"))
 
         # if not an assay, raise an error
         with self.assertRaises(Exception) as context:

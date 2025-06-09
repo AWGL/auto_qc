@@ -1,8 +1,9 @@
 [
-    {
+    {   
+        "pk": 1,
         "model": "sample_sheet_generator.assay",
-        "pk": "TSO500DNA",
         "fields": {
+            "assay": "TSO500DNA",
             "lims_test": "TSO500DNA",
             "pipeline_description": "pipelineName=TSO500;pipelineVersion=master",
             "index_fields": "T",
@@ -15,9 +16,10 @@
         }
     },
     {
+        "pk": 2,
         "model": "sample_sheet_generator.assay",
-        "pk": "TSO500RNA",
         "fields": {
+            "assay": "TSO500RNA",
             "lims_test": "TSO500RNA",
             "pipeline_description": "pipelineName=TSO500;pipelineVersion=master",
             "index_fields": "T",
@@ -30,9 +32,10 @@
         }
     },
     {
+        "pk": 3,
         "model": "sample_sheet_generator.assay",
-        "pk": "ctDNA",
         "fields": {
+            "assay": "ctDNA",
             "lims_test": "TSO500CTDNA",
             "pipeline_description": "pipelineName=tso500_ctdna;pipelineVersion=master",
             "index_fields": "2",
@@ -45,9 +48,10 @@
         }
     },
     {
+        "pk": 4,
         "model": "sample_sheet_generator.assay",
-        "pk": "BRCA",
         "fields": {
+            "assay": "BRCA",
             "lims_test": "NGS GR BC",
             "pipeline_description": "Name$SA%panel$NGHS102X%",
             "multiple_sequencers": false,
@@ -56,9 +60,10 @@
         }
     },
     {
+        "pk": 5,
         "model": "sample_sheet_generator.assay",
-        "pk": "CRM",
         "fields": {
+            "assay": "CRM",
             "lims_test": "NGS GR CRM",
             "pipeline_description": "Name$SA%panel$NGHS101X%",
             "multiple_sequencers": false,
@@ -67,9 +72,10 @@
         }
     },
     {
+        "pk": 6,
         "model": "sample_sheet_generator.assay",
-        "pk": "TSC",
         "fields": {
+            "assay": "TSC",
             "lims_test": "NGSTRUAUTO",
             "pipeline_description": "pipelineName=germline_enrichment_nextflow;pipelineVersion=master;panel=IlluminaTruSightCancer",
             "index_fields": "2",
@@ -79,9 +85,10 @@
         }
     },
     {
+        "pk": 7,
         "model": "sample_sheet_generator.assay",
-        "pk": "FH",
         "fields": {
+            "assay": "FH",
             "lims_test": "FHNGS",
             "pipeline_description": "pipelineName=deepvariant_nextflow;pipelineVersion=main;panel=NonacusFH",
             "index_fields": "2",
@@ -91,9 +98,10 @@
         }
     },
     {
+        "pk": 8,
         "model": "sample_sheet_generator.assay",
-        "pk": "WES",
         "fields": {
+            "assay": "WES",
             "lims_test": "WES",
             "pipeline_description": "pipelineName=DragenGE;pipelineVersion=master;panel=NonocusWES38",
             "multiple_sequencers": true,
@@ -107,9 +115,10 @@
         }
     },
     {
+        "pk": 9,
         "model": "sample_sheet_generator.assay",
-        "pk": "WGS",
         "fields": {
+            "assay": "WGS",
             "lims_test": "WGS",
             "pipeline_description": "pipelineName=DragenWGS;pipelineVersion=master;panel=WGS",
             "index_fields": "2",
@@ -122,9 +131,10 @@
         }
     },
     {
+        "pk": 10,
         "model": "sample_sheet_generator.assay",
-        "pk": "FastWGS",
         "fields": {
+            "assay": "FastWGS",
             "lims_test": "FastWGS",
             "pipeline_description": "pipelineName=DragenWGS;pipelineVersion=master;panel=FastWGS",
             "index_fields": "2",
