@@ -11,7 +11,7 @@ from sample_sheet_generator.forms import UploadForm
 ########## home page ################
 @transaction.atomic
 @login_required
-def home(request):
+def home_samplesheetgenerator(request):
 	"""
 	Home page for sample sheet
 	"""
