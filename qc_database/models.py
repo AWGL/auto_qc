@@ -3,6 +3,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from auditlog.registry import auditlog
 from auditlog.models import AuditlogHistoryField
+from django.contrib.auth.models import User
+import secrets
 
 class Instrument(models.Model):
 	"""
@@ -117,6 +119,7 @@ class Sample(models.Model):
 				return True
 
 		return False
+
 
 class Pipeline(models.Model):
 	"""
@@ -417,6 +420,22 @@ class RunAnalysis(models.Model):
 					reasons_to_fail.append('NTC Contamination Fail')
 					fail_samples.append(sample.sample.sample_id)
 
+		if 'min_average_coverage' in checks_to_do:
+
+			for sample in new_samples_list:
+
+				#Only hard failure for GE, just a warning in WGS
+
+				if 'DragenGE' in self.pipeline.pipeline_id:
+					try:
+						if sample.passes_average_coverage() != True:
+
+							reasons_to_fail.append('CNV Coverage Fail')
+				
+					except ObjectDoesNotExist:
+						# handles old runs where the check exists but CNV calling hasn't been run
+						pass 
+		
 		if 'max_cnv_calls' in checks_to_do:
 
 			for sample in new_samples_list:
@@ -1289,9 +1308,8 @@ class SampleAnalysis(models.Model):
 			if max_over_threshold and not \
 			   	cnv_fail and \
 			   	total_cnv_count <= run_analysis.max_cnv_calls and \
-				autosomal_reference_count >= 2 and \
-				x_reference_count >= 2:
-				#TODO add a coverage cutoff
+				autosomal_reference_count >= 4 and \
+				x_reference_count >= 4:
 				return True
 			else:
 				return False
@@ -1316,12 +1334,18 @@ class SampleAnalysis(models.Model):
 		Average coverage metric for CNV calling
 		"""
 		
-		#Only do this for WGS
+		#Only do this for WGS and WES
 		if 'DragenWGS' in self.pipeline.pipeline_id:
 			
 			dragen_cnv_metrics = DragenWGSCoverageMetrics.objects.get(sample_analysis=self)
 			
 			return dragen_cnv_metrics.average_alignment_coverage_over_genome
+		
+		elif 'DragenGE' in self.pipeline.pipeline_id:
+
+			dragenge_coverage_metrics = CustomCoverageMetrics.objects.get(sample_analysis=self)
+
+			return dragenge_coverage_metrics.mean_depth
 			
 		else:
 		
@@ -1329,24 +1353,47 @@ class SampleAnalysis(models.Model):
 			
 	def passes_average_coverage(self):
 		"""
-		Checks if average coverage > cut off - WGS CNV metric
+		Checks if average coverage > cut off - WGS and WES CNV metric
 		"""
-		try:
-			dragen_cnv_metrics = DragenWGSCoverageMetrics.objects.get(sample_analysis=self)
-		except:
-			return None
 
 		if self.min_average_coverage_cutoff is None:
 
 			return None
 		
-		if dragen_cnv_metrics.average_alignment_coverage_over_genome > self.min_average_coverage_cutoff:
+		if 'DragenWGS' in self.pipeline.pipeline_id:
+
+			try:
+				dragen_cnv_metrics = DragenWGSCoverageMetrics.objects.get(sample_analysis=self)
+			except:
+				return None
+			
+			if dragen_cnv_metrics.average_alignment_coverage_over_genome > self.min_average_coverage_cutoff:
 		
-			return True
+				return True
 		
+			else:
+		
+				return False
+				
+		elif 'DragenGE' in self.pipeline.pipeline_id:
+
+			try:
+				dragenge_coverage_metrics = CustomCoverageMetrics.objects.get(sample_analysis=self)
+			except:
+				return None
+			
+			if dragenge_coverage_metrics.mean_depth > self.min_average_coverage_cutoff:
+
+				return True
+			
+			else:
+
+				return False
+
 		else:
-		
-			return False
+
+			return None
+				
 			
 	def get_cnv_count(self):
 		"""
@@ -1931,7 +1978,8 @@ class Tso500Reads(models.Model):
 	percent_ntc_reads = models.IntegerField(null=True)
 	aligned_reads=models.IntegerField(null=True)
 	percent_ntc_contamination=models.IntegerField(null=True)
-	
+
+
 class ctDNAReads(models.Model):
 	"""
 	Parsed read numbers from ctDNA samples
@@ -1981,7 +2029,8 @@ class CNVMetrics(models.Model):
 	exome_depth_count = models.IntegerField(null=True)
 	exome_depth_autosomal_reference_count = models.IntegerField(null=True)
 	exome_depth_x_reference_count = models.IntegerField(null=True)
-	
+
+
 class DragenCNVMetrics(models.Model):
 	"""
 	Model for sample level CNV calling metrics from DragenWGS
@@ -2002,6 +2051,20 @@ class DragenCNVMetrics(models.Model):
 	number_of_passing_amplifications = models.IntegerField(null=True, blank=True)
 	number_of_passing_deletions = models.IntegerField(null=True, blank=True)
 
+
+class APIKey(models.Model):
+    key = models.CharField(max_length=255, unique=True)  # API key itself
+    created_at = models.DateTimeField(auto_now_add=True)  # When the key was created
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Associated user
+    is_active = models.BooleanField(default=True)  # Whether the key is active
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = secrets.token_hex(32)  # Generate key if not provided
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.key
 
 auditlog.register(RunAnalysis)
 auditlog.register(SampleAnalysis)

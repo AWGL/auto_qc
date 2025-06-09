@@ -14,11 +14,13 @@ pipelines:
                   '*_DepthOfCoverage.sample_summary',
                   '*_QC.txt',
                   '*_filtered_meta_annotated.vcf',
-                  'hotspot_variants',
-                  'hotspot_coverage'
+                  '*_cosmic.csv',
+                  '*_intersect.txt',
+                  'hotspot_coverage',
+                  '1_SomaticAmplicon.sh.e*'
                   ]
     sample_not_expected_files: ['*_fastqc.zip']
-    run_expected_files: ['*CRM.xlsx']
+    run_expected_files: ['combined_QC.txt']
     run_not_expected_files: []
 
   SomaticAmplicon-master-NGHS-102X:
@@ -34,11 +36,14 @@ pipelines:
                   '*.bam',
                   '*_DepthOfCoverage.sample_summary',
                   '*_QC.txt',
-                  '*_filtered_meta_annotated.vcf'
+                  '*_filtered_meta_annotated.vcf',
+                  '*_cosmic.csv',    
+                  'hotspot_coverage',
+                  '1_SomaticAmplicon.sh.e*'
                   ]
     sample_not_expected_files: ['*_fastqc.zip']
-    run_expected_files: ['*merged_coverage_report.txt',
-                         '*merged_variant_report.txt',
+    run_expected_files: ['*merged_variant_report.txt',
+                         '*merged_coverage_report.txt'
                         ]
     run_not_expected_files: []
 
@@ -168,8 +173,8 @@ pipelines:
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 0
-    min_variants: 20
-    max_variants: 80
+    min_variants: 30
+    max_variants: 90
     min_coverage: 0.95
 
   deepvariant_nextflow-development-NonacusFH:
@@ -179,8 +184,8 @@ pipelines:
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
     min_fastq_size: 0
-    min_variants: 20
-    max_variants: 80
+    min_variants: 30
+    max_variants: 90
     min_coverage: 0.95
 
   deepvariant_nextflow-main-AgilentOGTFH:
