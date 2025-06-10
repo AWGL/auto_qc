@@ -108,6 +108,13 @@ python manage.py loaddata sample_sheet_generator/fixtures/assays.json
 python manage.py loaddata sample_sheet_generator/fixtures/assays.json
 ```
 
+To add new referrals from a csv:
+```
+python manage.py import_referrals --referrals_csv /path/to/referrals.csv --assays ASSAY1 [ASSAY2] [ASSAY3]
+```
+The script will error if:
+* the csv is not formatted with headers `referral_code,pipeline_referral`
+* any of the assays included do not exist in the database
 
 ## Schema
 Database schema are available for:

@@ -1,7 +1,10 @@
 from collections import OrderedDict
+import contextlib
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.core.management import call_command
 from django.test import TestCase
 from sample_sheet_generator.utils import Assay, GlimsSample, Referral
+from sample_sheet_generator.views import *
 
 class TestGlimsSample(TestCase):
 
@@ -440,3 +443,26 @@ class TestGlimsSample(TestCase):
     def tearDown(self):
         pass
 
+class TestImportReferrals(TestCase):
+
+    fixtures = ["sample_sheet_generator/test_data/test_fixtures/assays.json", "sample_sheet_generator/test_data/test_fixtures/referrals.json"]
+
+    def test_import_referrals(self):
+
+        kwargs = {
+            "referrals_csv": "sample_sheet_generator/test_data/test_referrals.csv",
+            "assays": ["TSO500DNA", "CRM"]
+        }
+        expected_referrals = ["M80", "M84", "M1", "M3", "M4", "M7", "M2", "M9"]
+
+        # run import management command - wrap in contextlib to prevent output printing to screen
+        with contextlib.redirect_stdout(None):
+            call_command('import_referrals', **kwargs)
+
+        tso500_assay_obj = Assay.objects.get(assay="TSO500DNA")
+        tso500_referrals = [referral.referral_code for referral in tso500_assay_obj.referral_set.all()]
+        self.assertEqual(expected_referrals, tso500_referrals)
+
+        crm_assay_obj = Assay.objects.get(assay="CRM")
+        crm_referrals = [referral.referral_code for referral in crm_assay_obj.referral_set.all()]
+        self.assertEqual(expected_referrals, crm_referrals)
