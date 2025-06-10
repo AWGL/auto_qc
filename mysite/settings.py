@@ -44,9 +44,9 @@ INSTALLED_APPS = [
 	'crispy_forms',
 	'auditlog',
 	'sample_sheet.apps.SampleSheetConfig',
+	'sample_sheet_generator.apps.SampleSheetGeneratorConfig',
 	'crispy_bootstrap4',
-	'rest_framework',
-
+	'rest_framework'
 ]
 
 MIDDLEWARE = [

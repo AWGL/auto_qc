@@ -1,0 +1,29 @@
+{% extends 'sample_sheet_generator/base.html' %}
+{% load static %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="container-fluid">
+  
+    <div class="jumbotron jumbotron-fluid", style="padding: 30px;">
+      <div class="container">
+        <h1 class="display-4"><i class="fa fa-file"></i> Sample Sheet Generator</h1>
+        <h4>Create a samplesheet from a GLIMS TSV export</h4>
+        <p class="lead">Your samplesheet will download when you click "Create Samplesheet"</p>
+        <p><strong>If an error page appears after you click 'Create Samplesheet', please screenshot the yellow error box and send in an email to bioinformatics.team@wales.nhs.uk alongside the worksheet TSV</strong></p>
+  
+        <div class="row">
+        {% crispy form %}
+        </div>
+        <div class="row">
+        {% for error in errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
