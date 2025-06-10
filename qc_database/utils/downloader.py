@@ -146,11 +146,15 @@ def return_data_fields(models):
         "signoff_date",
     ]
 
-    for model_name, model in models.items():
+    for model_name, value in models.items():
+        model, is_per_sample = value
         for field in model._meta.get_fields():
             if field.name not in fields_to_remove:
                 if isinstance(field, (IntegerField, FloatField, DecimalField)):
-                    model_field = f"{model_name} {field.name}"
+                    if is_per_sample:
+                        model_field = f"{model_name}_{field.name}"
+                    else:
+                        model_field = f"{model_name}_{field.name}_run_avg"
                     numeric_field_names.append(model_field)
     
     return numeric_field_names
@@ -307,12 +311,17 @@ def plotly_dashboard(df, selected_x, selected_y):
     plotly.graph_objects.Figure: Interactive plotly figure
     """
     assay_colour = df["assay_type"].map(assay_colours)
-    title = f"{selected_y} vs {selected_y}"
+    title = f"{selected_y} vs {selected_x}"
+    print(f"title: {title}")
+    
+    for col in df.columns:
+        print(f"col: {col}, dtype: {df[col].dtype}")
+
     # Create figure
     fig = go.Figure()
     
     for assay, group in df.groupby("assay_type"):
-        fig.add_trace(go.scatter(
+        fig.add_trace(go.Scatter(
             x=group[selected_x],
             y=group[selected_y],
             name=assay,

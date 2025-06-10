@@ -1,562 +1,594 @@
 {% extends "auto_qc/base.html" %}
 
 {% block content %}
-<div class="container">
-    <div class="card shadow my-4">
-        <div class="card-header bg-primary text-white">
-            <h2 class="mb-0"><i class="fas fa-file-export"></i> Export Sample Data</h2>
+    {% if messages %}
+    <div>
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
         </div>
-        
-        <div class="card-body">
-            <p class="lead">Select assay types and date range to export sample data as CSV</p>
-            
-            {% if form.non_field_errors %}
-            <div class="alert alert-danger">
-                <strong>Error:</strong>
-                {% for error in form.non_field_errors %}
-                    {{ error }}
-                {% endfor %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="container">
+        <div class="card shadow my-4">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0"><i class="fas fa-file-export"></i> Export/Plot Sample Data</h2>
             </div>
-            {% endif %}
             
-            {% if form.warnings_list %}
-            <div class="alert alert-warning">
-                <strong>Warning:</strong>
-                {% for warning in form.warnings_list %}
-                    {{ warning }}
-                {% endfor %}
-            </div>
-            {% endif %}
-            
-            <form method="post" class="needs-validation" id="data-export-form">
-                {% csrf_token %}
+            <div class="card-body">
+                <p class="lead">Select assay types and date range to export sample data as CSV</p>
                 
-                <div class="form-group mb-4">
-                    <label for="{{ form.assay_type.id_for_label }}" class="form-label fw-bold">
-                        {{ form.assay_type.label }}:
-                        {% if form.assay_type.field.required %}<span class="text-danger">*</span>{% endif %}
-                    </label>
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <strong>Error:</strong>
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if form.warnings_list %}
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong>
+                    {% for warning in form.warnings_list %}
+                        {{ warning }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <form method="post" class="needs-validation" id="data-export-form">
+                    {% csrf_token %}
                     
-                    {% if form.assay_type.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.assay_type.errors }}
+                    <div class="form-group mb-4">
+                        <label for="{{ form.assay_type.id_for_label }}" class="form-label fw-bold">
+                            {{ form.assay_type.label }}:
+                            {% if form.assay_type.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        
+                        {% if form.assay_type.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.assay_type.errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="multi-column-options py-2">
+                            {% for choice in form.assay_type.field.choices %}
+                                <div class="option-item">
+                                    <input type="checkbox" 
+                                        name="{{ form.assay_type.name }}" 
+                                        id="{{ form.assay_type.id_for_label }}_{{ forloop.counter }}" 
+                                        value="{{ choice.0 }}"
+                                        class="form-check-input assay-type-checkbox"
+                                        {% if choice.0 in form.assay_type.value|default:'' %}checked{% endif %}>
+                                    <label class="form-check-label" for="{{ form.assay_type.id_for_label }}_{{ forloop.counter }}">
+                                        {{ choice.1 }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.assay_type.help_text %}
+                        <small class="form-text text-muted">{{ form.assay_type.help_text }}</small>
+                        {% endif %}
                     </div>
-                    {% endif %}
                     
-                    <div class="multi-column-options py-2">
-                        {% for choice in form.assay_type.field.choices %}
-                            <div class="option-item">
-                                <input type="checkbox" 
-                                       name="{{ form.assay_type.name }}" 
-                                       id="{{ form.assay_type.id_for_label }}_{{ forloop.counter }}" 
-                                       value="{{ choice.0 }}"
-                                       class="form-check-input assay-type-checkbox"
-                                       {% if choice.0 in form.assay_type.value|default:'' %}checked{% endif %}>
-                                <label class="form-check-label" for="{{ form.assay_type.id_for_label }}_{{ forloop.counter }}">
-                                    {{ choice.1 }}
+                    <!-- Data Models Section - Will be populated dynamically -->
+                    <div class="form-group mb-4" id="data-models-container" style="display: none;">
+                        <label class="form-label fw-bold">
+                            {{ form.data_models.label }}:
+                        </label>
+                        
+                        <div id="loading-data-models" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border text-primary me-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span>Analyzing available data models...</span>
+                            </div>
+                        </div>
+                        
+                        <div id="no-data-models-message" style="display: none;" class="alert alert-info">
+                            No data models are available for the selected assay types.
+                        </div>
+                        
+                        <div class="multi-column-options py-2" id="data-models-options">
+                            <!-- Will be populated via JavaScript -->
+                        </div>
+                        
+                        {% if form.data_models.help_text %}
+                        <small class="form-text text-muted">{{ form.data_models.help_text }}</small>
+                        {% endif %}
+                        
+                        <div class="mt-2">
+                            <button type="button" id="select-all-models" class="btn btn-sm btn-outline-secondary me-2">Select All</button>
+                            <button type="button" id="deselect-all-models" class="btn btn-sm btn-outline-secondary">Deselect All</button>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.start_date.id_for_label }}" class="form-label fw-bold">
+                                    {{ form.start_date.label }}:
+                                    {% if form.start_date.field.required %}<span class="text-danger">*</span>{% endif %}
                                 </label>
+                                {{ form.start_date|safe }}
+                                {% if form.start_date.errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {{ form.start_date.errors }}
+                                </div>
+                                {% endif %}
+                                {% if form.start_date.help_text %}
+                                <small class="form-text text-muted">{{ form.start_date.help_text }}</small>
+                                {% endif %}
                             </div>
-                        {% endfor %}
-                    </div>
-                    {% if form.assay_type.help_text %}
-                    <small class="form-text text-muted">{{ form.assay_type.help_text }}</small>
-                    {% endif %}
-                </div>
-                
-                <!-- Data Models Section - Will be populated dynamically -->
-                <div class="form-group mb-4" id="data-models-container" style="display: none;">
-                    <label class="form-label fw-bold">
-                        {{ form.data_models.label }}:
-                    </label>
-                    
-                    <div id="loading-data-models" style="display: none;">
-                        <div class="d-flex align-items-center">
-                            <div class="spinner-border text-primary me-3" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.end_date.id_for_label }}" class="form-label fw-bold">
+                                    {{ form.end_date.label }}:
+                                    {% if form.end_date.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {{ form.end_date|safe }}
+                                {% if form.end_date.errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {{ form.end_date.errors }}
+                                </div>
+                                {% endif %}
+                                {% if form.end_date.help_text %}
+                                <small class="form-text text-muted">{{ form.end_date.help_text }}</small>
+                                {% endif %}
                             </div>
-                            <span>Analyzing available data models...</span>
                         </div>
                     </div>
-                    
-                    <div id="no-data-models-message" style="display: none;" class="alert alert-info">
-                        No data models are available for the selected assay types.
-                    </div>
-                    
-                    <div class="multi-column-options py-2" id="data-models-options">
-                        <!-- Will be populated via JavaScript -->
-                    </div>
-                    
-                    {% if form.data_models.help_text %}
-                    <small class="form-text text-muted">{{ form.data_models.help_text }}</small>
-                    {% endif %}
-                    
-                    <div class="mt-2">
-                        <button type="button" id="select-all-models" class="btn btn-sm btn-outline-secondary me-2">Select All</button>
-                        <button type="button" id="deselect-all-models" class="btn btn-sm btn-outline-secondary">Deselect All</button>
-                    </div>
-                </div>
-                
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="{{ form.start_date.id_for_label }}" class="form-label fw-bold">
-                                {{ form.start_date.label }}:
-                                {% if form.start_date.field.required %}<span class="text-danger">*</span>{% endif %}
-                            </label>
-                            {{ form.start_date|safe }}
-                            {% if form.start_date.errors %}
-                            <div class="alert alert-danger mt-2">
-                                {{ form.start_date.errors }}
-                            </div>
-                            {% endif %}
-                            {% if form.start_date.help_text %}
-                            <small class="form-text text-muted">{{ form.start_date.help_text }}</small>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="{{ form.end_date.id_for_label }}" class="form-label fw-bold">
-                                {{ form.end_date.label }}:
-                                {% if form.end_date.field.required %}<span class="text-danger">*</span>{% endif %}
-                            </label>
-                            {{ form.end_date|safe }}
-                            {% if form.end_date.errors %}
-                            <div class="alert alert-danger mt-2">
-                                {{ form.end_date.errors }}
-                            </div>
-                            {% endif %}
-                            {% if form.end_date.help_text %}
-                            <small class="form-text text-muted">{{ form.end_date.help_text }}</small>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
 
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <button type="submit" name="export_csv" class="btn btn-primary">
-                        <i class="fas fa-file-download"></i> Export CSV
-                    </button>
-                </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" name="export_csv" value="1" class="btn btn-primary">
+                            <i class="fas fa-file-download"></i> Export CSV
+                        </button>
+                    </div>
+
+                    <!-- Data Fields Section - Dropdown for single selection -->
+                    
+                    <div class="form-group mb-4" id="data-fields-container" style="display: none;">
+                        <p class="lead">Select Data Fields to Plot</p>
+                        <label for="data-field-select" class="form-label fw-bold">
+                            x-variable :
+                        </label>
+                        
+                        <div id="loading-data-fields" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border text-primary me-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span>Analyzing available fields...</span>
+                            </div>
+                        </div>
+                        
+                        <div id="no-data-fields-message" style="display: none;" class="alert alert-info">
+                            No fields are available for the selected model types.
+                        </div>
+                        
+                        <select name="x_variable_to_plot" id="x-data-field-select" class="form-select" style="display: none;">
+                            <option value="">-- Select a data field --</option>
+                            <!-- Will be populated via JavaScript -->
+                        </select>
+
+                        <label for="data-field-select" class="form-label fw-bold">
+                            y-variable :
+                        </label>
+                        
+                        <div id="loading-data-fields" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border text-primary me-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span>Analyzing available fields...</span>
+                            </div>
+                        </div>
+                        
+                        <div id="no-data-fields-message" style="display: none;" class="alert alert-info">
+                            No fields are available for the selected model types.
+                        </div>
+                        
+                        <select name="y_variable_to_plot" id="y-data-field-select" class="form-select" style="display: none;">
+                            <option value="">-- Select a data field --</option>
+                            <!-- Will be populated via JavaScript -->
+                        </select>
+                        
+                        <small class="form-text text-muted">Choose which data field you want to use for plotting.</small>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" name="generate_plot" value="2" class="btn btn-primary">
+                            <i class="fas fa-file-download"></i> Generate Plot
+                        </button>
+                    </div>
+
+                    <div class="plot-container mt-4">
+                        {{ plot_html|safe }}
+                    </div>
+                </form>
+
+            </div>
             
-                <!-- Plot variables section - Will be populated dynamically -->
-                <div class="form-group mb-4" id="data-fields-container" style="display: none;">
-                    <label class="form-label fw-bold">
-                        {{ form.x_variable_to_plot.label }}:
-                    </label>
-                    
-                    <div id="loading-data-models" style="display: none;">
-                        <div class="d-flex align-items-center">
-                            <div class="spinner-border text-primary me-3" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <span>Analyzing available fields...</span>
-                        </div>
-                    </div>
-                    
-                    <div id="no-data-fields-message" style="display: none;" class="alert alert-info">
-                        No fields are available for the selected model types.
-                    </div>
-                    
-                    <div class="multi-column-options py-2" id="data-fields-options">
-                        <!-- Will be populated via JavaScript -->
-                    </div>
-            </form>
-
-        </div>
-        
-        <div class="card-footer bg-light">
-            <p class="mb-0 small text-muted">
-                The generated CSV will include all selected metrics for the chosen sample types.
-                Larger date ranges may take longer to process.
-            </p>
+            <div class="card-footer bg-light">
+                <p class="mb-0 small text-muted">
+                    The generated CSV will include all selected metrics for the chosen sample types.
+                    Larger date ranges may take longer to process.
+                </p>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="plot-container mt-4">
-    {{ plot_html|safe }}
-</div>
 
-<style>
-    .multi-column-options {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-    }
-    
-    .option-item {
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-    }
-    
-    .option-item label {
-        margin-left: 8px;
-        margin-bottom: 0;
-    }
 
-    .plot-container {
-    width: 100%;
-    min-height: 400px;
-    margin-top: 20px;
-    }
-    
-    /* For responsive behavior */
-    @media (max-width: 992px) {
+    <style>
         .multi-column-options {
-            grid-template-columns: repeat(2, 1fr);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
         }
-    }
-    
-    @media (max-width: 576px) {
-        .multi-column-options {
-            grid-template-columns: 1fr;
+        
+        .option-item {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
         }
-    }
-    
-    /* Improve date input appearance */
-    input[type="date"] {
+        
+        .option-item label {
+            margin-left: 8px;
+            margin-bottom: 0;
+        }
+
+        .plot-container {
         width: 100%;
-        padding: 0.375rem 0.75rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        color: #495057;
-        background-color: #fff;
-        background-clip: padding-box;
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    }
-</style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get CSRF token for AJAX
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        
-        // Elements
-        const assayCheckboxes = document.querySelectorAll('.assay-type-checkbox');
-        const dataModelsContainer = document.getElementById('data-models-container');
-        const dataModelsOptions = document.getElementById('data-models-options');
-        const loadingIndicator = document.getElementById('loading-data-models');
-        const noDataModelsMessage = document.getElementById('no-data-models-message');
-        const selectAllBtn = document.getElementById('select-all-models');
-        const deselectAllBtn = document.getElementById('deselect-all-models');
-        const dataFieldsContainer = document.getElementById('data-fields-container');
-        const dataFieldsOptions = document.getElementById('data-fields-options');
-        const noDataFieldsMessage = document.getElementById('no-data-fields-message');
-        
-        // Add event listeners to assay type checkboxes
-        assayCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', updateDataModels);
-        });
-        
-        // Select/Deselect all buttons for data models
-        selectAllBtn.addEventListener('click', function() {
-            const checkboxes = document.querySelectorAll('[name="data_models"]');
-            checkboxes.forEach(cb => {
-                cb.checked = true;
-            });
-            // Trigger data fields update when selecting all models
-            updateDataFields();
-        });
-        
-        deselectAllBtn.addEventListener('click', function() {
-            const checkboxes = document.querySelectorAll('[name="data_models"]');
-            checkboxes.forEach(cb => {
-                cb.checked = false;
-            });
-            // Hide data fields when deselecting all models
-            dataFieldsContainer.style.display = 'none';
-        });
-        
-        // Function to add event listeners to dynamically created data model checkboxes
-        function addDataModelEventListeners() {
-            const modelCheckboxes = document.querySelectorAll('[name="data_models"]');
-            modelCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', updateDataFields);
-            });
+        min-height: 400px;
+        margin-top: 20px;
         }
         
-        // Function to update data models based on selected assay types
-        function updateDataModels() {
-            console.log('updateDataModels function called');
-
-            // Check CSRF token
-            if (!csrftoken) {
-                console.error('CSRF token not found!');
-                alert('Security token not found. Please refresh the page.');
-                return;
+        /* For responsive behavior */
+        @media (max-width: 992px) {
+            .multi-column-options {
+                grid-template-columns: repeat(2, 1fr);
             }
-
-            // Get selected assay type IDs
-            const selectedAssayTypeIds = Array.from(assayCheckboxes)
-                .filter(cb => cb.checked)
-                .map(cb => cb.value);
-            
-            console.log('Selected assay types:', selectedAssayTypeIds);
-            
-            // If none selected, hide both data models and data fields sections
-            if (selectedAssayTypeIds.length === 0) {
-                dataModelsContainer.style.display = 'none';
-                dataFieldsContainer.style.display = 'none';
-                return;
+        }
+        
+        @media (max-width: 576px) {
+            .multi-column-options {
+                grid-template-columns: 1fr;
             }
-            
-            // Show loading indicator
-            dataModelsContainer.style.display = 'block';
-            loadingIndicator.style.display = 'block';
-            dataModelsOptions.style.display = 'none';
-            noDataModelsMessage.style.display = 'none';
-            
-            // Hide data fields container until models are selected
-            dataFieldsContainer.style.display = 'none';
+        }
+        
+        /* Improve date input appearance */
+        input[type="date"] {
+            width: 100%;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+    </style>
 
-            // Make AJAX request
-            fetch('{% url "get_available_data_models" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify({
-                    assay_type_ids: selectedAssayTypeIds
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Data models received from server:', data);
-                // Hide loading indicator
-                loadingIndicator.style.display = 'none';
-                
-                // Clear existing options
-                dataModelsOptions.innerHTML = '';
-                
-                if (data.data_models && data.data_models.length > 0) {
-                    // Show options
-                    dataModelsOptions.style.display = 'grid';
-                    noDataModelsMessage.style.display = 'none';
-                    
-                    // Add each data model as a checkbox
-                    data.data_models.forEach((model, index) => {
-                        const optionItem = document.createElement('div');
-                        optionItem.className = 'option-item';
-                        
-                        const checkbox = document.createElement('input');
-                        checkbox.type = 'checkbox';
-                        checkbox.name = 'data_models';
-                        checkbox.id = `id_data_models_${index}`;
-                        checkbox.value = model.id;
-                        checkbox.className = 'form-check-input';
-                        checkbox.checked = false;
-                        
-                        const label = document.createElement('label');
-                        label.className = 'form-check-label';
-                        label.htmlFor = `id_data_models_${index}`;
-                        label.textContent = model.name;
-                        
-                        optionItem.appendChild(checkbox);
-                        optionItem.appendChild(label);
-                        dataModelsOptions.appendChild(optionItem);
-                    });
-                    
-                    // Add event listeners to the newly created checkboxes
-                    addDataModelEventListeners();
-                } else {
-                    // Show no data message
-                    dataModelsOptions.style.display = 'none';
-                    noDataModelsMessage.style.display = 'block';
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching data models:', error);
-                loadingIndicator.style.display = 'none';
-                dataModelsOptions.style.display = 'none';
-                
-                // Show error message
-                noDataModelsMessage.textContent = 'Error loading data models: ' + error.message;
-                noDataModelsMessage.style.display = 'block';
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get CSRF token for AJAX
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Elements
+            const assayCheckboxes = document.querySelectorAll('.assay-type-checkbox');
+            const dataModelsContainer = document.getElementById('data-models-container');
+            const dataModelsOptions = document.getElementById('data-models-options');
+            const loadingIndicator = document.getElementById('loading-data-models');
+            const noDataModelsMessage = document.getElementById('no-data-models-message');
+            const selectAllBtn = document.getElementById('select-all-models');
+            const deselectAllBtn = document.getElementById('deselect-all-models');
+            const dataFieldsContainer = document.getElementById('data-fields-container');
+            const xDataFieldSelect = document.getElementById('x-data-field-select');
+            const yDataFieldSelect = document.getElementById('y-data-field-select');
+            const loadingDataFields = document.getElementById('loading-data-fields');
+            const noDataFieldsMessage = document.getElementById('no-data-fields-message');
+            
+            // Add event listeners to assay type checkboxes
+            assayCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateDataModels);
             });
-        }
-
-         // Replace your updateDataFields function with this version that includes debugging
-        function updateDataFields() {
-            console.log('updateDataFields function called');
-
-            // Check CSRF token
-            if (!csrftoken) {
-                console.error('CSRF token not found!');
-                alert('Security token not found. Please refresh the page.');
-                return;
-            }
-
-            // Get selected data model IDs (query dynamically since they're created after page load)
-            const modelCheckboxes = document.querySelectorAll('[name="data_models"]');
-            const selectedDataModels = Array.from(modelCheckboxes)
-                .filter(cb => cb.checked)
-                .map(cb => cb.value);
             
-            console.log('Selected data models:', selectedDataModels);
-            
-            // If none selected, hide data fields section
-            if (selectedDataModels.length === 0) {
-                dataFieldsContainer.style.display = 'none';
-                return;
-            }
-            
-            // Show loading indicator for data fields
-            dataFieldsContainer.style.display = 'block';
-            const fieldsLoadingIndicator = dataFieldsContainer.querySelector('#loading-data-models') || loadingIndicator;
-            fieldsLoadingIndicator.style.display = 'block';
-            dataFieldsOptions.style.display = 'none';
-            noDataFieldsMessage.style.display = 'none';
-
-            // Make AJAX request
-            fetch('{% url "get_available_fields" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify({
-                    data_model_ids: selectedDataModels
-                })
-            })
-            .then(response => {
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                // DEBUG: Log the entire response to see what you're actually getting
-                console.log('FULL DATA RESPONSE:', data);
-                console.log('Type of data:', typeof data);
-                console.log('Keys in data object:', Object.keys(data));
-                
-                // Check different possible key names
-                console.log('data.data_fields:', data.data_fields);
-                console.log('data.fields:', data.fields);
-                console.log('data.available_fields:', data.available_fields);
-                console.log('data.results:', data.results);
-                
-                // Hide loading indicator
-                fieldsLoadingIndicator.style.display = 'none';
-                
-                // Clear existing options
-                dataFieldsOptions.innerHTML = '';
-                
-                // Try different possible key names for the fields data
-                let fieldsData = data.data_fields || data.fields || data.available_fields || data.results || data;
-                
-                console.log('Using fieldsData:', fieldsData);
-                console.log('fieldsData length:', fieldsData ? fieldsData.length : 'undefined');
-                
-                if (fieldsData && Array.isArray(fieldsData) && fieldsData.length > 0) {
-                    // Show options
-                    dataFieldsOptions.style.display = 'grid';
-                    noDataFieldsMessage.style.display = 'none';
-                    
-                    // Add each data field as a checkbox
-                    fieldsData.forEach((field, index) => {
-                        console.log('Processing field:', field);
-                        
-                        const optionItem = document.createElement('div');
-                        optionItem.className = 'option-item';
-                        
-                        const checkbox = document.createElement('input');
-                        checkbox.type = 'checkbox';
-                        checkbox.name = 'data_fields';
-                        checkbox.id = `id_data_fields_${index}`;
-                        // Try different possible key names for field ID and name
-                        checkbox.value = field.id || field.value || field.key || index;
-                        checkbox.className = 'form-check-input';
-                        checkbox.checked = false;
-                        
-                        const label = document.createElement('label');
-                        label.className = 'form-check-label';
-                        label.htmlFor = `id_data_fields_${index}`;
-                        // Try different possible key names for field name/label
-                        label.textContent = field.name || field.label || field.display_name || field.title || field.toString();
-                        
-                        optionItem.appendChild(checkbox);
-                        optionItem.appendChild(label);
-                        dataFieldsOptions.appendChild(optionItem);
-                    });
-                } else {
-                    // Show no data message with more details
-                    dataFieldsOptions.style.display = 'none';
-                    noDataFieldsMessage.innerHTML = `
-                        No data fields found. Debug info:<br>
-                        - Response keys: ${Object.keys(data).join(', ')}<br>
-                        - fieldsData type: ${typeof fieldsData}<br>
-                        - fieldsData length: ${fieldsData ? fieldsData.length : 'N/A'}
-                    `;
-                    noDataFieldsMessage.style.display = 'block';
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching data fields:', error);
-                fieldsLoadingIndicator.style.display = 'none';
-                dataFieldsOptions.style.display = 'none';
-                
-                // Show error message
-                noDataFieldsMessage.textContent = 'Error loading data fields: ' + error.message;
-                noDataFieldsMessage.style.display = 'block';
-            });
-        }
-
-        // Check if any assay types are already selected on page load
-        const initialSelectedAssays = Array.from(assayCheckboxes).filter(cb => cb.checked);
-        if (initialSelectedAssays.length > 0) {
-            updateDataModels();
-        }
-
-        // Force Plotly to resize if it exists
-        if (window.Plotly) {
-            setTimeout(function() {
-                window.Plotly.Plots.resize();
-            }, 100);
-        }
-    });
-
-    // Form submission validation
-    document.getElementById('data-export-form').addEventListener('submit', function(e) {
-        // Get selected assay types
-        const selectedAssayTypes = Array.from(document.querySelectorAll('.assay-type-checkbox:checked'));
-
-        // If none selected, prevent submission and show error
-        if (selectedAssayTypes.length === 0) {
-            e.preventDefault();
-            alert('Please select at least one assay type');
-            return false;
-        }
-
-        // If data models are showing but none selected, select all by default
-        const dataModelsContainer = document.getElementById('data-models-container');
-        if (dataModelsContainer.style.display !== 'none') {
-            const dataModelCheckboxes = document.querySelectorAll('[name="data_models"]');
-            const selectedDataModels = Array.from(dataModelCheckboxes).filter(cb => cb.checked);
-            
-            if (dataModelCheckboxes.length > 0 && selectedDataModels.length === 0) {
-                // Select all data models by default
-                dataModelCheckboxes.forEach(cb => {
+            // Select/Deselect all buttons for data models
+            selectAllBtn.addEventListener('click', function() {
+                const checkboxes = document.querySelectorAll('[name="data_models"]');
+                checkboxes.forEach(cb => {
                     cb.checked = true;
                 });
+                // Trigger data fields update when selecting all models
+                updateDataFields();
+            });
+            
+            deselectAllBtn.addEventListener('click', function() {
+                const checkboxes = document.querySelectorAll('[name="data_models"]');
+                checkboxes.forEach(cb => {
+                    cb.checked = false;
+                });
+                // Hide data fields when deselecting all models
+                dataFieldsContainer.style.display = 'none';
+            });
+            
+            // Function to add event listeners to dynamically created data model checkboxes
+            function addDataModelEventListeners() {
+                const modelCheckboxes = document.querySelectorAll('[name="data_models"]');
+                modelCheckboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', updateDataFields);
+                });
             }
-        }
-        return true; 
-    });
-   
-</script>
+            
+            // Function to update data models based on selected assay types
+            function updateDataModels() {
+                console.log('updateDataModels function called');
+
+                // Check CSRF token
+                if (!csrftoken) {
+                    console.error('CSRF token not found!');
+                    alert('Security token not found. Please refresh the page.');
+                    return;
+                }
+
+                // Get selected assay type IDs
+                const selectedAssayTypeIds = Array.from(assayCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+                
+                console.log('Selected assay types:', selectedAssayTypeIds);
+                
+                // If none selected, hide both data models and data fields sections
+                if (selectedAssayTypeIds.length === 0) {
+                    dataModelsContainer.style.display = 'none';
+                    dataFieldsContainer.style.display = 'none';
+                    return;
+                }
+                
+                // Show loading indicator
+                dataModelsContainer.style.display = 'block';
+                loadingIndicator.style.display = 'block';
+                dataModelsOptions.style.display = 'none';
+                noDataModelsMessage.style.display = 'none';
+                
+                // Hide data fields container until models are selected
+                dataFieldsContainer.style.display = 'none';
+
+                // Make AJAX request
+                fetch('{% url "get_available_data_models" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({
+                        assay_type_ids: selectedAssayTypeIds
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Data models received from server:', data);
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    
+                    // Clear existing options
+                    dataModelsOptions.innerHTML = '';
+                    
+                    if (data.data_models && data.data_models.length > 0) {
+                        // Show options
+                        dataModelsOptions.style.display = 'grid';
+                        noDataModelsMessage.style.display = 'none';
+                        
+                        // Add each data model as a checkbox
+                        data.data_models.forEach((model, index) => {
+                            const optionItem = document.createElement('div');
+                            optionItem.className = 'option-item';
+                            
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.name = 'data_models';
+                            checkbox.id = `id_data_models_${index}`;
+                            checkbox.value = model.id;
+                            checkbox.className = 'form-check-input';
+                            checkbox.checked = false;
+                            
+                            const label = document.createElement('label');
+                            label.className = 'form-check-label';
+                            label.htmlFor = `id_data_models_${index}`;
+                            label.textContent = model.name;
+                            
+                            optionItem.appendChild(checkbox);
+                            optionItem.appendChild(label);
+                            dataModelsOptions.appendChild(optionItem);
+                        });
+                        
+                        // Add event listeners to the newly created checkboxes
+                        addDataModelEventListeners();
+                    } else {
+                        // Show no data message
+                        dataModelsOptions.style.display = 'none';
+                        noDataModelsMessage.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching data models:', error);
+                    loadingIndicator.style.display = 'none';
+                    dataModelsOptions.style.display = 'none';
+                    
+                    // Show error message
+                    noDataModelsMessage.textContent = 'Error loading data models: ' + error.message;
+                    noDataModelsMessage.style.display = 'block';
+                });
+            }
+
+            // Updated function to populate dropdown instead of checkboxes
+            function updateDataFields() {
+                console.log('updateDataFields function called');
+
+                // Check CSRF token
+                if (!csrftoken) {
+                    console.error('CSRF token not found!');
+                    alert('Security token not found. Please refresh the page.');
+                    return;
+                }
+
+                // Get selected data model IDs (query dynamically since they're created after page load)
+                const modelCheckboxes = document.querySelectorAll('[name="data_models"]');
+                const selectedDataModels = Array.from(modelCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+                
+                console.log('Selected data models:', selectedDataModels);
+                
+                // If none selected, hide data fields section
+                if (selectedDataModels.length === 0) {
+                    dataFieldsContainer.style.display = 'none';
+                    return;
+                }
+                
+                // Show loading indicator for data fields
+                dataFieldsContainer.style.display = 'block';
+                loadingDataFields.style.display = 'block';
+                xDataFieldSelect.style.display = 'none';
+                yDataFieldSelect.style.display = 'none';
+                noDataFieldsMessage.style.display = 'none';
+
+                // Make AJAX request
+                fetch('{% url "get_available_fields" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({
+                        data_model_ids: selectedDataModels
+                    })
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('FULL DATA RESPONSE:', data);
+                    
+                    // Hide loading indicator
+                    loadingDataFields.style.display = 'none';
+                    
+                    // Try different possible key names for the fields data
+                    let fieldsData = data.data_fields || data.fields || data.available_fields || data.results || data;
+                    
+                    console.log('Using fieldsData:', fieldsData);
+                    
+                    if (fieldsData && Array.isArray(fieldsData) && fieldsData.length > 0) {
+                        // Clear existing options (keep the default option)
+                        xDataFieldSelect.innerHTML = '<option value="">-- Select a data field --</option>';
+                        yDataFieldSelect.innerHTML = '<option value="">-- Select a data field --</option>';
+                        
+                        // Add each data field as an option
+                        fieldsData.forEach((field) => {
+                            console.log('Processing field:', field);
+                            
+                            const xOption = document.createElement('option');
+                            // Try different possible key names for field ID and name
+                            xOption.value = field.id || field.value || field.key || field.name;
+                            xOption.textContent = field.name || field.label || field.display_name || field.title || field.toString();
+                            
+                            const yOption = document.createElement('option');
+                            // Try different possible key names for field ID and name
+                            yOption.value = field.id || field.value || field.key || field.name;
+                            yOption.textContent = field.name || field.label || field.display_name || field.title || field.toString();
+
+                            xDataFieldSelect.appendChild(xOption);
+                            yDataFieldSelect.appendChild(yOption);
+                        });
+                        
+                        // Show the dropdown
+                        xDataFieldSelect.style.display = 'block';
+                        yDataFieldSelect.style.display = 'block';
+                        noDataFieldsMessage.style.display = 'none';
+                    } else {
+                        // Show no data message
+                        xDataFieldSelect.style.display = 'none';
+                        yDataFieldSelect.style.display = 'none';
+                        noDataFieldsMessage.innerHTML = `
+                            No data fields found. Debug info:<br>
+                            - Response keys: ${Object.keys(data).join(', ')}<br>
+                            - fieldsData type: ${typeof fieldsData}<br>
+                            - fieldsData length: ${fieldsData ? fieldsData.length : 'N/A'}
+                        `;
+                        noDataFieldsMessage.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching data fields:', error);
+                    loadingDataFields.style.display = 'none';
+                    xDataFieldSelect.style.display = 'none';
+                    yDataFieldSelect.style.display = 'none';
+                    
+                    // Show error message
+                    noDataFieldsMessage.textContent = 'Error loading data fields: ' + error.message;
+                    noDataFieldsMessage.style.display = 'block';
+                });
+            }
+
+            // Check if any assay types are already selected on page load
+            const initialSelectedAssays = Array.from(assayCheckboxes).filter(cb => cb.checked);
+            if (initialSelectedAssays.length > 0) {
+                updateDataModels();
+            }
+
+            // Force Plotly to resize if it exists
+            if (window.Plotly) {
+                setTimeout(function() {
+                    window.Plotly.Plots.resize();
+                }, 100);
+            }
+        });
+
+        // Form submission validation
+        document.getElementById('data-export-form').addEventListener('submit', function(e) {
+            // Get selected assay types
+            const selectedAssayTypes = Array.from(document.querySelectorAll('.assay-type-checkbox:checked'));
+
+            // If none selected, prevent submission and show error
+            if (selectedAssayTypes.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one assay type');
+                return false;
+            }
+
+            // If data models are showing but none selected, select all by default
+            const dataModelsContainer = document.getElementById('data-models-container');
+            if (dataModelsContainer.style.display !== 'none') {
+                const dataModelCheckboxes = document.querySelectorAll('[name="data_models"]');
+                const selectedDataModels = Array.from(dataModelCheckboxes).filter(cb => cb.checked);
+                
+                if (dataModelCheckboxes.length > 0 && selectedDataModels.length === 0) {
+                    // Select all data models by default
+                    dataModelCheckboxes.forEach(cb => {
+                        cb.checked = true;
+                    });
+                }
+            }
+            return true; 
+        });
+    
+    </script>
 
 {% endblock %}

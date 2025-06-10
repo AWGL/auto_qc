@@ -24,6 +24,9 @@ from datetime import datetime as dt
 from .utils.downloader import *
 import json
 import plotly.offline as pyo
+import messages
+import logging
+logger = logging.getLogger(__name__)
 
 @transaction.atomic
 @login_required
@@ -325,20 +328,18 @@ def downloader(request):
 	"""
 	Query samples between 2 dates for specified assay types and export as CSV
 	"""
-	form = DataDownloadForm()
 	plot_html = None
+	form = DataDownloadForm(request.POST or None)
 
-	
 	if request.method == 'POST':
-		form = DataDownloadForm(request.POST)
-		
+		print("POST received:", request.POST)
 		if form.is_valid():
 			assay_types = form.cleaned_data['assay_type']
 			start_date = form.cleaned_data['start_date']
 			end_date = form.cleaned_data['end_date']
 			selected_data_models = form.cleaned_data['data_models']
-			selected_x = form.cleaned_data['x_variable_to_plot']
-			selected_y = form.cleaned_data['y_variable_to_plot']
+			selected_x = request.POST.get('x_variable_to_plot', None)
+			selected_y = request.POST.get('y_variable_to_plot', None)
 
 			# Query samples matching the criteria
 			samples = SampleAnalysis.objects.filter(
@@ -346,9 +347,40 @@ def downloader(request):
 					run__instrument_date__gte=start_date,
 					run__instrument_date__lte=end_date
 				).select_related('run', 'sample', 'run__instrument')
-			
-			# Check if this is a CSV export request
+		
+
+			if 'generate_plot' in request.POST:
+				print("generate_plot button clicked")
+				if samples.exists():
+					
+					writer = False
+					df = write_wgs_data(writer, samples, selected_data_models)
+
+					logger.debug(f"selected_x: '{selected_x}', selected_y: '{selected_y}'")
+					logger.debug(f"DataFrame columns: {list(df.columns)}")
+
+					if not selected_x or not selected_y:
+						messages.error(request, 'Please select both X and Y variables for plotting.')
+					elif not assay_types:
+						messages.error(request, 'Please select at least one assay type.')
+					else:
+						# Generate your plot here
+						print("calling plotly_dashboard")
+						fig = plotly_dashboard(
+							df=df,
+							selected_x=selected_x,
+							selected_y=selected_y
+							)
+						
+						# Convert the plot to HTML
+						plot_html = pyo.plot(fig, output_type='div', include_plotlyjs=True)
+					# No samples found - write header with message
+				else:
+					messages.error(request, 'No samples found for the selected criteria.')
+	
+			# Check if the user clicked the export CSV button
 			if 'export_csv' in request.POST:
+				print("export_csv button clicked")
 				# Generate filename using assay type names
 				assay_names = '_'.join([assay.analysis_type_id for assay in assay_types])
 				if len(assay_names) > 50:  # Limit filename length
@@ -361,46 +393,22 @@ def downloader(request):
 				writer = csv.writer(response)
 
 				if samples.exists():
-					# Find which data models have data for these samples
-					available_data_models = return_data_models(samples)
 					
-					# Filter by user selection if provided
-					if selected_data_models:
-						data_models_to_use = [model for model in available_data_models if model in selected_data_models]
-					else:
-						data_models_to_use = available_data_models
+					writer = False
+					df = write_wgs_data(writer, samples, selected_data_models)
 					
 					# Print list of samples matching criteria
 					samples_list = [s.sample.sample_id for s in samples]
 					print(f"Samples matching criteria {samples_list}")
 					
 					# Write CSV data
-					write_wgs_data(writer, samples, data_models_to_use)
+					write_wgs_data(writer, samples, selected_data_models)
 
 				return response
-
-			elif 'generate_plot' in request.POST:
-				if samples.exists():
-					# Find which data models have data for these samples
-					available_data_models = return_data_models(samples)
-					
-					# Filter by user selection if provided
-					if selected_data_models:
-						data_models_to_use = [model for model in available_data_models if model in selected_data_models]
-					else:
-						data_models_to_use = available_data_models
-
-				writer = False
-				df = write_wgs_data(writer, samples, data_models_to_use)
-				plottable_cols = get_plottable_cols(df)
-				print(f"plottable_cols: {plottable_cols}")
-
-				fig = plotly_dashboard(df, selected_x, selected_y)
-				
-				# Convert plot to HTML
-				plot_html = pyo.plot(fig, output_type='div', include_plotlyjs=True)
-				# No samples found - write header with message
-
+		else:
+			print("Form errors:", form.errors)
+			messages.error(request, 'Form is invalid. Please check your inputs.')
+		
 	context = {
 		'form': form,
 		'plot_html': plot_html,
@@ -479,7 +487,7 @@ def get_available_fields(request):
 			selected_models = {}
 			
 			for model_name in data_models_ids:
-				selected_models[model_name] = data_models_dict[model_name][0]
+				selected_models[model_name] = data_models_dict[model_name]
  
  
 			available_data_fields = return_data_fields(selected_models)

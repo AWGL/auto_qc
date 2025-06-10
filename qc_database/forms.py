@@ -147,30 +147,31 @@ class DataDownloadForm(forms.Form):
 		help_text="Select the ending date for samples to include"
 	)
 	
-	# This field will be populated dynamically via JavaScript
-	x_variable_to_plot = forms.ChoiceField(
-		required=False,
-		label="Fields to plot (select up to 10)",
-		widget=forms.widgets.Select,
-		help_text="Select which data field to plot on the x-axis (updates based on selected data models)",
-		choices=[]  # Will be populated dynamically
-	)
+	# # This field will be populated dynamically via JavaScript
+	# x_variable_to_plot = forms.ChoiceField(
+	# 	required=False,
+	# 	label="Fields to plot (select up to 10)",
+	# 	widget=forms.widgets.Select,
+	# 	help_text="Select which data field to plot on the x-axis (updates based on selected data models)",
+	# 	choices=[]  # Will be populated dynamically
+	# )
 
-	# This field will be populated dynamically via JavaScript
-	y_variable_to_plot = forms.ChoiceField(
-		required=False,
-		label="Fields to plot (select up to 10)",
-		widget=forms.widgets.Select,
-		help_text="Select which data field to plot on the x-axis (updates based on selected data models)",
-		choices=[]  # Will be populated dynamically
-	)
+	# # This field will be populated dynamically via JavaScript
+	# y_variable_to_plot = forms.ChoiceField(
+	# 	required=False,
+	# 	label="Fields to plot (select up to 10)",
+	# 	widget=forms.widgets.Select,
+	# 	help_text="Select which data field to plot on the x-axis (updates based on selected data models)",
+	# 	choices=[]  # Will be populated dynamically
+	# )
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.helper = FormHelper()
 		self.helper.form_method = 'post'
 		self.helper.add_input(Submit('submit', 'Export CSV', css_class='btn btn-primary'))
-	
+		self.helper.add_input(Submit('submit', 'Generate Plot', css_class='btn btn-primary'))
+
 		# Set choices for data_models if it's in POST data
 		if args and isinstance(args[0], dict) and 'data_models' in args[0]:
 			choices = [(model, model) for model in args[0].getlist('data_models')]
