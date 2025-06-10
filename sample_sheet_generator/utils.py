@@ -341,6 +341,7 @@ class WorksheetSamples:
         self.samples = glims_samples
         self.sequencer = sequencer
         self.tests = self.get_test()
+        self.worksheet = self.samples[0].parse_worksheet(self.samples[0].test, self.samples[0].worksheet)
 
     def get_test(self):
         """
@@ -594,7 +595,7 @@ def open_glims_export(file):
 
 def create_samplesheet(worksheet_samples: WorksheetSamples, response):
     """
-    Create the SampleSheet.csv for download
+    Create the SampleSheet.csv for local download
     """
     #main header lines
     if "TSO500" in worksheet_samples.tests:
@@ -607,3 +608,20 @@ def create_samplesheet(worksheet_samples: WorksheetSamples, response):
     csv_writer = csv.writer(response)
     for line in all_lines:
         csv_writer.writerow(line.split(","))
+
+def create_samplesheet_webserver(worksheet_samples: WorksheetSamples, filepath):
+    """
+    Create the SampleSheet.csv for download
+    """
+    #main header lines
+    if "TSO500" in worksheet_samples.tests:
+        main_header_lines = TSOHeader(worksheet_samples).replace_tso_text()
+    else:
+        main_header_lines = StandardHeader(worksheet_samples).replace_standard_text()
+    header_line = worksheet_samples.get_header_line()
+    samplesheet_lines = worksheet_samples.get_samplesheet_lines()
+    all_lines = main_header_lines + [header_line] + samplesheet_lines
+    with open(filepath, "w") as f:
+        csv_writer = csv.writer(f)
+        for line in all_lines:
+            csv_writer.writerow(line.split(","))
