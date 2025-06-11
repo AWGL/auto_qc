@@ -6,7 +6,7 @@ class RunAdmin(admin.ModelAdmin):
     search_fields = ('run_id',)  # Basic search - adjust field names to match your model
 
 class RunAnalysisAdmin(admin.ModelAdmin):
-    search_fields = ('run__run_id', 'pipeline__name', 'analysis_type__name',)  # Search by related fields
+    search_fields = ('run__run_id',)  # Search by related fields
 
 class DragenCNVMetricsAdmin(admin.ModelAdmin):
     raw_id_fields = ('sample_analysis',) 
