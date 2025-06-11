@@ -1,7 +1,7 @@
 pipelines:
 
   DragenWGS-master-WGS:
-    results_dir: '/media/joseph/Storage/data/dragen_results/'
+    results_dir: '/media/joseph/Storage1/data/dragen_results/'
     qc_checks: [pct_q30, variant_check, contamination, ntc_contamination, sex_match, titv, coverage, relatedness, min_average_coverage, max_cnv_calls]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
