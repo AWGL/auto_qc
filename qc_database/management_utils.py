@@ -24,7 +24,7 @@ def add_run_log_info(run_info, run_parameters, run_obj, raw_data_dir):
 		experiment = run_params_dict['RunParameters']['Setup']['ExperimentName']
 		chemistry = None
 
-	elif instrument_type == 'Novaseq':
+	elif instrument_type == 'Novaseq' or instrument_type == 'NovaseqX':
 
 		experiment = None
 		chemistry = None

@@ -19,4 +19,6 @@ urlpatterns = [
     path('api/sample-analyses/pipelines/<str:pipeline>/runs/<str:run>/samples/<str:sample>/', SampleAnalysisList.as_view(), name='sample-analysis-by-sample'),
     path('api/run-analyses/', RunAnalysisList.as_view(), name='run-analysis-list'),
     path('api/run-analyses/runs/<str:run>/', RunAnalysisList.as_view(), name='run-analysis-by-run'),
+    path('get-available-data-models/', views.get_available_data_models, name='get_available_data_models'),
+    path('downloader/', views.downloader, name='downloader'),
 ]

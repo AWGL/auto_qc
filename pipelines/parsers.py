@@ -1,6 +1,6 @@
 import csv
 import xmltodict
-from datetime import date
+from datetime import date, datetime
 import json
 import yaml
 import math
@@ -101,6 +101,10 @@ def get_instrument_type(instrument_id):
 
 		instrument_type = 'Novaseq'
 
+	elif instrument_id.startswith('LH'):
+
+		instrument_type = 'NovaseqX'
+
 	else:
 
 		instrument_type = ''
@@ -118,12 +122,13 @@ def extract_data_from_run_info_dict(run_info_dict):
 
 	# format date object
 	instrument_date = run_info_dict['RunInfo']['Run']['Date']
+
 	year = '20' + instrument_date[0:2]
 	month = instrument_date[2:4]
 	day = instrument_date[4:6]
 		
 	try:
-		runinfo_sorted_dict['instrument_date'] = date(int(year), int(month), int(day)).isoformat()
+		runinfo_sorted_dict['instrument_date'] = datetime.fromisoformat(instrument_date.replace('Z', '+00:00')).date().isoformat()
 	except:
 		
 		year = instrument_date.split(' ')[0].split('/')[2]
