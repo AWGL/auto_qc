@@ -208,11 +208,11 @@ def import_worksheet_data(filepath):
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
             elif referral_formatted == 'panelwescongenanom':
-                referral_name = 'wes~paediatric_disorders_green'
+                referral_name = 'wes~paediatric_disorders_green_wes'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
             elif referral_formatted == 'panelwesid':
-                referral_name = 'wes~intellectual_disability'
+                referral_name = 'wes~intellectual_disability_wes'
                 shire_referral_name = sample['REASON_FOR_REFERRAL']
 
             elif referral_formatted == 'panelwesr101eds':
