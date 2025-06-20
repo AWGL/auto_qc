@@ -4,8 +4,9 @@
     {% if messages %}
     <div>
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
             {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endfor %}
     </div>
@@ -351,10 +352,50 @@
                         exportBtn.innerHTML = `<i class="fas fa-file-download"></i> Export CSV`;
                     }
 
-                    // Optionally clear the cookie
+                    // Check for csvNotice cookie
+                    const match = document.cookie.match(/csvNotice=([^;]+)/);
+                    if (match && match[1]) {
+                        const message = decodeURIComponent(match[1]);
+                        showFlashMessage(message, "info");
+
+                        // Clear the cookie
+                        document.cookie = "csvNotice=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    }
+
+                    // Clear csvDownload cookie
                     document.cookie = "csvDownload=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                 }
-            }, 500); // check every 0.5 seconds
+            }, 500);
+        }
+        function showFlashMessage(text, type = "info") {
+            const alert = document.createElement("div");
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.setAttribute("role", "alert");
+            alert.style.display = "flex";
+            alert.style.alignItems = "center";
+            alert.innerHTML = `
+                <span style="flex: 1;">${text}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="margin-left: auto; padding: 0.5rem; border: none; background: none; font-size: 1.25rem; line-height: 1; opacity: 0.5; cursor: pointer;">&times;</button>
+            `;
+
+            // Add manual click handler for the close button
+            const closeBtn = alert.querySelector('.btn-close');
+            closeBtn.addEventListener('click', function() {
+                alert.classList.remove('show');
+                alert.classList.add('hide');
+                
+                // Remove the element after fade transition
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.parentNode.removeChild(alert);
+                    }
+                }, 150); // Bootstrap fade transition duration
+            });
+
+            const container = document.querySelector(".container");
+            if (container) {
+                container.prepend(alert);
+            }
         }
         document.addEventListener('DOMContentLoaded', function() {
             // Get the data from hidden inputs
@@ -704,12 +745,10 @@
             if (dataModelsContainer.style.display !== 'none') {
                 const dataModelCheckboxes = document.querySelectorAll('[name="data_models"]');
                 const selectedDataModels = Array.from(dataModelCheckboxes).filter(cb => cb.checked);
-                
+
                 if (dataModelCheckboxes.length > 0 && selectedDataModels.length === 0) {
-                    // Select all data models by default
-                    dataModelCheckboxes.forEach(cb => {
-                        cb.checked = true;
-                    });
+                    // Don't auto-select anything — let server export base fields only
+                    console.log("No data models selected — exporting only base fields");
                 }
             }
 

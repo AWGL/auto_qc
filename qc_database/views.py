@@ -26,6 +26,7 @@ from .utils.downloader import *
 import json
 import plotly.offline as pyo
 import logging
+import urllib.parse
 logger = logging.getLogger(__name__)
 
 @transaction.atomic
@@ -403,6 +404,10 @@ def downloader(request):
 					samples_list = [s.sample.sample_id for s in samples]
 					print(f"Samples matching criteria {samples_list}")
 					
+					if not selected_data_models:
+						notice = "No data models were selected. Only base fields have been included in the export."
+						# Add it to the filename, or use JS to read from cookie or field
+						response.set_cookie("csvNotice", urllib.parse.quote(notice), max_age=10)
 					# Write CSV data
 					write_wgs_data(writer, samples, selected_data_models)
 
