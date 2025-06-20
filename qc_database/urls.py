@@ -20,5 +20,6 @@ urlpatterns = [
     path('api/run-analyses/', RunAnalysisList.as_view(), name='run-analysis-list'),
     path('api/run-analyses/runs/<str:run>/', RunAnalysisList.as_view(), name='run-analysis-by-run'),
     path('get-available-data-models/', views.get_available_data_models, name='get_available_data_models'),
+    path('get-available-fields/', views.get_available_fields, name='get_available_fields'),
     path('downloader/', views.downloader, name='downloader'),
 ]

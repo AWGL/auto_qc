@@ -1,20 +1,25 @@
 import csv
 from ..models import *
 from django.db.models import Avg, Min, FloatField, IntegerField, DecimalField
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import datetime
 
-# List of assays to show in form - current ones only
-assays_to_show = [
-    'FastWGS', 
-    'IlluminaTruSightCancer', 
-    'NGHS-101X', 
-    'NGHS-102X', 
-    'NonacusFH', 
-    'NonocusWES38', 
-    'TSO500_DNA', 
-    'TSO500_RNA', 
-    'WGS', 
-    'ctDNA'
-    ]
+# Assays and colours dict - current ones only
+assay_colours = {
+        'FastWGS': 'orange', 
+        'IlluminaTruSightCancer':'olive', 
+        'NGHS-101X': 'cyan', 
+        'NGHS-102X':'coral', 
+        'NonacusFH': 'violet', 
+        'NonocusWES38': 'green', 
+        'TSO500_DNA': 'lavender', 
+        'TSO500_RNA': 'lime', 
+        'WGS':'sienna', 
+        'ctDNA': 'yellow',
+    }
 
 data_models_dict = {
     # "ModelName": [ModelName, per_sample_metrics_boolean] 
@@ -94,7 +99,7 @@ def return_data_models(samples):
                         # First attempt with sample_analysis
                         model_objs = model_class.objects.filter(sample_analysis__sample__sample_id=sample.sample.sample_id)
                         if model_objs.exists():
-                            data_models.add(label)
+                            data_models.add((label, model_class))
                         continue
                     except Exception as e:
                         pass
@@ -103,7 +108,7 @@ def return_data_models(samples):
                         # Second attempt with sample
                         model_objs = model_class.objects.filter(sample__sample_id=sample.sample.sample_id)
                         if model_objs.exists():
-                            data_models.add(label)
+                            data_models.add((label, model_class))
                         continue
                     except Exception as e:
                         pass
@@ -114,7 +119,7 @@ def return_data_models(samples):
                         # First attempt with run
                         model_objs = model_class.objects.filter(run__run_id=sample.run.run_id)
                         if model_objs.exists():
-                            data_models.add(label)
+                            data_models.add((label, model_class))
                         continue
                     except Exception as e:
                         pass
@@ -123,7 +128,7 @@ def return_data_models(samples):
                         # Second attempt with run_analysis
                         model_objs = model_class.objects.filter(run_analysis__run__run_id=sample.run.run_id)
                         if model_objs.exists():
-                            data_models.add(label)
+                            data_models.add((label, model_class))
                         continue
                     except Exception as e:
                         pass
@@ -132,6 +137,27 @@ def return_data_models(samples):
                 # Just continue to the next model
                 continue
     return data_models
+
+
+def return_data_fields(models):
+    fields_to_remove = ['id', 'run', 'sample_analysis', 'sample', 'pipeline', 'analysis_type', 'worksheet']
+
+    numeric_field_names = [
+        "signoff_date",
+    ]
+
+    for model_name, value in models.items():
+        model, is_per_sample = value
+        for field in model._meta.get_fields():
+            if field.name not in fields_to_remove:
+                if isinstance(field, (IntegerField, FloatField, DecimalField)):
+                    if is_per_sample:
+                        model_field = f"{model_name}_{field.name}"
+                    else:
+                        model_field = f"{model_name}_{field.name}_run_avg"
+                    numeric_field_names.append(model_field)
+    
+    return numeric_field_names
 
 
 def write_wgs_data(writer, samples, data_models):
@@ -173,8 +199,11 @@ def write_wgs_data(writer, samples, data_models):
         model_fields_map[model_name] = model_fields_list
     
     # Write the header row
-    writer.writerow(header_fields)
-    
+    if writer:
+        writer.writerow(header_fields)
+
+    data = []
+
     # Write data rows for each sample
     for sample in samples:
         try:
@@ -239,10 +268,93 @@ def write_wgs_data(writer, samples, data_models):
                     row_data.extend([''] * len(model_fields))
             
             # Write the complete row
+            if writer:
+                writer.writerow(row_data)
             
-            writer.writerow(row_data)
+            data.append(row_data)
+
         except Exception as e:
             print(f"Error processing sample {sample.sample.sample_id}: {str(e)}")
             continue
     
-    return samples
+    df = pd.DataFrame(data, columns=header_fields)
+    return df
+
+
+def get_plottable_cols(df):
+    # drop NTC for plotting purposes
+    df = df[~df['sample_id'].str.contains('NTC', na=False)]
+    
+    df = df.apply(pd.to_numeric, errors='ignore').astype('float64', errors='ignore')
+    
+    #convert sign-off date to datetime
+    df['signoff_date'] = pd.to_datetime(df['signoff_date'])
+
+    print(f"column dtypes: {df.dtypes}")
+    print(f"df {df}")
+    
+    # Get numeric columns only
+    numeric_cols = df.select_dtypes(include=[np.number, 'datetime']).columns.tolist()
+    print(f"numeric cols: {numeric_cols}")
+    
+    if len(numeric_cols) < 2:
+        raise ValueError("DataFrame must have at least 2 numeric columns for plotting")
+
+    return numeric_cols
+
+
+def trim_field_name(field_name):
+    """
+    Input:
+    The name of a field tagged with a data model name (e.g. "DragenCNVMetrics_number_of_deletions")
+
+    Returns:
+    The name of the data field with the model name removed (e.g. "number of delections")
+    
+    """
+    for key in data_models_dict:
+        if field_name and field_name.startswith(f"{key}_"):
+            return field_name.replace(f"{key}_", "")
+    return "signoff_date"
+
+
+def plotly_dashboard(df, selected_x, selected_y):
+    """
+    Interactive plot that take 
+    
+    Returns:
+    plotly.graph_objects.Figure: Interactive plotly figure
+    """
+    assay_colour = df["assay_type"].map(assay_colours)
+    
+    trimmed_x = trim_field_name(selected_x)
+    trimmed_y = trim_field_name(selected_y)
+    
+    title = f"{trimmed_y} vs {trimmed_x} for {len(df)} samples"
+    
+    # Create figure
+    fig = go.Figure()
+    
+    for assay, group in df.groupby("assay_type"):
+        fig.add_trace(go.Scatter(
+            x=group[selected_x],
+            y=group[selected_y],
+            text=group['sample_id'],
+            hovertemplate=
+            "<b>Sample ID:</b> %{text}<br>"+
+            "<b>%{xaxis.title.text}:</b> %{x}<br>"+
+            "<b>%{yaxis.title.text}:</b> %{y}",
+            name=assay,
+            mode='markers',
+            ))
+    
+    fig.update_layout(
+        legend_title_text="Assay",
+        title=title,
+        height=700,
+        )
+    
+    fig.update_xaxes(title_text=trimmed_x)
+    fig.update_yaxes(title_text=trimmed_y)
+    
+    return fig
