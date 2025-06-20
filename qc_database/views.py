@@ -393,7 +393,7 @@ def downloader(request):
 				# Generate CSV response
 				response = HttpResponse(content_type='text/csv')
 				response['Content-Disposition'] = f'attachment; filename="{assay_names}_samples_{start_date}_to_{end_date}.csv"'
-				
+				response.set_cookie('csvDownload', 'true', max_age=10)  # expires in 10 seconds
 				writer = csv.writer(response)
 
 				if samples.exists():

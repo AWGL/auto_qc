@@ -206,7 +206,12 @@
                             <i class="fas fa-file-download"></i> Generate Plot
                         </button>
                     </div>
-                    
+
+                    <div id="csv-loading-indicator" style="display: none;" class="text-center my-4">
+                        <div class="custom-spinner"></div>
+                        <p class="mt-2">Exporting CSV, please wait...</p>
+                    </div>
+
                     <div id="plot-loading-indicator" style="display: none;" class="text-center my-4">
                         <div class="custom-spinner"></div>
                         <p class="mt-2">Generating plot, please wait...</p>
@@ -220,7 +225,6 @@
                         {% endif %}
                     </div>
                 </form>
-
             </div>
             
             <div class="card-footer bg-light">
@@ -331,7 +335,27 @@
                 container.style.display = "none";
             }
         }
-        
+        function waitForCsvDownload() {
+            const interval = setInterval(() => {
+                if (document.cookie.includes('csvDownload=true')) {
+                    clearInterval(interval);
+
+                    // Hide spinner
+                    const spinner = document.getElementById('csv-loading-indicator');
+                    if (spinner) spinner.style.display = 'none';
+
+                    // Re-enable button
+                    const exportBtn = document.querySelector('[name="export_csv"]');
+                    if (exportBtn) {
+                        exportBtn.disabled = false;
+                        exportBtn.innerHTML = `<i class="fas fa-file-download"></i> Export CSV`;
+                    }
+
+                    // Optionally clear the cookie
+                    document.cookie = "csvDownload=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                }
+            }, 500); // check every 0.5 seconds
+        }
         document.addEventListener('DOMContentLoaded', function() {
             // Get the data from hidden inputs
             const hiddenInput = document.getElementById('selected-data-models-input');
@@ -701,17 +725,45 @@
             if (ySelect && hiddenYInput) {
                 hiddenYInput.value = ySelect.value;
             }
-            // Show spinner if "Generate Plot" is clicked
+            // Show spinner if "Generate Plot" or "Export CSV" is clicked
             const generatePlotBtn = document.querySelector('[name="generate_plot"]');
+            const exportCsvBtn = document.querySelector('[name="export_csv"]');
+
             if (document.activeElement === generatePlotBtn) {
-                const spinner = document.getElementById('plot-loading-indicator');
-                if (spinner) {
-                    spinner.style.display = 'block';
+                const plotSpinner = document.getElementById('plot-loading-indicator');
+                if (plotSpinner) {
+                    plotSpinner.style.display = 'block';
                 }
             }
+
+            // Show spinner for Export CSV
+            if (document.activeElement === exportCsvBtn) {
+                const csvSpinner = document.getElementById('csv-loading-indicator');
+                if (csvSpinner) {
+                    csvSpinner.style.display = 'block';
+                }
+
+                // ✅ Let the form submit FIRST, then disable the button shortly after
+                setTimeout(() => {
+                    exportCsvBtn.disabled = true;
+                    exportCsvBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Exporting...`;
+                }, 100); // Just enough time for submit to proceed
+
+                // ✅ Start polling for download cookie
+                waitForCsvDownload();
+            }
+            
             return true; 
         });
-    
+        const csvFrame = document.getElementById('csv-download-frame');
+        if (csvFrame) {
+            csvFrame.addEventListener('load', function () {
+                const csvSpinner = document.getElementById('csv-loading-indicator');
+                if (csvSpinner) {
+                    csvSpinner.style.display = 'none';
+                }
+            });
+        }
     </script>
 
 {% endblock %}
