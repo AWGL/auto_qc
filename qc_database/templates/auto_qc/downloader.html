@@ -201,14 +201,23 @@
                         <small class="form-text text-muted">Choose which data field you want to use for plotting.</small>
                     </div>
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <div id="generate-plot-button-container" style="display: none;">
                         <button type="submit" name="generate_plot" value="2" class="btn btn-primary">
                             <i class="fas fa-file-download"></i> Generate Plot
                         </button>
                     </div>
+                    
+                    <div id="plot-loading-indicator" style="display: none;" class="text-center my-4">
+                        <div class="custom-spinner"></div>
+                        <p class="mt-2">Generating plot, please wait...</p>
+                    </div>
 
                     <div class="plot-container mt-4">
-                        {{ plot_html|safe }}
+                        {% if plot_html %}
+                            {{ plot_html|safe }}
+                        {% else %}
+                            <p class="text-muted">No plot generated yet. Please select a data model and variables and click "Generate Plot".</p>
+                        {% endif %}
                     </div>
                 </form>
 
@@ -259,7 +268,19 @@
         min-height: 400px;
         margin-top: 20px;
         }
-        
+        .custom-spinner {
+            margin: 0 auto;
+            width: 3rem;
+            height: 3rem;
+            border: 0.4rem solid #cfd0d1;
+            border-top: 0.4rem solid #007bff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
         /* For responsive behavior */
         @media (max-width: 992px) {
             .multi-column-options {
@@ -286,15 +307,39 @@
             border-radius: 0.25rem;
             transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
         }
+
+        #generate-plot-button-container {
+            display: none;
+        }
     </style>
 
     <script>
+        function toggleGeneratePlotButton() {
+            const container = document.getElementById('generate-plot-button-container');
+            const checkboxes = document.querySelectorAll('[name="data_models"]');
+            const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+
+            if (!container) return;
+
+            console.log("Toggling plot button:", anyChecked ? "showing" : "hiding");
+
+            if (anyChecked) {
+                // Remove all visibility blockers
+                container.style.display = "flex"; // or "block" depending on layout
+                container.classList.remove("d-none");
+            } else {
+                container.style.display = "none";
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
             // Get the data from hidden inputs
             const hiddenInput = document.getElementById('selected-data-models-input');
             const hiddenXInput = document.getElementById('selected-x-variable-input');
             const hiddenYInput = document.getElementById('selected-y-variable-input');
             
+            toggleGeneratePlotButton();
+
             let selectedDataModels = [];
             let selectedXVariable = '';
             let selectedYVariable = '';
@@ -353,6 +398,7 @@
                 });
                 // Trigger data fields update when selecting all models
                 updateDataFields();
+                toggleGeneratePlotButton();
             });
             
             deselectAllBtn.addEventListener('click', function() {
@@ -362,14 +408,19 @@
                 });
                 // Hide data fields when deselecting all models
                 dataFieldsContainer.style.display = 'none';
+                toggleGeneratePlotButton();
             });
             
             // Function to add event listeners to dynamically created data model checkboxes
             function addDataModelEventListeners() {
                 const modelCheckboxes = document.querySelectorAll('[name="data_models"]');
                 modelCheckboxes.forEach(checkbox => {
-                    checkbox.addEventListener('change', updateDataFields);
+                    checkbox.addEventListener('change', () => {
+                        updateDataFields();
+                        toggleGeneratePlotButton(); // <-- added here
+                    });
                 });
+                toggleGeneratePlotButton();
             }
             
             // Function to update data models based on selected assay types
@@ -589,6 +640,7 @@
                     noDataFieldsMessage.textContent = 'Error loading data fields: ' + error.message;
                     noDataFieldsMessage.style.display = 'block';
                 });
+                toggleGeneratePlotButton();
             }
 
             // Check if any assay types are already selected AND if we have data models to restore
@@ -598,6 +650,7 @@
                     // Always try to update data fields after models are loaded
                     setTimeout(() => {
                         updateDataFields();
+                        toggleGeneratePlotButton();
                     }, 100);
                 });
             }
@@ -648,7 +701,14 @@
             if (ySelect && hiddenYInput) {
                 hiddenYInput.value = ySelect.value;
             }
-
+            // Show spinner if "Generate Plot" is clicked
+            const generatePlotBtn = document.querySelector('[name="generate_plot"]');
+            if (document.activeElement === generatePlotBtn) {
+                const spinner = document.getElementById('plot-loading-indicator');
+                if (spinner) {
+                    spinner.style.display = 'block';
+                }
+            }
             return true; 
         });
     
