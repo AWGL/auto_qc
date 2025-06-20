@@ -374,114 +374,99 @@
             
             // Function to update data models based on selected assay types
             function updateDataModels() {
-                console.log('updateDataModels function called');
+                return new Promise((resolve, reject) => {
+                    console.log('updateDataModels function called');
 
-                // Check CSRF token
-                if (!csrftoken) {
-                    console.error('CSRF token not found!');
-                    alert('Security token not found. Please refresh the page.');
-                    return;
-                }
-
-                // Get selected assay type IDs
-                const selectedAssayTypeIds = Array.from(assayCheckboxes)
-                    .filter(cb => cb.checked)
-                    .map(cb => cb.value);
-                
-                console.log('Selected assay types:', selectedAssayTypeIds);
-                
-                // If none selected, hide both data models and data fields sections
-                if (selectedAssayTypeIds.length === 0) {
-                    dataModelsContainer.style.display = 'none';
-                    dataFieldsContainer.style.display = 'none';
-                    return;
-                }
-                
-                // Show loading indicator
-                dataModelsContainer.style.display = 'block';
-                loadingIndicator.style.display = 'block';
-                dataModelsOptions.style.display = 'none';
-                noDataModelsMessage.style.display = 'none';
-                
-                // Hide data fields container until models are selected
-                dataFieldsContainer.style.display = 'none';
-
-                // Make AJAX request
-                fetch('{% url "get_available_data_models" %}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken
-                    },
-                    body: JSON.stringify({
-                        assay_type_ids: selectedAssayTypeIds
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                    if (!csrftoken) {
+                        console.error('CSRF token not found!');
+                        alert('Security token not found. Please refresh the page.');
+                        return reject();
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Data models received from server:', data);
-                    // Hide loading indicator
-                    loadingIndicator.style.display = 'none';
-                    
-                    // Clear existing options
-                    dataModelsOptions.innerHTML = '';
-                    
-                    if (data.data_models && data.data_models.length > 0) {
-                        // Show options
-                        dataModelsOptions.style.display = 'grid';
-                        noDataModelsMessage.style.display = 'none';
-                        
-                        // Add each data model as a checkbox
-                        data.data_models.forEach((model, index) => {
-                            const optionItem = document.createElement('div');
-                            optionItem.className = 'option-item';
-                            
-                            const checkbox = document.createElement('input');
-                            checkbox.type = 'checkbox';
-                            checkbox.name = 'data_models';
-                            checkbox.id = `id_data_models_${index}`;
-                            checkbox.value = model.id;
-                            checkbox.className = 'form-check-input';
-                            checkbox.checked = false;
-                            
-                            // Fix: Use the correct variable name
-                            if (window.selectedDataModels && window.selectedDataModels.includes(model.id.toString())) {
-                                checkbox.checked = true;
-                            }
 
-                            const label = document.createElement('label');
-                            label.className = 'form-check-label';
-                            label.htmlFor = `id_data_models_${index}`;
-                            label.textContent = model.name;
-                            
-                            optionItem.appendChild(checkbox);
-                            optionItem.appendChild(label);
-                            dataModelsOptions.appendChild(optionItem);
-                        });
-                        
-                        // Add event listeners to the newly created checkboxes
-                        addDataModelEventListeners();
-                    } else {
-                        // Show no data message
-                        dataModelsOptions.style.display = 'none';
-                        noDataModelsMessage.style.display = 'block';
+                    const selectedAssayTypeIds = Array.from(assayCheckboxes)
+                        .filter(cb => cb.checked)
+                        .map(cb => cb.value);
+
+                    console.log('Selected assay types:', selectedAssayTypeIds);
+
+                    if (selectedAssayTypeIds.length === 0) {
+                        dataModelsContainer.style.display = 'none';
+                        dataFieldsContainer.style.display = 'none';
+                        return resolve();
                     }
-                })
-                .catch(error => {
-                    console.error('Error fetching data models:', error);
-                    loadingIndicator.style.display = 'none';
+
+                    dataModelsContainer.style.display = 'block';
+                    loadingIndicator.style.display = 'block';
                     dataModelsOptions.style.display = 'none';
-                    
-                    // Show error message
-                    noDataModelsMessage.textContent = 'Error loading data models: ' + error.message;
-                    noDataModelsMessage.style.display = 'block';
+                    noDataModelsMessage.style.display = 'none';
+                    dataFieldsContainer.style.display = 'none';
+
+                    fetch('{% url "get_available_data_models" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrftoken
+                        },
+                        body: JSON.stringify({
+                            assay_type_ids: selectedAssayTypeIds
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Data models received from server:', data);
+                        loadingIndicator.style.display = 'none';
+                        dataModelsOptions.innerHTML = '';
+
+                        if (data.data_models && data.data_models.length > 0) {
+                            dataModelsOptions.style.display = 'grid';
+                            noDataModelsMessage.style.display = 'none';
+
+                            data.data_models.forEach((model, index) => {
+                                const optionItem = document.createElement('div');
+                                optionItem.className = 'option-item';
+
+                                const checkbox = document.createElement('input');
+                                checkbox.type = 'checkbox';
+                                checkbox.name = 'data_models';
+                                checkbox.id = `id_data_models_${index}`;
+                                checkbox.value = model.id;
+                                checkbox.className = 'form-check-input';
+                                checkbox.checked = window.selectedDataModels?.includes(model.id.toString());
+
+                                const label = document.createElement('label');
+                                label.className = 'form-check-label';
+                                label.htmlFor = `id_data_models_${index}`;
+                                label.textContent = model.name;
+
+                                optionItem.appendChild(checkbox);
+                                optionItem.appendChild(label);
+                                dataModelsOptions.appendChild(optionItem);
+                            });
+
+                            addDataModelEventListeners();
+                        } else {
+                            dataModelsOptions.style.display = 'none';
+                            noDataModelsMessage.style.display = 'block';
+                        }
+
+                        resolve();
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data models:', error);
+                        loadingIndicator.style.display = 'none';
+                        dataModelsOptions.style.display = 'none';
+                        noDataModelsMessage.textContent = 'Error loading data models: ' + error.message;
+                        noDataModelsMessage.style.display = 'block';
+                        reject(error);
+                    });
                 });
             }
+
 
             // Updated function to populate dropdown instead of checkboxes
             function updateDataFields() {
@@ -584,17 +569,13 @@
                         // Show the dropdowns
                         xDataFieldSelect.style.display = 'block';
                         yDataFieldSelect.style.display = 'block';
+                        dataFieldsContainer.style.display = 'block';
                         noDataFieldsMessage.style.display = 'none';
                     } else {
                         // Show no data message
                         xDataFieldSelect.style.display = 'none';
                         yDataFieldSelect.style.display = 'none';
-                        noDataFieldsMessage.innerHTML = `
-                            No data fields found. Debug info:<br>
-                            - Response keys: ${Object.keys(data).join(', ')}<br>
-                            - fieldsData type: ${typeof fieldsData}<br>
-                            - fieldsData length: ${fieldsData ? fieldsData.length : 'N/A'}
-                        `;
+                        dataFieldsContainer.style.display = 'block'; // <-- still show the container for the message
                         noDataFieldsMessage.style.display = 'block';
                     }
                 })
@@ -609,12 +590,18 @@
                     noDataFieldsMessage.style.display = 'block';
                 });
             }
-            // Check if any assay types are already selected on page load
+
+            // Check if any assay types are already selected AND if we have data models to restore
             const initialSelectedAssays = Array.from(assayCheckboxes).filter(cb => cb.checked);
             if (initialSelectedAssays.length > 0) {
-                updateDataModels();
+                updateDataModels().then(() => {
+                    // Always try to update data fields after models are loaded
+                    setTimeout(() => {
+                        updateDataFields();
+                    }, 100);
+                });
             }
-
+                
             // Force Plotly to resize if it exists
             if (window.Plotly) {
                 setTimeout(function() {
@@ -635,7 +622,7 @@
                 return false;
             }
 
-            // If data models are showing but none selected, select all by default
+            // If data models are showing but none selected, select none by default
             const dataModelsContainer = document.getElementById('data-models-container');
             if (dataModelsContainer.style.display !== 'none') {
                 const dataModelCheckboxes = document.querySelectorAll('[name="data_models"]');
@@ -648,6 +635,20 @@
                     });
                 }
             }
+
+            // Save x and y dropdown selections to hidden inputs
+            const xSelect = document.getElementById('x-data-field-select');
+            const ySelect = document.getElementById('y-data-field-select');
+            const hiddenXInput = document.getElementById('selected-x-variable-input');
+            const hiddenYInput = document.getElementById('selected-y-variable-input');
+
+            if (xSelect && hiddenXInput) {
+                hiddenXInput.value = xSelect.value;
+            }
+            if (ySelect && hiddenYInput) {
+                hiddenYInput.value = ySelect.value;
+            }
+
             return true; 
         });
     
