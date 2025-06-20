@@ -303,6 +303,21 @@ def get_plottable_cols(df):
     return numeric_cols
 
 
+def trim_field_name(field_name):
+    """
+    Input:
+    The name of a field tagged with a data model name (e.g. "DragenCNVMetrics_number_of_deletions")
+
+    Returns:
+    The name of the data field with the model name removed (e.g. "number of delections")
+    
+    """
+    for key in data_models_dict:
+        if field_name and field_name.startswith(f"{key}_"):
+            return field_name.replace(f"{key}_", "")
+    return "signoff_date"
+
+
 def plotly_dashboard(df, selected_x, selected_y):
     """
     Interactive plot that take 
@@ -311,12 +326,12 @@ def plotly_dashboard(df, selected_x, selected_y):
     plotly.graph_objects.Figure: Interactive plotly figure
     """
     assay_colour = df["assay_type"].map(assay_colours)
-    title = f"{selected_y} vs {selected_x}"
-    print(f"title: {title}")
     
-    for col in df.columns:
-        print(f"col: {col}, dtype: {df[col].dtype}")
-
+    trimmed_x = trim_field_name(selected_x)
+    trimmed_y = trim_field_name(selected_y)
+    
+    title = f"{trimmed_y} vs {trimmed_x} for {len(df)} samples"
+    
     # Create figure
     fig = go.Figure()
     
@@ -324,13 +339,22 @@ def plotly_dashboard(df, selected_x, selected_y):
         fig.add_trace(go.Scatter(
             x=group[selected_x],
             y=group[selected_y],
+            text=group['sample_id'],
+            hovertemplate=
+            "<b>Sample ID:</b> %{text}<br>"+
+            "<b>%{xaxis.title.text}:</b> %{x}<br>"+
+            "<b>%{yaxis.title.text}:</b> %{y}",
             name=assay,
             mode='markers',
             ))
+    
     fig.update_layout(
         legend_title_text="Assay",
-        title=title)
-    fig.update_xaxes(title_text=selected_x)
-    fig.update_yaxes(title_text=selected_y)
+        title=title,
+        height=700,
+        )
+    
+    fig.update_xaxes(title_text=trimmed_x)
+    fig.update_yaxes(title_text=trimmed_y)
     
     return fig

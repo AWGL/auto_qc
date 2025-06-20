@@ -224,6 +224,17 @@
     </div>
 
 
+    <input type="hidden" 
+       id="selected-data-models-input" 
+       value="{{ selected_data_models|join:','|default:'' }}">
+
+       <input type="hidden" 
+       id="selected-x-variable-input" 
+       value="{{ selected_x_variable|default:'' }}">
+
+    <input type="hidden" 
+       id="selected-y-variable-input" 
+       value="{{ selected_y_variable|default:'' }}">
 
     <style>
         .multi-column-options {
@@ -279,6 +290,39 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Get the data from hidden inputs
+            const hiddenInput = document.getElementById('selected-data-models-input');
+            const hiddenXInput = document.getElementById('selected-x-variable-input');
+            const hiddenYInput = document.getElementById('selected-y-variable-input');
+            
+            let selectedDataModels = [];
+            let selectedXVariable = '';
+            let selectedYVariable = '';
+            
+            if (hiddenInput && hiddenInput.value) {
+                const value = hiddenInput.value.trim();
+                if (value && value !== '[]' && value !== '') {
+                    selectedDataModels = value.split(',').filter(x => x.trim()).map(x => x.trim());
+                }
+            }
+            
+            if (hiddenXInput && hiddenXInput.value) {
+                selectedXVariable = hiddenXInput.value.trim();
+            }
+            
+            if (hiddenYInput && hiddenYInput.value) {
+                selectedYVariable = hiddenYInput.value.trim();
+            }
+
+            console.log('Loaded selected data models:', selectedDataModels);
+            console.log('Loaded selected X variable:', selectedXVariable);
+            console.log('Loaded selected Y variable:', selectedYVariable);
+            
+            // Make them globally available
+            window.selectedDataModels = selectedDataModels;
+            window.selectedXVariable = selectedXVariable;
+            window.selectedYVariable = selectedYVariable;
+            
             // Get CSRF token for AJAX
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
             
@@ -405,6 +449,11 @@
                             checkbox.className = 'form-check-input';
                             checkbox.checked = false;
                             
+                            // Fix: Use the correct variable name
+                            if (window.selectedDataModels && window.selectedDataModels.includes(model.id.toString())) {
+                                checkbox.checked = true;
+                            }
+
                             const label = document.createElement('label');
                             label.className = 'form-check-label';
                             label.htmlFor = `id_data_models_${index}`;
@@ -505,20 +554,34 @@
                             console.log('Processing field:', field);
                             
                             const xOption = document.createElement('option');
-                            // Try different possible key names for field ID and name
-                            xOption.value = field.id || field.value || field.key || field.name;
-                            xOption.textContent = field.name || field.label || field.display_name || field.title || field.toString();
-                            
                             const yOption = document.createElement('option');
+                            
                             // Try different possible key names for field ID and name
-                            yOption.value = field.id || field.value || field.key || field.name;
-                            yOption.textContent = field.name || field.label || field.display_name || field.title || field.toString();
+                            const fieldValue = field.id || field.value || field.key || field.name;
+                            const fieldText = field.name || field.label || field.display_name || field.title || field.toString();
+                            
+                            xOption.value = fieldValue;
+                            xOption.textContent = fieldText;
+                            
+                            yOption.value = fieldValue;
+                            yOption.textContent = fieldText;
 
                             xDataFieldSelect.appendChild(xOption);
                             yDataFieldSelect.appendChild(yOption);
                         });
                         
-                        // Show the dropdown
+                        // Restore previously selected values
+                        if (window.selectedXVariable) {
+                            xDataFieldSelect.value = window.selectedXVariable;
+                            console.log('Restored X variable selection:', window.selectedXVariable);
+                        }
+                        
+                        if (window.selectedYVariable) {
+                            yDataFieldSelect.value = window.selectedYVariable;
+                            console.log('Restored Y variable selection:', window.selectedYVariable);
+                        }
+                        
+                        // Show the dropdowns
                         xDataFieldSelect.style.display = 'block';
                         yDataFieldSelect.style.display = 'block';
                         noDataFieldsMessage.style.display = 'none';
@@ -546,7 +609,6 @@
                     noDataFieldsMessage.style.display = 'block';
                 });
             }
-
             // Check if any assay types are already selected on page load
             const initialSelectedAssays = Array.from(assayCheckboxes).filter(cb => cb.checked);
             if (initialSelectedAssays.length > 0) {

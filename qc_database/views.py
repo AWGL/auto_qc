@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
 from django.db import transaction
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
@@ -24,7 +25,6 @@ from datetime import datetime as dt
 from .utils.downloader import *
 import json
 import plotly.offline as pyo
-import messages
 import logging
 logger = logging.getLogger(__name__)
 
@@ -329,6 +329,10 @@ def downloader(request):
 	Query samples between 2 dates for specified assay types and export as CSV
 	"""
 	plot_html = None
+	selected_data_models = []
+	selected_x = None
+	selected_y = None
+	# Initialize the form with POST data if available
 	form = DataDownloadForm(request.POST or None)
 
 	if request.method == 'POST':
@@ -337,7 +341,8 @@ def downloader(request):
 			assay_types = form.cleaned_data['assay_type']
 			start_date = form.cleaned_data['start_date']
 			end_date = form.cleaned_data['end_date']
-			selected_data_models = form.cleaned_data['data_models']
+			# selected_data_models = form.cleaned_data['data_models']
+			selected_data_models = request.POST.getlist('data_models')
 			selected_x = request.POST.get('x_variable_to_plot', None)
 			selected_y = request.POST.get('y_variable_to_plot', None)
 
@@ -365,7 +370,6 @@ def downloader(request):
 						messages.error(request, 'Please select at least one assay type.')
 					else:
 						# Generate your plot here
-						print("calling plotly_dashboard")
 						fig = plotly_dashboard(
 							df=df,
 							selected_x=selected_x,
@@ -393,9 +397,7 @@ def downloader(request):
 				writer = csv.writer(response)
 
 				if samples.exists():
-					
-					writer = False
-					df = write_wgs_data(writer, samples, selected_data_models)
+					print(f"selected_data_models: {selected_data_models}")
 					
 					# Print list of samples matching criteria
 					samples_list = [s.sample.sample_id for s in samples]
@@ -413,6 +415,9 @@ def downloader(request):
 		'form': form,
 		'plot_html': plot_html,
 		'title': 'Interactive plotter',
+		'selected_data_models': selected_data_models,
+		'selected_x_variable': selected_x,
+    	'selected_y_variable': selected_y,
 		}	
 		
 	return render(request, 'auto_qc/downloader.html', context)
