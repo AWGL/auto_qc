@@ -199,6 +199,19 @@
                             <!-- Will be populated via JavaScript -->
                         </select>
                         
+                        <div>
+                            <label for="plot-type-select" class="form-label fw-bold">
+                                Plot Type :
+                            </label>
+                        </div>
+
+                        <select name="plot_type" id="plot-type-select" class="form-select">
+                            {% for plot_type, label in plot_types.items %}
+                                <option value="{{ plot_type }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+
+
                         <small class="form-text text-muted">Choose which data field you want to use for plotting.</small>
                     </div>
 
@@ -242,13 +255,16 @@
        id="selected-data-models-input" 
        value="{{ selected_data_models|join:','|default:'' }}">
 
-       <input type="hidden" 
+    <input type="hidden" 
        id="selected-x-variable-input" 
        value="{{ selected_x_variable|default:'' }}">
 
     <input type="hidden" 
        id="selected-y-variable-input" 
        value="{{ selected_y_variable|default:'' }}">
+    <input type="hidden" 
+       id="selected-plot-type-input" 
+       value="{{ selected_plot_type|default:'scatter' }}">
 
     <style>
         .multi-column-options {
@@ -449,6 +465,7 @@
             const yDataFieldSelect = document.getElementById('y-data-field-select');
             const loadingDataFields = document.getElementById('loading-data-fields');
             const noDataFieldsMessage = document.getElementById('no-data-fields-message');
+            const plotTypeSelect = document.getElementById('plot-type-select');
             
             // Add event listeners to assay type checkboxes
             assayCheckboxes.forEach(checkbox => {
@@ -755,14 +772,19 @@
             // Save x and y dropdown selections to hidden inputs
             const xSelect = document.getElementById('x-data-field-select');
             const ySelect = document.getElementById('y-data-field-select');
+            const typeSelect = document.getElementById('plot-type-select');
             const hiddenXInput = document.getElementById('selected-x-variable-input');
             const hiddenYInput = document.getElementById('selected-y-variable-input');
+            const hiddenTypeSelect = document.getElementById('selected-plot-type-input');
 
             if (xSelect && hiddenXInput) {
                 hiddenXInput.value = xSelect.value;
             }
             if (ySelect && hiddenYInput) {
                 hiddenYInput.value = ySelect.value;
+            }
+            if (typeSelect && hiddenTypeSelect) {
+                hiddenTypeSelect.value = typeSelect.value;
             }
             // Show spinner if "Generate Plot" or "Export CSV" is clicked
             const generatePlotBtn = document.querySelector('[name="generate_plot"]');

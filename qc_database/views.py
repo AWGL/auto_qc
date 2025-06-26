@@ -333,6 +333,7 @@ def downloader(request):
 	selected_data_models = []
 	selected_x = None
 	selected_y = None
+	plot_type_selection = "scatter"
 	# Initialize the form with POST data if available
 	form = DataDownloadForm(request.POST or None)
 
@@ -346,6 +347,7 @@ def downloader(request):
 			selected_data_models = request.POST.getlist('data_models')
 			selected_x = request.POST.get('x_variable_to_plot', None)
 			selected_y = request.POST.get('y_variable_to_plot', None)
+			plot_type_selection = request.POST.get('plot_type', 'scatter')
 
 			# Query samples matching the criteria
 			samples = SampleAnalysis.objects.filter(
@@ -374,8 +376,8 @@ def downloader(request):
 						fig = plotly_dashboard(
 							df=df,
 							selected_x=selected_x,
-							selected_y=selected_y
-							)
+							selected_y=selected_y,
+							plot_type=plot_type_selection,)
 						
 						# Convert the plot to HTML
 						plot_html = pyo.plot(fig, output_type='div', include_plotlyjs=True)
@@ -423,6 +425,8 @@ def downloader(request):
 		'selected_data_models': selected_data_models,
 		'selected_x_variable': selected_x,
     	'selected_y_variable': selected_y,
+		'plot_types': plot_types,
+		'selected_plot_type': plot_type_selection,
 		}	
 		
 	return render(request, 'auto_qc/downloader.html', context)

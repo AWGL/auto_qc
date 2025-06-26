@@ -52,6 +52,14 @@ data_models_dict = {
     "DragenCNVMetrics": [DragenCNVMetrics, True],
 }
 
+plot_types = {
+    "scatter": "Scatter",
+    "line": "Line",
+    "box": "Box",
+    "violin": "Violin",
+    "bar": "Bar",
+    "histogram": "Histogram"
+}
 
 def get_all_field_averages(queryset):
     """
@@ -318,7 +326,7 @@ def trim_field_name(field_name):
     return "signoff_date"
 
 
-def plotly_dashboard(df, selected_x, selected_y):
+def plotly_dashboard(df, selected_x, selected_y, plot_type):
     """
     Interactive plot that take 
     
@@ -326,27 +334,104 @@ def plotly_dashboard(df, selected_x, selected_y):
     plotly.graph_objects.Figure: Interactive plotly figure
     """
     assay_colour = df["assay_type"].map(assay_colours)
-    
+
     trimmed_x = trim_field_name(selected_x)
     trimmed_y = trim_field_name(selected_y)
-    
-    title = f"{trimmed_y} vs {trimmed_x} for {len(df)} samples"
+    label = plot_types[plot_type]
+    title = f"{label} plot of {trimmed_y} vs {trimmed_x} for {len(df)} samples"
     
     # Create figure
     fig = go.Figure()
     
-    for assay, group in df.groupby("assay_type"):
-        fig.add_trace(go.Scatter(
-            x=group[selected_x],
-            y=group[selected_y],
-            text=group['sample_id'],
-            hovertemplate=
-            "<b>Sample ID:</b> %{text}<br>"+
-            "<b>%{xaxis.title.text}:</b> %{x}<br>"+
-            "<b>%{yaxis.title.text}:</b> %{y}",
-            name=assay,
-            mode='markers',
-            ))
+    if plot_type == "scatter":
+        for assay, group in df.groupby("assay_type"):
+            fig.add_trace(go.Scatter(
+                x=group[selected_x],
+                y=group[selected_y],
+                text=group['sample_id'],
+                hovertemplate=
+                "<b>Sample ID:</b> %{text}<br>"+
+                "<b>%{xaxis.title.text}:</b> %{x}<br>"+
+                "<b>%{yaxis.title.text}:</b> %{y}",
+                name=assay,
+                mode='markers',
+                ))
+    
+    elif plot_type == "line":
+        fig = make_subplots(rows=1, cols=1)
+        
+        for assay, group in df.groupby("assay_type"):
+            fig.add_trace(go.Scatter(
+                x=group[selected_x],
+                y=group[selected_y],
+                text=group['sample_id'],
+                hovertemplate=
+                "<b>Sample ID:</b> %{text}<br>"+
+                "<b>%{xaxis.title.text}:</b> %{x}<br>"+
+                "<b>%{yaxis.title.text}:</b> %{y}",
+                name=assay,
+                mode='lines+markers',
+                ),
+                row=1, col=1
+            )
+
+    elif plot_type == "box":
+        fig = make_subplots(rows=1, cols=1)
+        
+        for assay, group in df.groupby("assay_type"):
+            fig.add_trace(go.Box(
+                x=group[selected_x],
+                y=group[selected_y],
+                name=assay,
+                boxpoints='all',
+                jitter=0.3,
+                pointpos=0,
+                # marker_color=assay_colour[group['assay_type'].iloc[0]],
+                ),
+                row=1, col=1
+            )
+
+    elif plot_type == "violin":
+        fig = make_subplots(rows=1, cols=1)
+        
+        for assay, group in df.groupby("assay_type"):
+            fig.add_trace(go.Violin(
+                x=group[selected_x],
+                y=group[selected_y],
+                name=assay,
+                box_visible=False,
+                points='all',
+                jitter=0.3,
+                pointpos=0,
+                # line_color=assay_colour[group['assay_type'].iloc[0]],
+                ),
+                row=1, col=1
+            )
+    elif plot_type == "bar":
+        fig = make_subplots(rows=1, cols=1)
+        
+        for assay, group in df.groupby("assay_type"):
+            fig.add_trace(go.Bar(
+                x=group[selected_x],
+                y=group[selected_y],
+                name=assay,
+                # marker_color=assay_colour[group['assay_type'].iloc[0]],
+                ),
+                row=1, col=1
+            )
+    
+    elif plot_type == "histogram":
+        fig = make_subplots(rows=1, cols=1)
+        
+        for assay, group in df.groupby("assay_type"):
+            fig.add_trace(go.Histogram(
+                x=group[selected_x],
+                y=group[selected_y],
+                name=assay,
+                # marker_color=assay_colour[group['assay_type'].iloc[0]],
+                ),
+                row=1, col=1
+            )
     
     fig.update_layout(
         legend_title_text="Assay",
