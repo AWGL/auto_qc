@@ -148,6 +148,12 @@ def return_data_models(samples):
 
 
 def return_data_fields(models):
+    """
+    Given a set of models, return a list of field names that can be used in the CSV output.
+    This will include fields from all models, excluding certain fields that are not needed.
+    Numeric fields will be prefixed with the model name and suffixed with '_run_avg'
+    if they are not per-sample metrics.
+    """
     fields_to_remove = ['id', 'run', 'sample_analysis', 'sample', 'pipeline', 'analysis_type', 'worksheet']
 
     numeric_field_names = [
@@ -171,6 +177,8 @@ def return_data_fields(models):
 def write_wgs_data(writer, samples, data_models):
     """
     Write a CSV with all available data for the selected samples
+
+    Returns written CSV as a pandas DataFrame
     """
     # Fields to exclude from models
     fields_to_remove = ['id', 'run', 'sample_analysis', 'sample', 'pipeline', 'analysis_type', 'worksheet']
@@ -290,6 +298,16 @@ def write_wgs_data(writer, samples, data_models):
 
 
 def get_plottable_cols(df):
+    """
+    Process the DataFrame to ensure it has numeric columns for plotting.
+    This function will:
+    - Drop any columns that are not numeric or datetime
+    - Convert columns to numeric types where possible
+    - Convert 'signoff_date' to datetime
+    - Drop NTC samples for plotting purposes
+    Returns:
+    List of numeric columns suitable for plotting
+    """
     # drop NTC for plotting purposes
     df = df[~df['sample_id'].str.contains('NTC', na=False)]
     
@@ -328,7 +346,7 @@ def trim_field_name(field_name):
 
 def plotly_dashboard(df, selected_x, selected_y, plot_type):
     """
-    Interactive plot that take 
+    Interactive plot that takes a DataFrame, selected fields to plot, and the type of plot.
     
     Returns:
     plotly.graph_objects.Figure: Interactive plotly figure

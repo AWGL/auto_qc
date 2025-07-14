@@ -327,7 +327,7 @@ def ngs_kpis(request):
 @login_required
 def downloader(request):
 	"""
-	Query samples between 2 dates for specified assay types and export as CSV
+	Query samples between 2 dates for specified assay types and either generate plotly dashboard or export data as CSV
 	"""
 	plot_html = None
 	selected_data_models = []
@@ -338,7 +338,6 @@ def downloader(request):
 	form = DataDownloadForm(request.POST or None)
 
 	if request.method == 'POST':
-		print("POST received:", request.POST)
 		if form.is_valid():
 			assay_types = form.cleaned_data['assay_type']
 			start_date = form.cleaned_data['start_date']
@@ -356,11 +355,8 @@ def downloader(request):
 					run__instrument_date__lte=end_date
 				).select_related('run', 'sample', 'run__instrument')
 		
-
 			if 'generate_plot' in request.POST:
-				print("generate_plot button clicked")
 				if samples.exists():
-					
 					writer = False
 					df = write_wgs_data(writer, samples, selected_data_models)
 
@@ -387,7 +383,6 @@ def downloader(request):
 	
 			# Check if the user clicked the export CSV button
 			if 'export_csv' in request.POST:
-				print("export_csv button clicked")
 				# Generate filename using assay type names
 				assay_names = '_'.join([assay.analysis_type_id for assay in assay_types])
 				if len(assay_names) > 50:  # Limit filename length
@@ -400,12 +395,6 @@ def downloader(request):
 				writer = csv.writer(response)
 
 				if samples.exists():
-					print(f"selected_data_models: {selected_data_models}")
-					
-					# Print list of samples matching criteria
-					samples_list = [s.sample.sample_id for s in samples]
-					print(f"Samples matching criteria {samples_list}")
-					
 					if not selected_data_models:
 						notice = "No data models were selected. Only base fields have been included in the export."
 						# Add it to the filename, or use JS to read from cookie or field
@@ -471,7 +460,6 @@ def get_available_data_models(request):
 				for model_name, model in available_data_models
 			]
 
-
 			context = {
 				'data_models': data_models_choices,
 			}
@@ -487,7 +475,7 @@ def get_available_data_models(request):
 
 @login_required
 def get_available_fields(request):
-	"""AJAX endpoint to get available data models for selected assay types"""
+	"""AJAX endpoint to get available fields for selected data models"""
 	if request.method == 'POST':			
 		try:
 			data = json.loads(request.body)
@@ -495,17 +483,13 @@ def get_available_fields(request):
 			
 			if not data_models_ids:
 				return JsonResponse({'data_fields': []})
-			
-			print(f"available_data_fields {data_models_ids}")
-			
+						
 			selected_models = {}
 			
 			for model_name in data_models_ids:
 				selected_models[model_name] = data_models_dict[model_name]
  
- 
 			available_data_fields = return_data_fields(selected_models)
-			
 			
 			# Format for the frontend
 			data_fields_choices = [
