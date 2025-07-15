@@ -473,6 +473,11 @@
 
 	  {% endif %}
 
+	  {% if 'pct_aligned' in checks_to_do %}
+
+				<th> Proportion On Target Reads </th>
+	  {% endif %}
+
 	  
 	  {% if run_analysis.display_cnv_qc_metrics %}
 
@@ -649,6 +654,9 @@
 			
 		{% endif %}
 
+
+
+
 		{% if run_analysis.analysis_type.analysis_type_id != "RocheSTFusion" and run_analysis.pipeline.pipeline_id != "TSO500-master" and run_analysis.pipeline.pipeline_id != "tso500_ctdna-master" %}
 
 		<td> {{sample_analysis.get_total_reads}} </td>
@@ -718,6 +726,8 @@
 			{% endif %}
 
 
+
+
 		{% endif %}
 
 		{% if 'fusion_alignment' in checks_to_do %}
@@ -767,6 +777,16 @@
 			{% else %}
 				<td class="table-danger"> {{sample_analysis.passes_ntc_contamination}} </td>
 			{% endif %}
+
+		{% endif %}
+
+		{% if 'pct_aligned' in checks_to_do %}
+
+				{% if sample_analysis.get_pct_aligned > run_analysis.min_aligned_reads_warning %}
+					<td class="table-success"> {{sample_analysis.get_pct_aligned}} </td>
+				{% else %}
+					<td class="table-warning"> {{sample_analysis.get_pct_aligned}} </td>
+				{% endif %}
 
 		{% endif %}
 
