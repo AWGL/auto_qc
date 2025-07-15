@@ -189,7 +189,7 @@ class RunAnalysis(models.Model):
 	max_cnv_calls=models.IntegerField(null=True, blank=True)
 	display_cnv_qc_metrics=models.BooleanField(default=False)
 	min_average_coverage_cutoff=models.IntegerField(null=True, blank=True)
-	min_aligned_reads_warning = models.DecimalField(max_digits=6, decimal_places=3, default=0.62)
+	min_on_target_reads_warning = models.DecimalField(max_digits=6, decimal_places=3, default=0.63)
 
 	#for TSO500 only- ntc contamination for other runs in sampleAnalysis object
 	max_ntc_contamination = models.IntegerField(null=True, blank=True)
@@ -1438,7 +1438,7 @@ class SampleAnalysis(models.Model):
 			return False
 		
 
-	def get_pct_aligned(self):
+	def get_pct_on_target(self):
 		"""
 		Returns the percentage of reads aligned for this sample
 		"""

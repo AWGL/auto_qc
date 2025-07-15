@@ -7,6 +7,8 @@
 
 <h2> Run Information </h2>
 
+{{checks_to_do}}
+
 <table id="run_analysis" class="table table-hover table-bordered table-sm">
  <tbody>
 	<tr>
@@ -473,7 +475,7 @@
 
 	  {% endif %}
 
-	  {% if 'pct_aligned' in checks_to_do %}
+	  {% if 'pct_on_target' in checks_to_do %}
 
 				<th> Proportion On Target Reads </th>
 	  {% endif %}
@@ -780,12 +782,12 @@
 
 		{% endif %}
 
-		{% if 'pct_aligned' in checks_to_do %}
+		{% if 'pct_on_target' in checks_to_do %}
 
-				{% if sample_analysis.get_pct_aligned > run_analysis.min_aligned_reads_warning %}
-					<td class="table-success"> {{sample_analysis.get_pct_aligned}} </td>
+				{% if sample_analysis.get_pct_on_target > run_analysis.min_on_target_reads_warning %}
+					<td class="table-success"> {{sample_analysis.get_pct_on_target}} </td>
 				{% else %}
-					<td class="table-warning"> {{sample_analysis.get_pct_aligned}} </td>
+					<td class="table-warning"> {{sample_analysis.get_pct_on_target}} </td>
 				{% endif %}
 
 		{% endif %}

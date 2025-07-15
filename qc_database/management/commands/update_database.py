@@ -457,6 +457,22 @@ class Command(BaseCommand):
 								except:
 
 									raise Exception ("ERROR: Min Average Coverage cutoff not in config file")
+								
+							if 'pct_on_target' in checks_to_try_dict:
+
+								try:
+
+									min_pct_on_target = config_dict['pipelines'][run_config_key]['min_pct_on_target']
+
+									if created:
+
+										new_run_analysis_obj.min_aligned_reads_warning = min_pct_on_target
+
+								except:
+
+
+
+									raise Exception ("ERROR: min_pct_on_target not in config file")
 
 					new_run_analysis_obj.save()
 
