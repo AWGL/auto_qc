@@ -5,7 +5,7 @@ from crispy_forms.bootstrap import Field
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, HTML
 from django.forms import ModelForm
-from .utils.downloader import assays_to_show
+from .utils.downloader import assay_colours
 import datetime
 
 
@@ -114,7 +114,7 @@ class DataDownloadForm(forms.Form):
 	"""
 	assay_type = forms.ModelMultipleChoiceField(
 		queryset=AnalysisType.objects.filter(
-			analysis_type_id__in=assays_to_show
+			analysis_type_id__in=[key for key in assay_colours]
 			).order_by('analysis_type_id'),
 		required=True,
 		label="Assay Type",
@@ -147,12 +147,14 @@ class DataDownloadForm(forms.Form):
 		help_text="Select the ending date for samples to include"
 	)
 	
+
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.helper = FormHelper()
 		self.helper.form_method = 'post'
 		self.helper.add_input(Submit('submit', 'Export CSV', css_class='btn btn-primary'))
-	
+		self.helper.add_input(Submit('submit', 'Generate Plot', css_class='btn btn-primary'))
+
 		# Set choices for data_models if it's in POST data
 		if args and isinstance(args[0], dict) and 'data_models' in args[0]:
 			choices = [(model, model) for model in args[0].getlist('data_models')]

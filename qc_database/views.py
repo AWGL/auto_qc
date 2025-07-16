@@ -3,16 +3,18 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
 from django.db import transaction
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_http_methods
 from django.views import View
 from django.db.models import Min
 
 from qc_database.models import *
 from qc_database.forms import *
 from qc_database.utils.kpi import make_kpi_excel
-from qc_database.utils.downloader import write_wgs_data, return_data_models
+from qc_database.utils.downloader import *
 
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -20,8 +22,12 @@ from .models import SampleAnalysis, RunAnalysis
 from .serializers import SampleAnalysisSerializer, RunAnalysisSerializer
 
 from datetime import datetime as dt
-from .utils.downloader import return_data_models, write_wgs_data
+from .utils.downloader import *
 import json
+import plotly.offline as pyo
+import logging
+import urllib.parse
+logger = logging.getLogger(__name__)
 
 @transaction.atomic
 @login_required
@@ -321,66 +327,104 @@ def ngs_kpis(request):
 @login_required
 def downloader(request):
 	"""
-	Query samples between 2 dates for specified assay types and export as CSV
+	Query samples between 2 dates for specified assay types and either generate plotly dashboard or export data as CSV
 	"""
-	form = DataDownloadForm()
-	
+	plot_html = None
+	selected_data_models = []
+	selected_x = None
+	selected_y = None
+	plot_type_selection = "scatter"
+	# Initialize the form with POST data if available
+	form = DataDownloadForm(request.POST or None)
+
 	if request.method == 'POST':
-		form = DataDownloadForm(request.POST)
-		
 		if form.is_valid():
 			assay_types = form.cleaned_data['assay_type']
 			start_date = form.cleaned_data['start_date']
 			end_date = form.cleaned_data['end_date']
-			selected_data_models = form.cleaned_data['data_models']
-			
-			# Generate filename using assay type names
-			assay_names = '_'.join([assay.analysis_type_id for assay in assay_types])
-			if len(assay_names) > 50:  # Limit filename length
-				assay_names = assay_names[:47] + '...'
-				
-			# Generate CSV response
-			response = HttpResponse(content_type='text/csv')
-			response['Content-Disposition'] = f'attachment; filename="{assay_names}_samples_{start_date}_to_{end_date}.csv"'
-			
-			writer = csv.writer(response)
+			# selected_data_models = form.cleaned_data['data_models']
+			selected_data_models = request.POST.getlist('data_models')
+			selected_x = request.POST.get('x_variable_to_plot', None)
+			selected_y = request.POST.get('y_variable_to_plot', None)
+			plot_type_selection = request.POST.get('plot_type', 'scatter')
 
 			# Query samples matching the criteria
 			samples = SampleAnalysis.objects.filter(
-				analysis_type__in=assay_types,
-				run__instrument_date__gte=start_date,
-				run__instrument_date__lte=end_date
-			).select_related('run', 'sample', 'run__instrument')
+					analysis_type__in=assay_types,
+					run__instrument_date__gte=start_date,
+					run__instrument_date__lte=end_date
+				).select_related('run', 'sample', 'run__instrument')
+		
+			if 'generate_plot' in request.POST:
+				if samples.exists():
+					writer = False
+					df = write_wgs_data(writer, samples, selected_data_models)
 
-			if samples.exists():
-				# Find which data models have data for these samples
-				available_data_models = return_data_models(samples)
-				
-				# Filter by user selection if provided
-				if selected_data_models:
-					data_models_to_use = [model for model in available_data_models if model in selected_data_models]
+					logger.debug(f"selected_x: '{selected_x}', selected_y: '{selected_y}'")
+					logger.debug(f"DataFrame columns: {list(df.columns)}")
+
+					if not selected_x or not selected_y:
+						messages.error(request, 'Please select both X and Y variables for plotting.')
+					elif not assay_types:
+						messages.error(request, 'Please select at least one assay type.')
+					else:
+						# Generate your plot here
+						fig = plotly_dashboard(
+							df=df,
+							selected_x=selected_x,
+							selected_y=selected_y,
+							plot_type=plot_type_selection,)
+						
+						# Convert the plot to HTML
+						plot_html = pyo.plot(fig, output_type='div', include_plotlyjs=True)
+					# No samples found - write header with message
 				else:
-					data_models_to_use = available_data_models
-				
-				# Print list of samples matching criteria
-				samples_list = [s.sample.sample_id for s in samples]
-				print(f"Samples matching criteria {samples_list}")
-				
-				# Write CSV data
-				write_wgs_data(writer, samples, data_models_to_use)
-			else:
-				# No samples found - write header with message
-				writer.writerow(['No samples found matching the criteria'])
-				
-			return response
+					messages.error(request, 'No samples found for the selected criteria.')
 	
-	return render(request, 'auto_qc/downloader.html', {'form': form})
+			# Check if the user clicked the export CSV button
+			if 'export_csv' in request.POST:
+				# Generate filename using assay type names
+				assay_names = '_'.join([assay.analysis_type_id for assay in assay_types])
+				if len(assay_names) > 50:  # Limit filename length
+					assay_names = assay_names[:47] + '...'
+					
+				# Generate CSV response
+				response = HttpResponse(content_type='text/csv')
+				response['Content-Disposition'] = f'attachment; filename="{assay_names}_samples_{start_date}_to_{end_date}.csv"'
+				response.set_cookie('csvDownload', 'true', max_age=10)  # expires in 10 seconds
+				writer = csv.writer(response)
+
+				if samples.exists():
+					if not selected_data_models:
+						notice = "No data models were selected. Only base fields have been included in the export."
+						# Add it to the filename, or use JS to read from cookie or field
+						response.set_cookie("csvNotice", urllib.parse.quote(notice), max_age=10)
+					# Write CSV data
+					write_wgs_data(writer, samples, selected_data_models)
+
+				return response
+		else:
+			print("Form errors:", form.errors)
+			messages.error(request, 'Form is invalid. Please check your inputs.')
+		
+	context = {
+		'form': form,
+		'plot_html': plot_html,
+		'title': 'Interactive plotter',
+		'selected_data_models': selected_data_models,
+		'selected_x_variable': selected_x,
+    	'selected_y_variable': selected_y,
+		'plot_types': plot_types,
+		'selected_plot_type': plot_type_selection,
+		}	
+		
+	return render(request, 'auto_qc/downloader.html', context)
 
 
 @login_required
 def get_available_data_models(request):
 	"""AJAX endpoint to get available data models for selected assay types"""
-	if request.method == 'POST':
+	if request.method == 'POST':			
 		try:
 			data = json.loads(request.body)
 			assay_type_ids = data.get('assay_type_ids', [])
@@ -395,6 +439,9 @@ def get_available_data_models(request):
 				min_id=Min('sample_id')
 			).values_list('min_id', flat=True)
 			
+			if not samples_distinct:
+				return JsonResponse({'data_models': []})
+			
 			# use sample ids to get complete SampleAnalysis objects and their related fields
 			samples = SampleAnalysis.objects.filter(
 				sample_id__in=samples_distinct
@@ -403,19 +450,58 @@ def get_available_data_models(request):
 			if not samples:
 				return JsonResponse({'data_models': []})
 			
-			# Get available data models
-			available_models = return_data_models(samples)
-			
-			# Debug: Print available models to console
-			print(f"Available models for selected assay types: {available_models}")
+			# Get selected data models
+
+			available_data_models = return_data_models(samples)
 
 			# Format for the frontend
 			data_models_choices = [
 				{'id': model_name, 'name': model_name, 'description': f"Data from {model_name} model"}
-				for model_name in available_models
+				for model_name, model in available_data_models
 			]
+
+			context = {
+				'data_models': data_models_choices,
+			}
+
+			return JsonResponse(context)
 			
-			return JsonResponse({'data_models': data_models_choices})
+		except Exception as e:
+			import traceback
+			print(traceback.format_exc())  # Better error logging
+			return JsonResponse({'error': str(e)}, status=400)
+	
+	return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
+
+@login_required
+def get_available_fields(request):
+	"""AJAX endpoint to get available fields for selected data models"""
+	if request.method == 'POST':			
+		try:
+			data = json.loads(request.body)
+			data_models_ids = data.get('data_model_ids', [])
+			
+			if not data_models_ids:
+				return JsonResponse({'data_fields': []})
+						
+			selected_models = {}
+			
+			for model_name in data_models_ids:
+				selected_models[model_name] = data_models_dict[model_name]
+ 
+			available_data_fields = return_data_fields(selected_models)
+			
+			# Format for the frontend
+			data_fields_choices = [
+				{'id': field_name, 'name': field_name, 'description': f"Data from {field_name} field"}
+				for field_name in available_data_fields
+			]
+
+			context = {
+				'data_fields': data_fields_choices,
+			}
+
+			return JsonResponse(context)
 			
 		except Exception as e:
 			import traceback
