@@ -103,7 +103,7 @@ class TestCNVModels(TestCase):
             manta_count=102,
             exome_depth_count=459,
             exome_depth_autosomal_reference_count=8,
-            exome_depth_x_reference_count=3
+            exome_depth_x_reference_count=4
         )
         self.dragen_cnv_metrics_obj = CNVMetrics.objects.get(sample_analysis=self.sample_analysis_obj)
 
@@ -124,7 +124,7 @@ class TestCNVModels(TestCase):
         max_over_threshold, cnv_fail, total_cnv_count, autosomal_reference_count, x_reference_count = self.sample_analysis_obj.get_exome_cnv_qc_metrics()
         expected_total_cnv_count = 472
         expected_autosomal_reference_count = 8
-        expected_x_reference_count = 3
+        expected_x_reference_count = 4
         self.assertTrue(max_over_threshold)
         self.assertFalse(cnv_fail)
         self.assertEqual(total_cnv_count, expected_total_cnv_count)
