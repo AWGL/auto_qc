@@ -366,7 +366,7 @@ class TestSampleSheet(TestCase):
 		sample_ws_obj = SampleToWorksheet.objects.get(sample=test_sample)
 		referral_test = sample_ws_obj.referral.name
 
-		self.assertEqual(referral_test, 'wes~paediatric_disorders_green')
+		self.assertEqual(referral_test, 'wes~paediatric_disorders_green_wes')
 
 	def test_ctDNA(self):
 		'''
