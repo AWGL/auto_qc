@@ -916,6 +916,11 @@ def parse_dragen_wgs_coverage_metrics_file(dragen_wgs_coverage_metrics_file):
 			new_key = new_key.replace('1x3x', '1x_3x')
 
 			new_key = new_key.replace('0x1x', '0x_1x')
+
+			# Replace any NaN value to a decimal, as that's what the models need
+			if value == "nan":
+
+				value = 0.0
 			
 			if prefix == 'COVERAGE SUMMARY':
 								
