@@ -164,7 +164,13 @@
 
 	{% endif %}
 
+	{% if 'pct_on_target' in checks_to_do %}
 
+	<tr>
+		<td> Min Percent on Target Reads</td>
+		<td> {{run_analysis.min_on_target_reads_warning}} </td>
+
+	{% endif %}
 	
 	{% if 'relatedness' in checks_to_do %}
 
