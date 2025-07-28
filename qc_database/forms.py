@@ -5,7 +5,6 @@ from crispy_forms.bootstrap import Field
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, HTML
 from django.forms import ModelForm
-from .utils.downloader import assay_colours
 import datetime
 
 
@@ -113,9 +112,7 @@ class DataDownloadForm(forms.Form):
 	data models and date range
 	"""
 	assay_type = forms.ModelMultipleChoiceField(
-		queryset=AnalysisType.objects.filter(
-			analysis_type_id__in=[key for key in assay_colours]
-			).order_by('analysis_type_id'),
+		queryset=AnalysisType.objects.all().distinct().order_by('analysis_type_id'),
 		required=True,
 		label="Assay Type",
 		widget=forms.widgets.CheckboxSelectMultiple,

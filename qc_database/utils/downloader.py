@@ -1,25 +1,9 @@
-import csv
-from ..models import *
+from qc_database.models import *
 from django.db.models import Avg, Min, FloatField, IntegerField, DecimalField
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import datetime
-
-# Assays and colours dict - current ones only
-assay_colours = {
-        'FastWGS': 'orange', 
-        'IlluminaTruSightCancer':'olive', 
-        'NGHS-101X': 'cyan', 
-        'NGHS-102X':'coral', 
-        'NonacusFH': 'violet', 
-        'NonocusWES38': 'green', 
-        'TSO500_DNA': 'lavender', 
-        'TSO500_RNA': 'lime', 
-        'WGS':'sienna', 
-        'ctDNA': 'yellow',
-    }
 
 data_models_dict = {
     # "ModelName": [ModelName, per_sample_metrics_boolean] 
@@ -174,7 +158,7 @@ def return_data_fields(models):
     return numeric_field_names
 
 
-def write_wgs_data(writer, samples, data_models):
+def write_data(writer, samples, data_models):
     """
     Write a CSV with all available data for the selected samples
 
@@ -351,8 +335,6 @@ def plotly_dashboard(df, selected_x, selected_y, plot_type):
     Returns:
     plotly.graph_objects.Figure: Interactive plotly figure
     """
-    assay_colour = df["assay_type"].map(assay_colours)
-
     trimmed_x = trim_field_name(selected_x)
     trimmed_y = trim_field_name(selected_y)
     label = plot_types[plot_type]
@@ -404,7 +386,6 @@ def plotly_dashboard(df, selected_x, selected_y, plot_type):
                 boxpoints='all',
                 jitter=0.3,
                 pointpos=0,
-                # marker_color=assay_colour[group['assay_type'].iloc[0]],
                 ),
                 row=1, col=1
             )
@@ -421,7 +402,6 @@ def plotly_dashboard(df, selected_x, selected_y, plot_type):
                 points='all',
                 jitter=0.3,
                 pointpos=0,
-                # line_color=assay_colour[group['assay_type'].iloc[0]],
                 ),
                 row=1, col=1
             )
@@ -433,7 +413,6 @@ def plotly_dashboard(df, selected_x, selected_y, plot_type):
                 x=group[selected_x],
                 y=group[selected_y],
                 name=assay,
-                # marker_color=assay_colour[group['assay_type'].iloc[0]],
                 ),
                 row=1, col=1
             )
@@ -446,7 +425,6 @@ def plotly_dashboard(df, selected_x, selected_y, plot_type):
                 x=group[selected_x],
                 y=group[selected_y],
                 name=assay,
-                # marker_color=assay_colour[group['assay_type'].iloc[0]],
                 ),
                 row=1, col=1
             )

@@ -22,12 +22,9 @@ from .models import SampleAnalysis, RunAnalysis
 from .serializers import SampleAnalysisSerializer, RunAnalysisSerializer
 
 from datetime import datetime as dt
-from .utils.downloader import *
 import json
 import plotly.offline as pyo
-import logging
 import urllib.parse
-logger = logging.getLogger(__name__)
 
 @transaction.atomic
 @login_required
@@ -342,7 +339,6 @@ def downloader(request):
 			assay_types = form.cleaned_data['assay_type']
 			start_date = form.cleaned_data['start_date']
 			end_date = form.cleaned_data['end_date']
-			# selected_data_models = form.cleaned_data['data_models']
 			selected_data_models = request.POST.getlist('data_models')
 			selected_x = request.POST.get('x_variable_to_plot', None)
 			selected_y = request.POST.get('y_variable_to_plot', None)
@@ -358,10 +354,7 @@ def downloader(request):
 			if 'generate_plot' in request.POST:
 				if samples.exists():
 					writer = False
-					df = write_wgs_data(writer, samples, selected_data_models)
-
-					logger.debug(f"selected_x: '{selected_x}', selected_y: '{selected_y}'")
-					logger.debug(f"DataFrame columns: {list(df.columns)}")
+					df = write_data(writer, samples, selected_data_models)
 
 					if not selected_x or not selected_y:
 						messages.error(request, 'Please select both X and Y variables for plotting.')
@@ -400,7 +393,7 @@ def downloader(request):
 						# Add it to the filename, or use JS to read from cookie or field
 						response.set_cookie("csvNotice", urllib.parse.quote(notice), max_age=10)
 					# Write CSV data
-					write_wgs_data(writer, samples, selected_data_models)
+					write_data(writer, samples, selected_data_models)
 
 				return response
 		else:
