@@ -5,10 +5,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.db import transaction
-from django.conf import settings
 from django.http import HttpResponse, JsonResponse
-from django.views.decorators.http import require_http_methods
-from django.views import View
 from django.db.models import Min
 
 from qc_database.models import *
