@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
-
 deploy_location = 'webserver'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -79,7 +78,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
-
 
 # Database
 
