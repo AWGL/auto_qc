@@ -109,7 +109,7 @@ class DragenGE:
 			sample_contamination_metrics_file = list(sample_contamination_metrics_file)
 
 			#Ability to skip this and create empty contamination dict if run is from period of time where contamination was from alignment statistics
-			if len(sample_contamination_metrics_file) is not 0:
+			if len(sample_contamination_metrics_file) != 0:
 
 				sample_contamination_metrics_file = sample_contamination_metrics_file[0]
 				
