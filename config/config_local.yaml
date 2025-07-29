@@ -168,7 +168,7 @@ pipelines:
 
   deepvariant_nextflow-main-NonacusFH:
     results_dir:  '/data/results/'
-    qc_checks: [pct_q30, ntc_contamination, variant_check, coverage, sex_match]
+    qc_checks: [pct_q30, ntc_contamination, variant_check, coverage, sex_match, pct_on_target]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
@@ -176,10 +176,11 @@ pipelines:
     min_variants: 30
     max_variants: 90
     min_coverage: 0.95
+    min_pct_on_target: 0.63
 
   deepvariant_nextflow-development-NonacusFH:
     results_dir:  '/data/results/'
-    qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, coverage, sex_match]
+    qc_checks: [pct_q30, fastqc, ntc_contamination, variant_check, coverage, sex_match, pct_on_target]
     min_q30_score: 0.75
     contamination_cutoff: 0.025
     ntc_contamination_cutoff: 10
@@ -187,6 +188,7 @@ pipelines:
     min_variants: 30
     max_variants: 90
     min_coverage: 0.95
+    min_pct_on_target: 0.63
 
   deepvariant_nextflow-main-AgilentOGTFH:
     results_dir:  '/data/results/'

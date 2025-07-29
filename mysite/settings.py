@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
-
+from django.contrib import messages
 
 deploy_location = 'local'
 
@@ -79,7 +79,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
-
 
 # Database
 
