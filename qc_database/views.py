@@ -1,4 +1,8 @@
 import csv
+from datetime import datetime as dt
+import json
+import urllib.parse
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
@@ -15,13 +19,10 @@ from qc_database.utils.downloader import *
 
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from .models import SampleAnalysis, RunAnalysis
 from .serializers import SampleAnalysisSerializer, RunAnalysisSerializer
 
-from datetime import datetime as dt
-import json
 import plotly.offline as pyo
-import urllib.parse
+
 
 @transaction.atomic
 @login_required
