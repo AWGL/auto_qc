@@ -1,24 +1,24 @@
 from io import StringIO, TextIOWrapper
 from datetime import datetime
 from itertools import cycle, islice
-
-import numpy
 import subprocess
 
-from django.shortcuts import render, redirect, get_object_or_404
+import numpy as np
+
+from django.shortcuts import render, get_object_or_404
 from django.core.management import call_command
 from django.http import HttpResponse
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
-from django.forms import formset_factory
-from django.contrib.messages import get_messages
 from django.contrib import messages
 from sample_sheet.utils import import_worksheet_data
 from django import forms
 from django.conf import settings
 
-from sample_sheet.models import Assay, IndexSet, Worksheet, SampleToWorksheet, IndexToIndexSet, Index, Sample
-from .forms import TechSettingsForm, DownloadSamplesheetButton, EditIndexForm, uploadQuery, EditSampleNotesForm, ClinSciSignoffForm, ClinSciOpenWorksheetForm, TechteamSignoffForm, TechteamOpenWorksheetForm, EditSampleDetailsForm, ResetIndexForm, CreateFamilyForm, ClearFamilyForm, AdvancedDownloadForm, ClearUrgentForm
+from sample_sheet.models import Assay, IndexSet, Worksheet, SampleToWorksheet, IndexToIndexSet, Sample
+from .forms import (TechSettingsForm, DownloadSamplesheetButton, EditIndexForm, uploadQuery,
+					 EditSampleNotesForm, ClinSciSignoffForm, ClinSciOpenWorksheetForm, TechteamSignoffForm, TechteamOpenWorksheetForm,
+					 EditSampleDetailsForm, ResetIndexForm, CreateFamilyForm, ClearFamilyForm, AdvancedDownloadForm, ClearUrgentForm)
 
 
 ########## home page ################
@@ -578,7 +578,7 @@ def view_worksheet_samples(request, service_slug, worksheet_id):
 						hpo_id_list = cleaned_data['hpo_ids'].replace(' ','').upper().split(',')
 
 						## make sure values all unique
-						hpo_id_list = numpy.unique(hpo_id_list)
+						hpo_id_list = np.unique(hpo_id_list)
 
 						## remove blank instances in case of careless comma use
 						hpo_id_list= list(filter(None, hpo_id_list))

@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from ...utils import generate_ss_data_dict, combine_ss_data_dict
 from ...models import Worksheet
 
@@ -178,9 +178,15 @@ class Command(BaseCommand):
 					fam_desc = ''
 					affected_desc = ''
 
+				## if approx_age_in_months is populated then add to description
+				if 'approx_age_in_months' in values:
+					approx_age_desc = f';age_months={values["approx_age_in_months"]}'
+				else:
+					approx_age_desc = ';age_months=None'
+
 
 				## build description field for WINGS
-				description_field = f'{description_dict[sample_assay]}{sex_desc}{referral_desc}{hpo_desc}{fam_desc}{affected_desc}'
+				description_field = f'{description_dict[sample_assay]}{sex_desc}{referral_desc}{hpo_desc}{fam_desc}{affected_desc}{approx_age_desc}'
 
 
 			## if TSO500RNA or DNA is main assay, add DNA/RNA field to dict for relevant samples. Then deal with description field
@@ -343,6 +349,12 @@ class Command(BaseCommand):
 				else:
 					hpo_desc = ';hpoId=None'
 
+				## if approx_age_in_months is populated then add to description
+				if 'approx_age_in_months' in values:
+					approx_age_desc = f';age_months={values["approx_age_in_months"]}'
+				else:
+					approx_age_desc = ';age_months=None'
+
 				## if familyid is populated then generate paternal/maternal ids from familydict
 				if values['Familyid']:
 					familyid = values['Familyid']
@@ -383,7 +395,7 @@ class Command(BaseCommand):
 
 
 				## build description field for WINGS
-				description_field = f'{description_dict[assay]}{sex_desc}{referral_desc}{hpo_desc}{fam_desc}{affected_desc}'
+				description_field = f'{description_dict[assay]}{sex_desc}{referral_desc}{hpo_desc}{fam_desc}{affected_desc}{approx_age_desc}'
 
 
 			## if TSO500RNA or DNA is main assay, add DNA/RNA field to dict for relevant samples.
