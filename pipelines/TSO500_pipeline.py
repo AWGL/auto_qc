@@ -303,6 +303,13 @@ class TSO500_DNA():
 
 		return fastqc_dict
 
+	def get_somalier_data(self):
+		somalier_dict = {
+			"Max relatedness": 0.6,
+			"Max homozygous concordance": 0.6
+			}
+		
+		return somalier_dict
 
 class TSO500_RNA():
 	"""

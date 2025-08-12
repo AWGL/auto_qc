@@ -53,7 +53,10 @@ def view_run_analysis(request, pk):
 		analysis_type = run_analysis.analysis_type
 	).order_by('worksheet', 'sample')
 
-	relatedness = RelatednessQuality.objects.filter(run_analysis = run_analysis)
+	if run_analysis.max_relatedness is not None:
+		relatedness = None
+	else:
+		relatedness = RelatednessQuality.objects.filter(run_analysis = run_analysis)
 
 	run_level_qualities = InteropRunQuality.objects.filter(run = run_analysis.run)
 

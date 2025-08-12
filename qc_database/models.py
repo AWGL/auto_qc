@@ -190,7 +190,8 @@ class RunAnalysis(models.Model):
 	display_cnv_qc_metrics=models.BooleanField(default=False)
 	min_average_coverage_cutoff=models.IntegerField(null=True, blank=True)
 	min_on_target_reads_warning = models.DecimalField(max_digits=6, decimal_places=3, default=0.63)
-
+	max_relatedness = models.DecimalField(max_digits=4, decimal_places=3, null=True, blank=True)
+	max_hom_concordance = models.DecimalField(max_digits=4, decimal_places=3, null=True, blank=True)
 	#for TSO500 only- ntc contamination for other runs in sampleAnalysis object
 	max_ntc_contamination = models.IntegerField(null=True, blank=True)
 
@@ -321,6 +322,34 @@ class RunAnalysis(models.Model):
 		if len(relatedness_obj) == 1:
 
 			return relatedness_obj[0].results_valid, relatedness_obj[0].comment
+
+		return False, 'Oops'
+
+	def passes_somalier_max_relatedness(self):
+
+		relatedness_obj = SomalierRelatedness.objects.filter(run_analysis = self)
+
+		if len(relatedness_obj) == 1:
+			if relatedness_obj[0].max_relatedness < self.max_relatedness:
+				
+				return True, relatedness_obj[0].max_relatedness
+			else:
+				return False, relatedness_obj[0].max_relatedness
+			return relatedness_obj[0].max_relatedness
+
+		return False, 'Oops'
+
+	def passes_somalier_max_hom_concordance(self):
+
+		relatedness_obj = SomalierRelatedness.objects.filter(run_analysis = self)
+
+		if len(relatedness_obj) == 1:
+			if relatedness_obj[0].max_hom_concordance < self.max_hom_concordance:
+				
+				return True, relatedness_obj[0].max_hom_concordance
+			else:
+				return False, relatedness_obj[0].max_hom_concordance
+			return relatedness_obj[0].max_hom_concordance
 
 		return False, 'Oops'
 
@@ -552,6 +581,16 @@ class RunAnalysis(models.Model):
 					reasons_to_fail.append('Fusion Aligned Reads Unique Fail')
 					fail_samples.append(sample.sample.sample_id)
 
+		if 'somalier_relatedness' in checks_to_do:
+
+			if self.passes_somalier_max_relatedness()[0] == False:
+
+				reasons_to_fail.append(f'Somalier Relatedness Fail: {self.passes_somalier_max_relatedness()[1]}')
+
+			if self.passes_somalier_max_hom_concordance()[0] == False:
+
+				reasons_to_fail.append(f'Somalier Hom Concordance Fail: {self.passes_somalier_max_hom_concordance()[1]}')
+
 		if len(reasons_to_fail) ==0:
 
 			return True, ['All Pass']
@@ -572,6 +611,16 @@ class RelatednessQuality(models.Model):
 	def __str__(self):
 		return str(self.run_analysis) + " - " + str(self.results_valid)
 
+class SomalierRelatedness(models.Model):
+	"""
+	Model to calculate whether relatedness passes or fails
+	"""
+	run_analysis = models.ForeignKey(RunAnalysis, on_delete=models.CASCADE)
+	max_relatedness = models.DecimalField(max_digits=4, decimal_places=3)
+	max_hom_concordance = models.DecimalField(max_digits=4, decimal_places=3)
+
+	def __str__(self):
+		return str(self.run_analysis)
 
 class SampleAnalysis(models.Model):
 	"""

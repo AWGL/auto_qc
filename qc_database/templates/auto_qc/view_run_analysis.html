@@ -143,6 +143,21 @@
 	{% endif %}
 
 
+	{% if 'somalier_relatedness' in checks_to_do %}
+
+	<tr>
+		<td> Max Max Relatedness </td>
+		<td> {{run_analysis.max_relatedness}} </td>
+
+	</tr>
+	<tr>
+		<td> Max Max Homozygous Concordance </td>
+		<td> {{run_analysis.max_hom_concordance}} </td>
+
+	</tr>
+	{% endif %}
+
+
 	{% if 'coverage' in checks_to_do %}
 
 	<tr>
@@ -400,6 +415,56 @@
 
 	</tbody>
 </table>
+
+{% endif %}
+
+<br>
+
+{% if 'somalier_relatedness' in checks_to_do %}
+
+<h5> Relatedness </h5>
+
+<table class="table table-hover table-bordered table-sm">
+
+  <thead>
+	<tr>
+	  <th>Somalier metric</th>
+	  <th>Value</th>
+	 </tr>
+
+	
+	</thead>
+
+	<tbody>
+		<tr>
+		{% if run_analysis.passes_somalier_max_relatedness.0 == True %}
+		<td class="table-success col-6"> Max Relatedness </td>
+		<td class="table-success col-6"> {{run_analysis.passes_somalier_max_relatedness.1}} </td>
+
+		{% else %}
+
+		<td class="table-warning col-6"> Max Relatedness </td>
+		<td class="table-warning col-6"> {{run_analysis.passes_somalier_max_relatedness.1}} </td>
+
+		{% endif %}
+		</tr>
+		
+		<tr>
+		{% if run_analysis.passes_somalier_max_hom_concordance.0 == True %}
+		<td class="table-success col-6"> Max Homozygous Concordance </td>
+		<td class="table-success col-6"> {{run_analysis.passes_somalier_max_hom_concordance.1}} </td>
+
+		{% else %}
+
+		<td class="table-warning col-6"> Max Homozygous Concordance </td>
+		<td class="table-warning col-6"> {{run_analysis.passes_somalier_max_hom_concordance.1}} </td>
+
+		{% endif %}
+		</tr>
+	</tbody>
+</table>
+
+<br>
 
 {% endif %}
 

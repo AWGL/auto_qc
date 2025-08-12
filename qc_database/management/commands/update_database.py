@@ -158,6 +158,8 @@ class Command(BaseCommand):
 
 						checks_to_try = config_dict['pipelines'][run_config_key]['qc_checks']
 						checks_to_try_dict=dict(zip(checks_to_try, checks_to_try))
+						print(checks_to_try)
+						print(checks_to_try_dict)
 						checks_to_try=','.join(checks_to_try)
 
 
@@ -400,7 +402,22 @@ class Command(BaseCommand):
 
 									raise Exception ("ERROR: Relatedness values not in config file")
 
+							if 'somalier_relatedness' in checks_to_try_dict:
 
+								try:
+
+									max_relatedness = config_dict['pipelines'][run_config_key]['max_relatedness']
+									max_hom_concordance = config_dict['pipelines'][run_config_key]['max_hom_concordance']
+
+									if created:
+
+										new_run_analysis_obj.max_relatedness = max_relatedness
+										new_run_analysis_obj.max_hom_concordance = max_hom_concordance
+
+								except:
+
+									raise Exception ("ERROR: Somalier relatedness values not in config file")
+								
 							if 'ntc_contamination_TSO500' in checks_to_try_dict:
 
 								try:
@@ -1326,7 +1343,7 @@ class Command(BaseCommand):
 							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
 							fastqc_dict = tso500.get_fastqc_data()
 							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
-							
+							#
 							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
 							ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict= tso500.ntc_contamination()
 							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
@@ -1347,6 +1364,10 @@ class Command(BaseCommand):
 							ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict= tso500.ntc_contamination()
 							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
 
+							logger.info (f'Putting somalier relatedness data into db for run {run_analysis.run.run_id}')
+							somalier_dict = tso500.get_somalier_data()
+							management_utils.add_somalier_data(somalier_dict, run_analysis)
+					
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
 
