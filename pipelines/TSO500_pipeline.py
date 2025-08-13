@@ -307,7 +307,6 @@ class TSO500_DNA():
 
 		results_dir_path = Path(self.results_dir)
 		full_results_path = results_dir_path.joinpath("DNA_Analysis/results/relatedness/relate")
-		print("Temporary test path: ", full_results_path)
 		somalier_max_pairs_files = list(full_results_path.glob('*_somalier.max_pairs.tsv'))
 		if somalier_max_pairs_files:
 			somalier_max_pairs_file = somalier_max_pairs_files[0]
@@ -318,7 +317,6 @@ class TSO500_DNA():
 			"Max relatedness": max_relatedness,
 			"Max homozygous concordance": max_hom_concordance
 			}
-		print("Somalier data: ", somalier_dict)
 		return somalier_dict
 
 class TSO500_RNA():

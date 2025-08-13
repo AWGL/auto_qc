@@ -259,7 +259,7 @@ pipelines:
 
 
   TSO500-master-TSO500_DNA:
-    results_dir:  '/home/ant/Documents/projects/Somalier_files/somalier_testing/results/'
+    results_dir:  '/data/results/'
     min_q30_score: 0.8
     max_ntc_contamination: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination_TSO500, somalier_relatedness]
