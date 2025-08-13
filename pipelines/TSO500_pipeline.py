@@ -304,11 +304,21 @@ class TSO500_DNA():
 		return fastqc_dict
 
 	def get_somalier_data(self):
+
+		results_dir_path = Path(self.results_dir)
+		full_results_path = results_dir_path.joinpath("DNA_Analysis/results/relatedness/relate")
+		print("Temporary test path: ", full_results_path)
+		somalier_max_pairs_files = list(full_results_path.glob('*_somalier.max_pairs.tsv'))
+		if somalier_max_pairs_files:
+			somalier_max_pairs_file = somalier_max_pairs_files[0]
+			max_hom_concordance, max_relatedness = parsers.parse_somalier_max_pairs_file(somalier_max_pairs_file)
+		else:
+			max_hom_concordance, max_relatedness = None, None
 		somalier_dict = {
-			"Max relatedness": 0.6,
-			"Max homozygous concordance": 0.6
+			"Max relatedness": max_relatedness,
+			"Max homozygous concordance": max_hom_concordance
 			}
-		
+		print("Somalier data: ", somalier_dict)
 		return somalier_dict
 
 class TSO500_RNA():

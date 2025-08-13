@@ -1348,6 +1348,9 @@ class Command(BaseCommand):
 							ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict= tso500.ntc_contamination()
 							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
 
+							logger.info (f'Putting somalier relatedness data into db for run {run_analysis.run.run_id}')
+							somalier_dict = tso500.get_somalier_data()
+							management_utils.add_somalier_data(somalier_dict, run_analysis)
 						else:
 
 							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')

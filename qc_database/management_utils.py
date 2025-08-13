@@ -911,6 +911,6 @@ def add_somalier_data(somalier_dict, run_analysis_obj):
 	"""
 	somalier_objects = SomalierRelatedness.objects.create(
 		run_analysis=run_analysis_obj,
-		max_relatedness= somalier_dict['max_relatedness'],
-		max_hom_concordance= somalier_dict['max_hom_concordance'],
+		max_relatedness= somalier_dict["Max relatedness"],
+		max_hom_concordance= somalier_dict["Max homozygous concordance"],
 		)
