@@ -16,9 +16,9 @@ from django import forms
 from django.conf import settings
 
 from sample_sheet.models import Assay, IndexSet, Worksheet, SampleToWorksheet, IndexToIndexSet, Sample
-from .forms import (TechSettingsForm, DownloadSamplesheetButton, EditIndexForm, uploadQuery,
-					 EditSampleNotesForm, ClinSciSignoffForm, ClinSciOpenWorksheetForm, TechteamSignoffForm, TechteamOpenWorksheetForm,
-					 EditSampleDetailsForm, ResetIndexForm, CreateFamilyForm, ClearFamilyForm, AdvancedDownloadForm, ClearUrgentForm)
+from .forms import (TechSettingsForm, DownloadSamplesheetButton, EditIndexForm, uploadQuery,EditSampleNotesForm, ClinSciSignoffForm,
+					ClinSciOpenWorksheetForm, TechteamSignoffForm, TechteamOpenWorksheetForm, EditSampleDetailsForm, ResetIndexForm,
+					CreateFamilyForm, ClearFamilyForm, AdvancedDownloadForm, ClearUrgentForm)
 
 
 ########## home page ################
