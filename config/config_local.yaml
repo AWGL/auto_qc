@@ -284,10 +284,11 @@ pipelines:
 
 
   tso500_ctdna-master-ctDNA:
+    run_completed_files: ['post_processing_finished.txt']
     results_dir: '/data/results/'
     min_q30_score: 0.8
     ntc_contamination_cutoff: 10
     qc_checks: [pct_q30, fastqc, ntc_contamination]
     sample_completed_files: ['*_fusion_check.csv', '*_variants.tsv', '*_coverage.json']
-    run_completed_files: ['postprocessing_complete.txt']
+    run_completed_files: ['post_processing_finished.txt']
     metrics_file: ['QC_combined.txt']

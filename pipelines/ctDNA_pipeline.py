@@ -30,6 +30,7 @@ class TSO500_ctDNA():
 		"""
 
 		results_path = Path(self.results_dir)
+		results_path = results_path.joinpath('post_processing/results')
 
 		found_file_list = []
 
@@ -46,6 +47,41 @@ class TSO500_ctDNA():
 			return True
 		
 		return False
+	
+	def run_is_valid(self):
+		"""
+		Is the ctDNA run Valid?
+
+		Checks contents of post_processing_finished file
+
+		"""
+
+		if self.run_is_complete():
+
+			results_dir_path = Path(self.results_dir)
+			full_results_path = results_dir_path.joinpath("post_processing/results")
+			
+			marker_name=self.run_completed_files[0]
+		
+			marker = full_results_path.glob(marker_name)
+			
+			marker = list(marker)[0]
+
+			# last line in file
+			last_report = ''
+
+			with open(marker, 'r') as outfile:
+
+				for x in outfile:
+					last_report = x.strip()
+
+			if 'success' in last_report:
+
+				return True
+			
+			else:
+
+				return False
 
 
 	def sample_is_valid(self, sample):
@@ -56,7 +92,7 @@ class TSO500_ctDNA():
 
 		"""
 		results_dir_path = Path(self.results_dir)
-		results_path = results_dir_path.joinpath('post_processing')
+		results_path = results_dir_path.joinpath('post_processing/results/')
 
 		found_file = results_path.glob(self.metrics_file[0])
 		
@@ -96,7 +132,7 @@ class TSO500_ctDNA():
 		for sample_completed_file in self.sample_completed_files:
 			
 			#found_files = results_path.joinpath(f'post_processing/database/{sample}').glob(sample_completed_file)
-			found_files = glob.glob(f"{results_path}/post_processing/database/{sample}{sample_completed_file}")
+			found_files = glob.glob(f"{results_path}/post_processing/results/database/{sample}{sample_completed_file}")
 
 			if len(found_files) == 0:
 				# we would expect at least one file each for variants, fusions and coverage
@@ -116,7 +152,7 @@ class TSO500_ctDNA():
 		for sample in self.sample_names:
 
 			results_dir_path = Path(self.results_dir)
-			results_path = results_dir_path.joinpath('post_processing')
+			results_path = results_dir_path.joinpath('post_processing/results')
 
 			for file in self.metrics_file:
 
@@ -167,7 +203,7 @@ class TSO500_ctDNA():
 		"""
 
 		results_path = Path(self.results_dir)
-		dragen_fastqc_metrics_files = glob.glob(f'{results_path}/post_processing/FastQC/*-dragen_fastq_qc.txt')
+		dragen_fastqc_metrics_files = glob.glob(f'{results_path}/post_processing/results/fastqc/*-dragen_fastq_qc.txt')
 
 		if len(dragen_fastqc_metrics_files) >= 1:
 			fastqc_metrics = "DragenFastQC"
@@ -188,7 +224,7 @@ class TSO500_ctDNA():
 
 			results_path = Path(self.results_dir)
 
-			fastqc_data_files = results_path.glob(f'post_processing/FastQC/*{sample}*_fastqc.txt')
+			fastqc_data_files = results_path.glob(f'post_processing/results/fastqc/*{sample}*_fastqc.txt')
 
 			sample_fastqc_list = []
 
@@ -236,7 +272,7 @@ class TSO500_ctDNA():
 
 			results_path = Path(self.results_dir)
 
-			dragen_fastqc_metrics_file = f'{results_path}/post_processing/FastQC/{self.run_id}-{sample}-dragen_fastq_qc.txt'
+			dragen_fastqc_metrics_file = f'{results_path}/post_processing/results/fastqc/{self.run_id}-{sample}-dragen_fastq_qc.txt'
 
 			parsed_dragen_fastqc_data = parsers.parse_dragen_fastqc_file(dragen_fastqc_metrics_file)
 

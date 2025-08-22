@@ -1413,14 +1413,7 @@ class Command(BaseCommand):
 						sample_analysis_obj.save()
 
 					run_complete = ctDNA.run_is_complete()
-					
-					if run_complete == True:
-					
-						run_valid = True
-						
-					else:
-					
-						run_valid = False
+					run_valid = ctDNA.run_is_valid()
 
 					if run_analysis.results_completed == False and run_complete == True:
 

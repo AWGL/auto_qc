@@ -301,7 +301,7 @@ class TestPipelineMonitoring(unittest.TestCase):
 			results_dir = 'test_data/ctDNA_test'
 			ctDNA = ctDNA_pipeline.TSO500_ctDNA(results_dir = 'test_data/ctDNA_test/',
 																sample_completed_files= ['*_fusion_check.csv', '*_variants.tsv', '*_coverage.json'],
-																run_completed_files =['postprocessing_complete.txt'],
+																run_completed_files =['post_processing_finished.txt'],
 																metrics_file=['QC_combined.txt'],
 																run_id = 'run1',
 																sample_names = ['Sample1', 'Sample2', 'Sample3', 'NTC-TEST'])
@@ -310,7 +310,10 @@ class TestPipelineMonitoring(unittest.TestCase):
 			#run complete
 			run_complete= ctDNA.run_is_complete()
 			self.assertEqual(run_complete, True)
-		
+
+			#run valid
+			run_valid = ctDNA.run_is_valid()
+			self.assertEqual(run_valid, True)
 		
 			#samples complete
 			sample_complete=ctDNA.sample_is_complete(sample='Sample1')
@@ -353,3 +356,4 @@ class TestPipelineMonitoring(unittest.TestCase):
 			self.assertEqual(ntc_contamination[0].get('NTC-TEST'), 71)
 			self.assertEqual(ntc_contamination[1].get('NTC-TEST'), 100)
 			
+
