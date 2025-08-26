@@ -269,8 +269,8 @@ pipelines:
     run_completed_files: ['post_processing_finished.txt']
     run_expected_files: []
     metrics_file: ['*_ntc_cont.txt','*_fastqc_status.txt','_read_number.txt']
-    max_relatedness: 0.6
-    max_hom_concordance: 0.6
+    max_max_relatedness: 0.7
+    max_max_hom_concordance: 0.7
 
 
   TSO500-master-TSO500_RNA:

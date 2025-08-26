@@ -1116,11 +1116,11 @@ def parse_exome_postprocessing_cnv_qc_metrics(cnv_qc_metrics_file):
 
 def parse_somalier_max_pairs_file(somalier_max_pairs_file):
 	"""
-	Parse the coverage summary file from germline enrichment nextflow
+	Parse the somalier max pairs file to get the max hom concordance and max relatedness
 	"""
 	with open(somalier_max_pairs_file) as file:
-		coverage_file = csv.reader(file, delimiter='\t')
-		rows = list(coverage_file)
+		max_pairs_file = csv.reader(file, delimiter='\t')
+		rows = list(max_pairs_file)
 
 		# Ensure there are enough rows and columns
 		max_hom_concordance = rows[1][3] if len(rows) > 1 and len(rows[1]) > 3 else None

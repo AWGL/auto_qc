@@ -304,7 +304,9 @@ class TSO500_DNA():
 		return fastqc_dict
 
 	def get_somalier_data(self):
-
+		"""
+		Get the somalier data for TSO500 DNA
+		"""
 		results_dir_path = Path(self.results_dir)
 		full_results_path = results_dir_path.joinpath("DNA_Analysis/results/relatedness/relate")
 		somalier_max_pairs_files = list(full_results_path.glob('*_somalier.max_pairs.tsv'))
