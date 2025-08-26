@@ -4,8 +4,8 @@ from django.conf import settings
 from django.db import models
 
 
-# Create your models here.
-class Assay (models.Model):
+
+class Assay(models.Model):
 
 	assay_slug = models.CharField(max_length=20, primary_key=True)
 	assay_name = models.CharField(max_length=20)
@@ -168,7 +168,8 @@ class Worksheet(models.Model):
 				'index2': s.index2,
 				'pool': s.pool,
 				'sample_obj': s,
-				'edited': s.edited
+				'edited': s.edited,
+				'approx_age_in_months': s.approx_age_in_months
 			}
 
 		return sample_dict
@@ -388,9 +389,9 @@ class SampleToWorksheet(models.Model):
 		('N2', 'Not in pool - include index'),
 	]
 
-	sample = models.ForeignKey('Sample', on_delete=models.PROTECT) # TODO related name
-	worksheet = models.ForeignKey('Worksheet', on_delete=models.CASCADE) # TODO related name
-	referral = models.ForeignKey('ReferralType', on_delete=models.PROTECT, default='null') #, related_name='custom_index1'
+	sample = models.ForeignKey('Sample', on_delete=models.PROTECT)
+	worksheet = models.ForeignKey('Worksheet', on_delete=models.CASCADE) 
+	referral = models.ForeignKey('ReferralType', on_delete=models.PROTECT, default='null') 
 	hpo_ids = models.CharField(max_length=1000, blank=True, null=True)
 	pos = models.IntegerField()
 	index1 = models.ForeignKey('Index', on_delete=models.PROTECT, related_name='sample_index1', blank=True, null=True)
@@ -399,6 +400,7 @@ class SampleToWorksheet(models.Model):
 	edited = models.BooleanField(default=False)
 	notes = models.CharField(max_length=200, blank=True, null=True)
 	urgent = models.BooleanField(default=False, null=True, blank=True)
+	approx_age_in_months = models.IntegerField(blank=True, null=True, default=None)
 
 	def __str__(self):
 

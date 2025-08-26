@@ -1,8 +1,10 @@
 import csv
-import numpy
+import datetime
+
+import numpy as np
 
 from django.shortcuts import get_object_or_404
-from sample_sheet.models import *
+from sample_sheet.models import Worksheet, ReferralType, SampleToWorksheet, Sample, Assay
 
 
 def import_worksheet_data(filepath):
@@ -52,7 +54,7 @@ def import_worksheet_data(filepath):
 
     ## LOGIC CHECK for formatting to prevent partial failures/uploads
     ## check all columns are present and correctly named
-    if list(dict.keys(shire_query[0])) != ['LABNO', 'POSITION', 'WORKSHEET', 'TEST', 'COMMENTS', 'UPDATEDDATE', 'REASON_FOR_REFERRAL', 'FIRSTNAME', 'LASTNAME', 'SEX']:
+    if list(dict.keys(shire_query[0]))[0:10] != ['LABNO', 'POSITION', 'WORKSHEET', 'TEST', 'COMMENTS', 'UPDATEDDATE', 'REASON_FOR_REFERRAL', 'FIRSTNAME', 'LASTNAME', 'SEX']:
         message = 'Worksheet not uploaded. Column formatting is not as expected, please check the input file'
         if debug_notes:
             print(message)
@@ -68,7 +70,7 @@ def import_worksheet_data(filepath):
     for item in shire_query:
         sampleid_list.append(item['LABNO'])
 
-    unique_sampleID = numpy.unique(sampleid_list)
+    unique_sampleID = np.unique(sampleid_list)
 
     if len(unique_sampleID) != len(sampleid_list):
         message = 'Worksheet not uploaded. Duplicate sampleId found, please check the input file'
@@ -290,7 +292,7 @@ def import_worksheet_data(filepath):
                     referral_name = 'fh' # does this need to be changed if there are two
                     shire_referral_name = 'FH' # N/A
 
-		## overwrite all FH-Nonacus referral types on DB
+		        ## overwrite all FH-Nonacus referral types on DB
                 elif assay_name == 'FH-Nonacus':
                     referral_name = 'fh' # does this need to be changed if there are two
                     shire_referral_name = 'FH' # N/A
@@ -341,14 +343,39 @@ def import_worksheet_data(filepath):
             if debug_notes:
                 print(sample_obj, created)
 
+            if 'DOB' in sample:
 
+                # format '14-Feb-93'
+                dob = sample['DOB']
+                ## convert DOB to approx age in months
+                dob_date = datetime.datetime.strptime(dob, '%d-%b-%y')
+                today = datetime.datetime.today()
+                approx_age_in_months = (today.year - dob_date.year) * 12 + (today.month - dob_date.month)
+
+                if 'FIRSTNAME' in sample:
+
+                    # fetus get given mum DOB set to -1
+                    if sample['FIRSTNAME'][0:8] == 'Fetus of':
+
+                        approx_age_in_months = -1
+
+            else:
+                ## if no DOB, set approx age in months to None
+                approx_age_in_months = None
+
+                if assay_translate_dict[assay_type] == 'WGS' or assay_translate_dict[assay_type] == 'WES':
+
+                    print('WARNING: No DOB found for WGS or WES sample. This is required for AI in VariantBank.')
+                    
             ## get or create sample to worksheet link object
             sample_ws_obj, created = SampleToWorksheet.objects.get_or_create(
                 sample = sample_obj,
                 referral = referral_obj,
                 worksheet = worksheet_obj,
-                pos = sample['POSITION']
+                pos = sample['POSITION'],
+                approx_age_in_months = approx_age_in_months
             )
+
             if debug_notes:
                 print(sample_ws_obj, created)
 
@@ -393,6 +420,7 @@ def generate_ss_data_dict(worksheet, position_offset=0):
                             'FamilyPos' : values['familypos'],
                             'Index_Well' : values['sample_obj'].index1.index_well,
                             'Urgent': values['sample_obj'].urgent,
+                            'approx_age_in_months': values['approx_age_in_months']
         }
         ## if second index exists add values to dictionary, else make ''
         if values['index2']:
