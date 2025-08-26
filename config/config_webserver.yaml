@@ -262,13 +262,15 @@ pipelines:
     results_dir:  '/mnt/wren/wren_results/results/'
     min_q30_score: 0.8
     max_ntc_contamination: 10
-    qc_checks: [pct_q30, fastqc, ntc_contamination_TSO500]
+    qc_checks: [pct_q30, fastqc, ntc_contamination_TSO500, somalier_relatedness]
     min_fastq_size: 0
     sample_completed_files: ['*variants.tsv', '*_coverage.json']
     sample_valid_files: []
     run_completed_files: ['post_processing_finished.txt']
     run_expected_files: []
     metrics_file: ['*_ntc_cont.txt','*_fastqc_status.txt','_read_number.txt']
+    max_max_relatedness: 0.7
+    max_max_hom_concordance: 0.7
 
 
   TSO500-master-TSO500_RNA:

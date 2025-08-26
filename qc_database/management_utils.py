@@ -903,3 +903,14 @@ def add_ctdna_ntc_contamination(aligned_reads_dict, ntc_contamination_aligned_re
 			new_reads_obj = ctDNAReads(sample_analysis = sample_analysis_obj, aligned_reads=aligned_reads, percent_ntc_contamination=ntc_contamination_aligned_reads)
 
 			new_reads_obj.save()
+
+
+def add_somalier_data(somalier_dict, run_analysis_obj):
+	"""
+	Add data from somalier files to database.
+	"""
+	somalier_objects = SomalierRelatedness.objects.create(
+		run_analysis=run_analysis_obj,
+		max_relatedness= somalier_dict["Max relatedness"],
+		max_hom_concordance= somalier_dict["Max homozygous concordance"],
+		)

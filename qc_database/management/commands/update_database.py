@@ -400,7 +400,22 @@ class Command(BaseCommand):
 
 									raise Exception ("ERROR: Relatedness values not in config file")
 
+							if 'somalier_relatedness' in checks_to_try_dict:
 
+								try:
+
+									max_max_relatedness = config_dict['pipelines'][run_config_key]['max_max_relatedness']
+									max_max_hom_concordance = config_dict['pipelines'][run_config_key]['max_max_hom_concordance']
+
+									if created:
+
+										new_run_analysis_obj.max_max_relatedness = max_max_relatedness
+										new_run_analysis_obj.max_max_hom_concordance = max_max_hom_concordance
+
+								except:
+
+									raise Exception ("ERROR: Somalier relatedness values not in config file")
+								
 							if 'ntc_contamination_TSO500' in checks_to_try_dict:
 
 								try:
@@ -1300,14 +1315,14 @@ class Command(BaseCommand):
 
 							if sample_valid == True:
 
-								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level TSO500 successfully.')
+								logger.info(f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has finished sample level TSO500 successfully.')
 
 							else:
-								logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level TSO500.')
+								logger.info(f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has failed sample level TSO500.')
 
 						elif sample_analysis_obj.results_valid == False and sample_valid == True and sample_complete == True:
 
-							logger.info (f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now completed successfully.')
+							logger.info(f'Sample {sample} on run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now completed successfully.')
 
 			
 						sample_analysis_obj.results_completed = sample_complete
@@ -1321,32 +1336,39 @@ class Command(BaseCommand):
 
 						if run_valid == True:
 
-							logger.info (f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info(f'Run {run_analysis.run.run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							logger.info(f'Putting fastqc data into db for run {run_analysis.run.run_id}')
 							fastqc_dict = tso500.get_fastqc_data()
 							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
 							
-							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
+							logger.info(f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
 							ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict= tso500.ntc_contamination()
 							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
 
+							logger.info(f'Putting somalier relatedness data into db for run {run_analysis.run.run_id}')
+							somalier_dict = tso500.get_somalier_data()
+							management_utils.add_somalier_data(somalier_dict, run_analysis)
 						else:
 
-							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info(f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has failed pipeline {run_analysis.pipeline.pipeline_id}')
 
 					elif run_analysis.results_valid == False and run_valid == True and run_complete == True:
 
-							logger.info (f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
+							logger.info(f'Run {run_id} {run_analysis.analysis_type.analysis_type_id} has now successfully completed pipeline {run_analysis.pipeline.pipeline_id}')
 
-							logger.info (f'Putting fastqc data into db for run {run_analysis.run.run_id}')
+							logger.info(f'Putting fastqc data into db for run {run_analysis.run.run_id}')
 							fastqc_dict = tso500.get_fastqc_data()
 							management_utils.add_fastqc_data(fastqc_dict, run_analysis)
 							
-							logger.info (f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
+							logger.info(f'Putting ntc contamination data into db for run {run_analysis.run.run_id}')
 							ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict= tso500.ntc_contamination()
 							management_utils.add_tso500_ntc_contamination(ntc_contamination_dict, total_pf_reads_dict, aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
 
+							logger.info(f'Putting somalier relatedness data into db for run {run_analysis.run.run_id}')
+							somalier_dict = tso500.get_somalier_data()
+							management_utils.add_somalier_data(somalier_dict, run_analysis)
+					
 					run_analysis.results_completed = run_complete
 					run_analysis.results_valid = run_valid
 
@@ -1466,3 +1488,55 @@ class Command(BaseCommand):
 					run_analysis.results_valid = run_valid
 
 					run_analysis.save()
+
+
+def log_sample_status(sample_analysis_obj, sample, run_analysis, sample_complete, sample_valid):
+    run_id = run_analysis.run.run_id
+    analysis_type_id = run_analysis.analysis_type.analysis_type_id
+
+    if not sample_analysis_obj.results_completed and sample_complete:
+        status = "finished sample level successfully" if sample_valid else "failed sample level"
+        logger.info(f"Sample {sample} on run {run_id} {analysis_type_id} has {status}.")
+    elif not sample_analysis_obj.results_valid and sample_valid and sample_complete:
+        logger.info(f"Sample {sample} on run {run_id} {analysis_type_id} has now completed successfully.")
+
+    sample_analysis_obj.results_completed = sample_complete
+    sample_analysis_obj.results_valid = sample_valid
+    sample_analysis_obj.save()
+
+
+def log_run_status(run_analysis, ctDNA, management_utils):
+    run_id = run_analysis.run.run_id
+    analysis_type_id = run_analysis.analysis_type.analysis_type_id
+    pipeline_id = run_analysis.pipeline.pipeline_id
+
+    run_complete = ctDNA.run_is_complete()
+    run_valid = run_complete  # Assuming run_valid is True only if run_complete is True
+
+    def log_pipeline_success():
+        logger.info(f"Run {run_id} {analysis_type_id} has now successfully completed pipeline {pipeline_id}")
+        logger.info(f"Putting fastqc data into db for run {run_id}")
+        fastqc_metrics = ctDNA.determine_fastqc_metrics()
+
+        if fastqc_metrics == "FastQC":
+            fastqc_dict = ctDNA.get_fastqc_data()
+            management_utils.add_fastqc_data(fastqc_dict, run_analysis)
+        elif fastqc_metrics == "DragenFastQC":
+            fastqc_dict = ctDNA.get_dragen_fastqc_data()
+            management_utils.add_dragen_fastqc_data(fastqc_dict, run_analysis)
+
+        logger.info(f"Putting ntc contamination data into db for run {run_id}")
+        aligned_reads_dict, ntc_contamination_aligned_reads_dict = ctDNA.ntc_contamination()
+        management_utils.add_ctdna_ntc_contamination(aligned_reads_dict, ntc_contamination_aligned_reads_dict, run_analysis)
+
+    if not run_analysis.results_completed and run_complete:
+        if run_valid:
+            log_pipeline_success()
+        else:
+            logger.info(f"Run {run_id} {analysis_type_id} has failed pipeline {pipeline_id}")
+    elif not run_analysis.results_valid and run_valid and run_complete:
+        log_pipeline_success()
+
+    run_analysis.results_completed = run_complete
+    run_analysis.results_valid = run_valid
+    run_analysis.save()

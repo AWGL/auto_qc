@@ -1113,3 +1113,17 @@ def parse_exome_postprocessing_cnv_qc_metrics(cnv_qc_metrics_file):
 				cnv_qc_dict[sample][key] = value
 
 	return cnv_qc_dict
+
+def parse_somalier_max_pairs_file(somalier_max_pairs_file):
+	"""
+	Parse the somalier max pairs file to get the max hom concordance and max relatedness
+	"""
+	with open(somalier_max_pairs_file) as file:
+		max_pairs_file = csv.reader(file, delimiter='\t')
+		rows = list(max_pairs_file)
+
+		# Ensure there are enough rows and columns
+		max_hom_concordance = rows[1][3] if len(rows) > 1 and len(rows[1]) > 3 else None
+		max_relatedness = rows[2][2] if len(rows) > 2 and len(rows[2]) > 2 else None
+
+		return max_hom_concordance, max_relatedness
