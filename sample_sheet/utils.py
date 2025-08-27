@@ -130,7 +130,8 @@ def import_worksheet_data(filepath):
         print('checking referral')
 
         # get list of referral types from models
-        expected_referral_list = list(ReferralType.objects.all().values_list('shire_name', flat = True))
+        current_assay = Assay.objects.get(assay_name=assay_translate_dict[assay_type])
+        expected_referral_list = list(ReferralType.objects.filter(assay=current_assay).values_list('shire_name', flat=True))
 
         # check referral types are all expected values
         for key, value in query_dict.items():
