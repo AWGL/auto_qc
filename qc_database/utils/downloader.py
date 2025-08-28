@@ -5,6 +5,20 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+# Assays and colours dict - current ones only
+assay_colours = {
+        'FastWGS': 'orange', 
+        'IlluminaTruSightCancer':'olive', 
+        'NGHS-101X': 'cyan', 
+        'NGHS-102X':'coral', 
+        'NonacusFH': 'violet', 
+        'NonocusWES38': 'green', 
+        'TSO500_DNA': 'lavender', 
+        'TSO500_RNA': 'lime', 
+        'WGS':'sienna', 
+        'ctDNA': 'yellow',
+    }
+
 data_models_dict = {
     # "ModelName": [ModelName, per_sample_metrics_boolean] 
     "InteropRunQuality": [InteropRunQuality, False],
